@@ -1,239 +1,81 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BG5FNH · 个人网页</title>
-  <style>
-    :root {
-      --bg: #0b0b0d;
-      --gold: #c9a86a;
-      --gold-soft: #8a7348;
-      --gold-line: #4a4033;
-      --text: #e6d7b8;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    html,
-    body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      background: var(--bg);
-      overflow: hidden;
-      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", "Segoe UI", sans-serif;
-      color: var(--text);
-      -webkit-font-smoothing: antialiased;
-    }
-
-    #stage {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-    }
-
-    #stage canvas {
-      display: block;
-      cursor: grab;
-    }
-
-    #stage canvas:active {
-      cursor: grabbing;
-    }
-
-    #overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 2;
-      pointer-events: none;
-    }
-
-    .node-hit,
-    .node-label {
-      display: none;
-    }
-
-    .node-hit {
-      position: absolute;
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      pointer-events: auto;
-      transition: box-shadow 0.25s ease, background 0.25s ease;
-    }
-
-    .node-hit:hover {
-      background: rgba(201, 168, 106, 0.08);
-      box-shadow: 0 0 24px rgba(201, 168, 106, 0.45), inset 0 0 12px rgba(201, 168, 106, 0.25);
-    }
-
-    .node-label {
-      position: absolute;
-      transform: translate(-50%, 0);
-      text-align: center;
-      white-space: nowrap;
-      color: var(--gold);
-      font-size: 14px;
-      letter-spacing: 2px;
-      pointer-events: auto;
-      cursor: pointer;
-      text-shadow: 0 0 12px rgba(201, 168, 106, 0.35);
-      transition: color 0.2s ease, text-shadow 0.2s ease;
-    }
-
-    .node-label:hover {
-      color: #f0e2c4;
-      text-shadow: 0 0 18px rgba(201, 168, 106, 0.65);
-    }
-
-    .node-label.big {
-      font-size: 17px;
-      letter-spacing: 3px;
-    }
-
-    #backToOverview {
-      position: fixed;
-      top: 22px;
-      left: 22px;
-      z-index: 5;
-      display: none;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 16px;
-      background: rgba(11, 11, 13, 0.45);
-      border: 1px solid rgba(201, 168, 106, 0.35);
-      border-radius: 999px;
-      color: var(--gold);
-      cursor: pointer;
-      font-size: 14px;
-      letter-spacing: 1px;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      pointer-events: auto;
-      transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
-    }
-
-    #backToOverview:hover {
-      background: rgba(201, 168, 106, 0.12);
-      border-color: var(--gold);
-      color: #f0e2c4;
-      box-shadow: 0 0 18px rgba(201, 168, 106, 0.22);
-    }
-
-    #backToOverview svg {
-      display: block;
-    }
-
-    #hint {
-      position: fixed;
-      left: 50%;
-      bottom: 28px;
-      transform: translateX(-50%);
-      z-index: 3;
-      color: rgba(201, 168, 106, 0.75);
-      font-size: 13px;
-      letter-spacing: 2px;
-      pointer-events: none;
-      text-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
-      transition: opacity 0.6s ease;
-    }
-
-    #fallback {
-      position: fixed;
-      inset: 0;
-      z-index: 9;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      background: var(--bg);
-      color: var(--gold);
-      padding: 30px;
-      line-height: 2;
-    }
-
-    /* 第二击：展示页从金色点浮现，背景神经元模糊但可见 */
-    #pageOverlay {
-      position: fixed;
-      inset: 0;
-      z-index: 8;
-      display: none;
-      pointer-events: none;
-    }
-
-    #pageOverlay.active {
-      display: block;
-      pointer-events: auto;
-    }
-
-    #pageOverlay .page-blur {
-      position: absolute;
-      inset: 0;
-      background: rgba(11, 11, 13, 0.16);
-      backdrop-filter: blur(4px) brightness(0.78);
-      -webkit-backdrop-filter: blur(4px) brightness(0.78);
-      opacity: 0;
-      transition: opacity 0.55s ease;
-    }
-
-    #pageOverlay.active .page-blur {
-      opacity: 1;
-    }
-
-    #pageFrame {
-      position: absolute;
-      left: 2vw;
-      top: 2vh;
-      width: 96vw;
-      height: 96vh;
-      border: 1px solid rgba(201, 168, 106, 0.45);
-      border-radius: 14px;
-      background: transparent;
-      box-shadow: 0 0 70px rgba(201, 168, 106, 0.22), 0 0 0 1px rgba(201, 168, 106, 0.1) inset;
-      overflow: hidden;
-      opacity: 0;
-      transform: scale(0.05);
-      transform-origin: 50% 50%;
-      transition: transform 0.8s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.55s ease;
-    }
-
-    #pageOverlay.active #pageFrame {
-      opacity: 1;
-      transform: scale(1);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BG5FNH · 电脑版</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #0b1120;
+            color: #e6f1ff;
+        }
+        .card {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 32px;
+            padding: 3rem 4rem;
+            text-align: center;
+            max-width: 700px;
+            width: 90%;
+        }
+        .badge {
+            background: #1a73e8;
+            color: white;
+            padding: 0.25rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            display: inline-block;
+        }
+        h1 { font-size: 2.8rem; margin: 0.5rem 0; }
+        .callsign { color: #60a5fa; }
+        .divider {
+            width: 60px;
+            height: 3px;
+            background: #60a5fa;
+            margin: 1.5rem auto;
+            border-radius: 10px;
+        }
+        .device-info {
+            background: rgba(255,255,255,0.05);
+            padding: 0.5rem 1rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            color: #94a3b8;
+            display: inline-block;
+            margin-top: 0.5rem;
+        }
+        .links a {
+            display: inline-block;
+            margin: 0 0.5rem;
+            color: #60a5fa;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .links a:hover { text-decoration: underline; }
+        .footer { margin-top: 2rem; font-size: 0.9rem; color: #64748b; }
+    </style>
 </head>
 <body>
-  <div id="stage"></div>
-  <div id="overlay"></div>
-  <button id="backToOverview" aria-label="返回主视线">
-    <svg viewBox="0 0 24 24" width="20" height="20">
-      <path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
-    </svg>
-    返回主视线
-  </button>
-  <div id="hint">点击金色圆点进入 · 空白处拖动平移 · 双指缩放</div>
-  <div id="fallback">
-    <div>
-      <p>three.js 尚未就位，无法启动 3D 主场景。</p>
-      <p>请将 <code style="color:#f0e2c4;">three.min.js</code> 放入 <code style="color:#f0e2c4;">pc/js/</code> 文件夹。</p>
-      <p>下载地址：<code style="color:#f0e2c4;">https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/build/three.min.js</code></p>
+    <div class="card">
+        <span class="badge">🖥️ 电脑版</span>
+        <h1>👋 你好，我是 <span class="callsign">BG5FNH</span></h1>
+        <p style="font-size: 1.1rem; color: #94a3b8;">业余无线电爱好者 · 浙江杭州</p>
+        <div class="divider"></div>
+        <p>欢迎来到我的个人主页（电脑版）。<br>这里可以展示更丰富的内容，比如通联日志、设备清单、照片墙等。</p>
+        <div class="device-info">📊 您正在使用电脑访问本页面</div>
+        <div class="links" style="margin-top: 1.5rem;">
+            <a href="https://www.qrz.com/db/BG5FNH" target="_blank">📻 QRZ 页面</a>
+            <a href="/" style="color: #64748b;">← 返回首页</a>
+        </div>
+        <div class="footer">📡 73 de BG5FNH</div>
     </div>
-  </div>
-  <div id="pageOverlay">
-    <div class="page-blur"></div>
-    <iframe id="pageFrame" title="内容页面" src="about:blank"></iframe>
-  </div>
-
-  <script src="js/three.min.js"></script>
-  <script src="js/waypoints.js"></script>
-  <script src="js/main3d.js"></script>
 </body>
 </html>
