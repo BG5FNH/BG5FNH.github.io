@@ -3,40 +3,974 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>肖和の主站点&lt;施工中&gt;</title>
+    <title>3D 太空飞船 - 鼠标控制转向</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
+        :root {
+            --hud-color: rgba(100, 200, 255, 0.85);
+            --hud-glow: 0 0 10px rgba(100, 200, 255, 0.5);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
-            /* 背景图 */
-            background-image: url('../bg.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-color: #0b1120;
-
-            /* 让卡片居中 */
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            overflow: hidden;
+            background: #000008;
+            cursor: none;
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        canvas {
+            display: block;
         }
 
-        /* 毛玻璃卡片（空白的） */
-        .card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 32px;
-            padding: 6rem 8rem;  /* 加大内边距，让卡片更大更明显 */
-            max-width: 700px;
-            width: 90%;
-            min-height: 300px;   /* 保证卡片有高度 */
+        /* 十字准星 */
+        #crosshair {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 10;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+        #crosshair .circle {
+            width: 36px;
+            height: 36px;
+            border: 2px solid var(--hud-color);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: var(--hud-glow), inset 0 0 8px rgba(100, 200, 255, 0.3);
+        }
+        #crosshair .dot {
+            width: 4px;
+            height: 4px;
+            background: var(--hud-color);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: var(--hud-glow);
+        }
+        #crosshair .h-line {
+            width: 50px;
+            height: 1px;
+            background: var(--hud-color);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.5;
+        }
+        #crosshair .v-line {
+            width: 1px;
+            height: 50px;
+            background: var(--hud-color);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.5;
+        }
+
+        /* HUD信息面板 */
+        #hud {
+            position: fixed;
+            z-index: 10;
+            pointer-events: none;
+            color: var(--hud-color);
+            text-shadow: var(--hud-glow);
+            font-size: 13px;
+            letter-spacing: 1px;
+        }
+        #hud-top-left {
+            top: 20px;
+            left: 25px;
+            line-height: 1.9;
+        }
+        #hud-top-left .label {
+            font-size: 11px;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        #hud-top-left .value {
+            font-size: 16px;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+        #hud-bottom {
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            font-size: 12px;
+            opacity: 0.7;
+            letter-spacing: 2px;
+        }
+        #hud-bottom .key-hint {
+            display: inline-block;
+            padding: 3px 10px;
+            border: 1px solid var(--hud-color);
+            border-radius: 4px;
+            margin: 0 4px;
+            font-size: 11px;
+            opacity: 0.9;
+        }
+
+        /* 速度指示器 */
+        #speed-bar-container {
+            position: fixed;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            pointer-events: none;
+            width: 200px;
+            text-align: center;
+        }
+        #speed-bar-container .speed-label {
+            color: var(--hud-color);
+            font-size: 11px;
+            letter-spacing: 3px;
+            margin-bottom: 5px;
+            opacity: 0.8;
+        }
+        #speed-bar {
+            width: 100%;
+            height: 3px;
+            background: rgba(100, 200, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        #speed-bar-fill {
+            height: 100%;
+            width: 50%;
+            background: linear-gradient(90deg, #2266aa, #44ccff, #88eeff);
+            border-radius: 2px;
+            box-shadow: 0 0 12px rgba(100, 200, 255, 0.7);
+            transition: width 0.15s ease;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 600px) {
+            #hud-top-left {
+                font-size: 11px;
+                top: 12px;
+                left: 15px;
+            }
+            #hud-top-left .value {
+                font-size: 13px;
+            }
+            #hud-bottom {
+                font-size: 10px;
+                bottom: 15px;
+            }
+            #speed-bar-container {
+                bottom: 50px;
+                width: 150px;
+            }
+            #crosshair .circle {
+                width: 28px;
+                height: 28px;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- 卡片里没有任何文字，只有毛玻璃效果 -->
-    <div class="card"></div>
+
+    <!-- 十字准星 -->
+    <div id="crosshair">
+        <div class="circle"></div>
+        <div class="dot"></div>
+        <div class="h-line"></div>
+        <div class="v-line"></div>
+    </div>
+
+    <!-- HUD 左上角信息 -->
+    <div id="hud" id="hud-top-left">
+        <div class="label">偏航角 Yaw</div>
+        <div class="value" id="hud-yaw">0.0°</div>
+        <div style="height:8px;"></div>
+        <div class="label">俯仰角 Pitch</div>
+        <div class="value" id="hud-pitch">0.0°</div>
+        <div style="height:8px;"></div>
+        <div class="label">滚转角 Roll</div>
+        <div class="value" id="hud-roll">0.0°</div>
+        <div style="height:8px;"></div>
+        <div class="label">速度 Speed</div>
+        <div class="value" id="hud-speed">20.0</div>
+    </div>
+
+    <!-- 速度条 -->
+    <div id="speed-bar-container">
+        <div class="speed-label">SPEED</div>
+        <div id="speed-bar">
+            <div id="speed-bar-fill"></div>
+        </div>
+    </div>
+
+    <!-- 底部提示 -->
+    <div id="hud" id="hud-bottom">
+        <span class="key-hint">🖱️ 鼠标移动</span> 控制飞船转向 &nbsp;|&nbsp;
+        <span class="key-hint">W / S</span> 加速 / 减速 &nbsp;|&nbsp;
+        <span class="key-hint">R</span> 重置视角
+    </div>
+
+    <!-- Three.js 导入 -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+
+        // ==================== 场景初始化 ====================
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000011);
+        scene.fog = new THREE.FogExp2(0x000011, 0.00035);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+        camera.position.set(0, 5, 15);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.3;
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.body.appendChild(renderer.domElement);
+
+        // ==================== 灯光 ====================
+        const ambientLight = new THREE.AmbientLight(0x223344, 0.8);
+        scene.add(ambientLight);
+
+        const sunLight = new THREE.DirectionalLight(0xfff5e6, 2.8);
+        sunLight.position.set(30, 50, 20);
+        sunLight.castShadow = true;
+        sunLight.shadow.mapSize.width = 1024;
+        sunLight.shadow.mapSize.height = 1024;
+        sunLight.shadow.camera.near = 0.5;
+        sunLight.shadow.camera.far = 200;
+        sunLight.shadow.camera.left = -20;
+        sunLight.shadow.camera.right = 20;
+        sunLight.shadow.camera.top = 20;
+        sunLight.shadow.camera.bottom = -20;
+        sunLight.shadow.bias = -0.0001;
+        scene.add(sunLight);
+
+        const rimLight = new THREE.DirectionalLight(0x4488cc, 1.5);
+        rimLight.position.set(-15, 5, -20);
+        scene.add(rimLight);
+
+        const engineGlowLight = new THREE.PointLight(0xff7722, 2.5, 15, 2);
+        engineGlowLight.position.set(0, 0, 2.5);
+        scene.add(engineGlowLight);
+
+        // ==================== 星空背景 ====================
+        function createStarField() {
+            const starCount = 3500;
+            const positions = new Float32Array(starCount * 3);
+            const colors = new Float32Array(starCount * 3);
+            const sizes = new Float32Array(starCount);
+            const innerRadius = 250;
+            const outerRadius = 850;
+
+            for (let i = 0; i < starCount; i++) {
+                // 在球壳内均匀分布
+                const r = innerRadius + Math.random() * (outerRadius - innerRadius);
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+
+                positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+                positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+                positions[i * 3 + 2] = r * Math.cos(phi);
+
+                // 颜色：白色偏蓝/黄/红
+                const colorType = Math.random();
+                if (colorType < 0.6) {
+                    colors[i * 3] = 0.9 + Math.random() * 0.1;
+                    colors[i * 3 + 1] = 0.9 + Math.random() * 0.1;
+                    colors[i * 3 + 2] = 1.0;
+                } else if (colorType < 0.8) {
+                    colors[i * 3] = 1.0;
+                    colors[i * 3 + 1] = 0.85 + Math.random() * 0.15;
+                    colors[i * 3 + 2] = 0.7 + Math.random() * 0.2;
+                } else if (colorType < 0.92) {
+                    colors[i * 3] = 1.0;
+                    colors[i * 3 + 1] = 0.6 + Math.random() * 0.2;
+                    colors[i * 3 + 2] = 0.4 + Math.random() * 0.2;
+                } else {
+                    colors[i * 3] = 0.5 + Math.random() * 0.3;
+                    colors[i * 3 + 1] = 0.7 + Math.random() * 0.3;
+                    colors[i * 3 + 2] = 1.0;
+                }
+
+                sizes[i] = 0.8 + Math.random() * 1.8;
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+            const material = new THREE.PointsMaterial({
+                size: 1.5,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.9,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                sizeAttenuation: true,
+            });
+
+            const stars = new THREE.Points(geometry, material);
+            return stars;
+        }
+
+        const starField = createStarField();
+        scene.add(starField);
+
+        // ==================== 远处行星 ====================
+        function createDistantPlanets() {
+            const planetsGroup = new THREE.Group();
+
+            const planetData = [
+                { radius: 28, color: 0x335588, position: [-180, 40, -350], emissive: 0x112244 },
+                { radius: 18, color: 0x884433, position: [220, -60, -400], emissive: 0x331100 },
+                { radius: 40, color: 0x445577, position: [-350, -30, -280], emissive: 0x112233 },
+                { radius: 12, color: 0x558866, position: [150, 80, -300], emissive: 0x113322 },
+            ];
+
+            planetData.forEach(data => {
+                const geo = new THREE.SphereGeometry(data.radius, 48, 48);
+                const mat = new THREE.MeshStandardMaterial({
+                    color: data.color,
+                    emissive: data.emissive,
+                    roughness: 0.7,
+                    metalness: 0.1,
+                });
+                const planet = new THREE.Mesh(geo, mat);
+                planet.position.set(...data.position);
+                planet.castShadow = true;
+                planet.receiveShadow = true;
+                planetsGroup.add(planet);
+
+                // 大气光环
+                const glowGeo = new THREE.SphereGeometry(data.radius * 1.08, 32, 32);
+                const glowMat = new THREE.MeshBasicMaterial({
+                    color: data.color,
+                    transparent: true,
+                    opacity: 0.15,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false,
+                });
+                const glow = new THREE.Mesh(glowGeo, glowMat);
+                glow.position.copy(planet.position);
+                planetsGroup.add(glow);
+            });
+
+            return planetsGroup;
+        }
+
+        const planets = createDistantPlanets();
+        scene.add(planets);
+
+        // ==================== 飞船构建 ====================
+        const ship = new THREE.Group();
+        ship.position.set(0, 0, 0);
+
+        // --- 材质定义 ---
+        const bodyMat = new THREE.MeshStandardMaterial({
+            color: 0xa8bbcc,
+            metalness: 0.75,
+            roughness: 0.28,
+            envMapIntensity: 1.0,
+        });
+        const wingMat = new THREE.MeshStandardMaterial({
+            color: 0x7a8a9a,
+            metalness: 0.65,
+            roughness: 0.35,
+        });
+        const darkMat = new THREE.MeshStandardMaterial({
+            color: 0x334455,
+            metalness: 0.85,
+            roughness: 0.2,
+        });
+        const cockpitMat = new THREE.MeshStandardMaterial({
+            color: 0x44aaff,
+            metalness: 0.15,
+            roughness: 0.08,
+            transparent: true,
+            opacity: 0.55,
+            envMapIntensity: 2.0,
+        });
+        const accentMat = new THREE.MeshStandardMaterial({
+            color: 0xcc6633,
+            metalness: 0.6,
+            roughness: 0.3,
+        });
+        const engineMat = new THREE.MeshStandardMaterial({
+            color: 0x222233,
+            metalness: 0.9,
+            roughness: 0.15,
+        });
+
+        // --- 主体 ---
+        const fuselageGeo = new THREE.BoxGeometry(1.6, 0.9, 4.2);
+        const fuselage = new THREE.Mesh(fuselageGeo, bodyMat);
+        fuselage.position.set(0, 0, 0.1);
+        fuselage.castShadow = true;
+        fuselage.receiveShadow = true;
+        ship.add(fuselage);
+
+        // 主体细节 - 顶部脊线
+        const spineGeo = new THREE.BoxGeometry(0.4, 0.25, 3.0);
+        const spine = new THREE.Mesh(spineGeo, darkMat);
+        spine.position.set(0, 0.52, -0.3);
+        spine.castShadow = true;
+        ship.add(spine);
+
+        // 主体细节 - 底部
+        const bellyGeo = new THREE.BoxGeometry(0.8, 0.2, 2.8);
+        const belly = new THREE.Mesh(bellyGeo, darkMat);
+        belly.position.set(0, -0.48, 0.0);
+        ship.add(belly);
+
+        // --- 机头 ---
+        const noseGeo = new THREE.ConeGeometry(0.72, 2.2, 16);
+        const nose = new THREE.Mesh(noseGeo, bodyMat);
+        nose.position.set(0, 0.1, -2.9);
+        nose.rotation.x = -Math.PI / 2;
+        nose.castShadow = true;
+        ship.add(nose);
+
+        // 机头尖端
+        const tipGeo = new THREE.SphereGeometry(0.18, 8, 8);
+        const tip = new THREE.Mesh(tipGeo, accentMat);
+        tip.position.set(0, 0.1, -3.98);
+        ship.add(tip);
+
+        // --- 驾驶舱 ---
+        const cockpitGeo = new THREE.SphereGeometry(0.5, 16, 16);
+        const cockpit = new THREE.Mesh(cockpitGeo, cockpitMat);
+        cockpit.position.set(0, 0.52, -1.2);
+        cockpit.scale.set(0.72, 0.5, 1.1);
+        cockpit.castShadow = true;
+        ship.add(cockpit);
+
+        // 驾驶舱框架
+        const frameGeo = new THREE.TorusGeometry(0.42, 0.06, 8, 16, Math.PI);
+        const frame = new THREE.Mesh(frameGeo, darkMat);
+        frame.position.set(0, 0.5, -1.15);
+        frame.rotation.x = Math.PI / 2;
+        frame.rotation.z = Math.PI;
+        frame.scale.set(0.7, 0.7, 0.9);
+        ship.add(frame);
+
+        // --- 主翼 ---
+        const wingGeo = new THREE.BoxGeometry(6.0, 0.14, 1.9);
+        const wing = new THREE.Mesh(wingGeo, wingMat);
+        wing.position.set(0, -0.08, 0.3);
+        wing.castShadow = true;
+        wing.receiveShadow = true;
+        ship.add(wing);
+
+        // 翼尖装饰
+        const wingTipLGeo = new THREE.BoxGeometry(0.35, 0.2, 1.2);
+        const wingTipL = new THREE.Mesh(wingTipLGeo, accentMat);
+        wingTipL.position.set(-2.9, -0.08, 0.3);
+        ship.add(wingTipL);
+        const wingTipR = wingTipL.clone();
+        wingTipR.position.x = 2.9;
+        ship.add(wingTipR);
+
+        // 翼下挂架
+        const pylonLGeo = new THREE.BoxGeometry(0.25, 0.35, 0.7);
+        const pylonL = new THREE.Mesh(pylonLGeo, darkMat);
+        pylonL.position.set(-1.8, -0.25, 0.3);
+        ship.add(pylonL);
+        const pylonR = pylonL.clone();
+        pylonR.position.x = 1.8;
+        ship.add(pylonR);
+
+        // --- 尾翼 ---
+        const tailGeo = new THREE.BoxGeometry(0.14, 1.8, 1.4);
+        const tail = new THREE.Mesh(tailGeo, wingMat);
+        tail.position.set(0, 1.05, 1.45);
+        tail.castShadow = true;
+        ship.add(tail);
+
+        // 尾翼顶部
+        const tailTipGeo = new THREE.BoxGeometry(0.2, 0.25, 0.8);
+        const tailTip = new THREE.Mesh(tailTipGeo, accentMat);
+        tailTip.position.set(0, 1.85, 1.5);
+        ship.add(tailTip);
+
+        // --- 水平尾翼 ---
+        const hStabGeo = new THREE.BoxGeometry(2.4, 0.12, 0.9);
+        const hStab = new THREE.Mesh(hStabGeo, wingMat);
+        hStab.position.set(0, 0.45, 1.7);
+        hStab.castShadow = true;
+        ship.add(hStab);
+
+        // --- 引擎 ---
+        const engineGeo = new THREE.CylinderGeometry(0.38, 0.45, 0.9, 16);
+        const engineL = new THREE.Mesh(engineGeo, engineMat);
+        engineL.position.set(-0.55, -0.05, 1.75);
+        engineL.rotation.x = Math.PI / 2;
+        engineL.castShadow = true;
+        ship.add(engineL);
+        const engineR = engineL.clone();
+        engineR.position.x = 0.55;
+        ship.add(engineR);
+
+        // 引擎喷口
+        const nozzleGeo = new THREE.TorusGeometry(0.32, 0.08, 8, 16);
+        const nozzleL = new THREE.Mesh(nozzleGeo, accentMat);
+        nozzleL.position.set(-0.55, -0.05, 2.22);
+        nozzleL.rotation.x = Math.PI / 2;
+        ship.add(nozzleL);
+        const nozzleR = nozzleL.clone();
+        nozzleR.position.x = 0.55;
+        ship.add(nozzleR);
+
+        // --- 尾焰（发光锥体）---
+        const flameOuterGeo = new THREE.ConeGeometry(0.32, 2.2, 12);
+        const flameOuterMat = new THREE.MeshBasicMaterial({
+            color: 0xff4400,
+            transparent: true,
+            opacity: 0.55,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+        });
+        const flameOuterL = new THREE.Mesh(flameOuterGeo, flameOuterMat);
+        flameOuterL.position.set(-0.55, -0.05, 3.0);
+        flameOuterL.rotation.x = Math.PI / 2;
+        ship.add(flameOuterL);
+        const flameOuterR = flameOuterL.clone();
+        flameOuterR.position.x = 0.55;
+        ship.add(flameOuterR);
+
+        const flameInnerGeo = new THREE.ConeGeometry(0.18, 1.6, 10);
+        const flameInnerMat = new THREE.MeshBasicMaterial({
+            color: 0xffcc33,
+            transparent: true,
+            opacity: 0.85,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+        });
+        const flameInnerL = new THREE.Mesh(flameInnerGeo, flameInnerMat);
+        flameInnerL.position.set(-0.55, -0.05, 2.9);
+        flameInnerL.rotation.x = Math.PI / 2;
+        ship.add(flameInnerL);
+        const flameInnerR = flameInnerL.clone();
+        flameInnerR.position.x = 0.55;
+        ship.add(flameInnerR);
+
+        const flameCoreGeo = new THREE.ConeGeometry(0.1, 1.0, 8);
+        const flameCoreMat = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.9,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+        });
+        const flameCoreL = new THREE.Mesh(flameCoreGeo, flameCoreMat);
+        flameCoreL.position.set(-0.55, -0.05, 2.75);
+        flameCoreL.rotation.x = Math.PI / 2;
+        ship.add(flameCoreL);
+        const flameCoreR = flameCoreL.clone();
+        flameCoreR.position.x = 0.55;
+        ship.add(flameCoreR);
+
+        // 存储尾焰引用用于动画
+        const flames = [flameOuterL, flameOuterR, flameInnerL, flameInnerR, flameCoreL, flameCoreR];
+
+        // --- 飞船装饰线条 ---
+        const stripeGeo = new THREE.BoxGeometry(0.12, 0.82, 0.12);
+        const stripeMat = new THREE.MeshStandardMaterial({
+            color: 0xcc8844,
+            metalness: 0.5,
+            roughness: 0.2,
+            emissive: 0x331100,
+            emissiveIntensity: 0.4,
+        });
+        const stripeL = new THREE.Mesh(stripeGeo, stripeMat);
+        stripeL.position.set(-0.75, 0, -0.8);
+        ship.add(stripeL);
+        const stripeR = stripeL.clone();
+        stripeR.position.x = 0.75;
+        ship.add(stripeR);
+
+        // 底部导航灯
+        const navLightGeo = new THREE.SphereGeometry(0.08, 8, 8);
+        const navLightMat = new THREE.MeshBasicMaterial({ color: 0x00ff88, transparent: true, opacity: 0.9 });
+        const navLight = new THREE.Mesh(navLightGeo, navLightMat);
+        navLight.position.set(0, -0.5, -0.5);
+        ship.add(navLight);
+        const navLightRed = new THREE.Mesh(navLightGeo, new THREE.MeshBasicMaterial({ color: 0xff2200, transparent: true,
+            opacity: 0.9 }));
+        navLightRed.position.set(-2.8, -0.08, 0.3);
+        ship.add(navLightRed);
+        const navLightGreen = new THREE.Mesh(navLightGeo, new THREE.MeshBasicMaterial({ color: 0x00ff44,
+            transparent: true, opacity: 0.9 }));
+        navLightGreen.position.set(2.8, -0.08, 0.3);
+        ship.add(navLightGreen);
+
+        scene.add(ship);
+
+        // ==================== 尾焰粒子系统 ====================
+        const particleCount = 250;
+        const particlePositions = new Float32Array(particleCount * 3);
+        const particleVelocities = new Float32Array(particleCount * 3);
+        const particleLifespans = new Float32Array(particleCount);
+        const particleMaxLifespans = new Float32Array(particleCount);
+        const particleSizes = new Float32Array(particleCount);
+
+        // 初始化粒子
+        for (let i = 0; i < particleCount; i++) {
+            resetParticle(i);
+            // 初始随机分布生命周期
+            particleLifespans[i] = Math.random() * particleMaxLifespans[i];
+            updateParticlePosition(i, particleLifespans[i]);
+        }
+
+        function resetParticle(index) {
+            const side = index % 2 === 0 ? -0.55 : 0.55;
+            particlePositions[index * 3] = side + (Math.random() - 0.5) * 0.3;
+            particlePositions[index * 3 + 1] = -0.05 + (Math.random() - 0.5) * 0.25;
+            particlePositions[index * 3 + 2] = 2.15 + (Math.random() - 0.5) * 0.3;
+            // 速度：沿+Z方向（飞船后方），带随机扩散
+            particleVelocities[index * 3] = (Math.random() - 0.5) * 2.5;
+            particleVelocities[index * 3 + 1] = (Math.random() - 0.5) * 2.0;
+            particleVelocities[index * 3 + 2] = 6.0 + Math.random() * 5.0;
+            particleMaxLifespans[index] = 0.4 + Math.random() * 0.7;
+            particleLifespans[index] = particleMaxLifespans[index];
+            particleSizes[index] = 0.15 + Math.random() * 0.3;
+        }
+
+        function updateParticlePosition(index, time) {
+            const baseX = index % 2 === 0 ? -0.55 : 0.55;
+            const baseY = -0.05;
+            const baseZ = 2.15;
+            // 根据速度和经过的时间计算位置
+            const t = particleMaxLifespans[index] - particleLifespans[index];
+            particlePositions[index * 3] = baseX + particleVelocities[index * 3] * t;
+            particlePositions[index * 3 + 1] = baseY + particleVelocities[index * 3 + 1] * t;
+            particlePositions[index * 3 + 2] = baseZ + particleVelocities[index * 3 + 2] * t;
+        }
+
+        const particleGeometry = new THREE.BufferGeometry();
+        particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+        particleGeometry.setAttribute('size', new THREE.BufferAttribute(particleSizes, 1));
+
+        const particleMaterial = new THREE.PointsMaterial({
+            size: 0.35,
+            color: 0xff8833,
+            transparent: true,
+            opacity: 0.75,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            sizeAttenuation: true,
+        });
+
+        const exhaustParticles = new THREE.Points(particleGeometry, particleMaterial);
+        ship.add(exhaustParticles);
+
+        // ==================== 太空尘埃粒子（增强速度感） ====================
+        const dustCount = 600;
+        const dustPositions = new Float32Array(dustCount * 3);
+        const dustSpeeds = new Float32Array(dustCount);
+
+        for (let i = 0; i < dustCount; i++) {
+            resetDust(i, true);
+        }
+
+        function resetDust(index, randomZ) {
+            dustPositions[index * 3] = (Math.random() - 0.5) * 150;
+            dustPositions[index * 3 + 1] = (Math.random() - 0.5) * 80;
+            dustPositions[index * 3 + 2] = randomZ ?
+                (Math.random() - 0.5) * 200 :
+                80 + Math.random() * 30;
+            dustSpeeds[index] = 8 + Math.random() * 18;
+        }
+
+        const dustGeometry = new THREE.BufferGeometry();
+        dustGeometry.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
+        const dustMaterial = new THREE.PointsMaterial({
+            size: 0.25,
+            color: 0xaaccff,
+            transparent: true,
+            opacity: 0.5,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            sizeAttenuation: true,
+        });
+        const spaceDust = new THREE.Points(dustGeometry, dustMaterial);
+        scene.add(spaceDust);
+
+        // ==================== 控制状态 ====================
+        const mouseState = {
+            x: 0, // -1 (左) 到 1 (右)
+            y: 0, // -1 (下) 到 1 (上)
+            isOverCanvas: true,
+        };
+
+        const shipState = {
+            yaw: 0, // 偏航角 (弧度)
+            pitch: 0, // 俯仰角 (弧度)
+            roll: 0, // 滚转角 (弧度)
+            speed: 22.0, // 当前速度
+            targetSpeed: 22.0,
+            baseSpeed: 22.0,
+        };
+
+        const MAX_YAW = THREE.MathUtils.degToRad(55);
+        const MAX_PITCH = THREE.MathUtils.degToRad(38);
+        const RESPONSE_SPEED = 6.5; // 转向响应速度
+        const ROLL_FACTOR = 0.35; // 滚转系数
+        const CAMERA_SMOOTHNESS = 0.08; // 相机跟随平滑度
+
+        // ==================== 鼠标事件 ====================
+        function updateMouseFromEvent(e) {
+            const rect = renderer.domElement.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            const y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+            mouseState.x = THREE.MathUtils.clamp(x, -1, 1);
+            mouseState.y = THREE.MathUtils.clamp(y, -1, 1);
+            mouseState.isOverCanvas = true;
+        }
+
+        renderer.domElement.addEventListener('mousemove', updateMouseFromEvent);
+        renderer.domElement.addEventListener('mouseenter', () => {
+            mouseState.isOverCanvas = true;
+        });
+        renderer.domElement.addEventListener('mouseleave', () => {
+            mouseState.isOverCanvas = false;
+            mouseState.x = 0;
+            mouseState.y = 0;
+        });
+        document.addEventListener('mouseleave', () => {
+            mouseState.isOverCanvas = false;
+            mouseState.x = 0;
+            mouseState.y = 0;
+        });
+
+        // 触摸支持
+        renderer.domElement.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            updateMouseFromEvent(touch);
+        }, { passive: false });
+        renderer.domElement.addEventListener('touchend', () => {
+            mouseState.x = 0;
+            mouseState.y = 0;
+            mouseState.isOverCanvas = false;
+        });
+
+        // ==================== 键盘事件 ====================
+        const keys = {};
+        window.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+            if (e.key.toLowerCase() === 'r') {
+                shipState.yaw = 0;
+                shipState.pitch = 0;
+                shipState.roll = 0;
+                ship.position.set(0, 0, 0);
+                mouseState.x = 0;
+                mouseState.y = 0;
+            }
+        });
+        window.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+        });
+
+        // ==================== HUD 更新 ====================
+        const hudYaw = document.getElementById('hud-yaw');
+        const hudPitch = document.getElementById('hud-pitch');
+        const hudRoll = document.getElementById('hud-roll');
+        const hudSpeed = document.getElementById('hud-speed');
+        const speedBarFill = document.getElementById('speed-bar-fill');
+
+        function updateHUD() {
+            const yawDeg = THREE.MathUtils.radToDeg(shipState.yaw);
+            const pitchDeg = THREE.MathUtils.radToDeg(shipState.pitch);
+            const rollDeg = THREE.MathUtils.radToDeg(shipState.roll);
+            hudYaw.textContent = yawDeg.toFixed(1) + '°';
+            hudPitch.textContent = pitchDeg.toFixed(1) + '°';
+            hudRoll.textContent = rollDeg.toFixed(1) + '°';
+            hudSpeed.textContent = shipState.speed.toFixed(1);
+            const speedPercent = ((shipState.speed - 5) / (45 - 5)) * 100;
+            speedBarFill.style.width = THREE.MathUtils.clamp(speedPercent, 5, 100) + '%';
+        }
+
+        // ==================== 动画循环 ====================
+        const clock = new THREE.Clock();
+        let elapsedTime = 0;
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const deltaTime = Math.min(clock.getDelta(), 0.1);
+            elapsedTime += deltaTime;
+
+            // --- 键盘速度控制 ---
+            if (keys['w'] || keys['arrowup']) {
+                shipState.targetSpeed = Math.min(shipState.targetSpeed + 18 * deltaTime, 45);
+            }
+            if (keys['s'] || keys['arrowdown']) {
+                shipState.targetSpeed = Math.max(shipState.targetSpeed - 18 * deltaTime, 5);
+            }
+            // 平滑速度过渡
+            shipState.speed += (shipState.targetSpeed - shipState.speed) * 0.08;
+
+            // --- 鼠标转向控制 ---
+            let targetYaw = 0;
+            let targetPitch = 0;
+            if (mouseState.isOverCanvas) {
+                targetYaw = -mouseState.x * MAX_YAW;
+                targetPitch = mouseState.y * MAX_PITCH;
+            }
+
+            // 平滑过渡到目标角度（使用基于时间的响应）
+            const responseFactor = 1 - Math.exp(-RESPONSE_SPEED * deltaTime);
+            const prevYaw = shipState.yaw;
+            shipState.yaw += (targetYaw - shipState.yaw) * responseFactor;
+            shipState.pitch += (targetPitch - shipState.pitch) * responseFactor;
+
+            // 计算偏航变化率用于滚转
+            const yawRate = (shipState.yaw - prevYaw) / Math.max(deltaTime, 0.001);
+            const targetRoll = -yawRate * ROLL_FACTOR;
+            // 限制滚转角
+            const maxRoll = THREE.MathUtils.degToRad(35);
+            const clampedRoll = THREE.MathUtils.clamp(targetRoll, -maxRoll, maxRoll);
+            shipState.roll += (clampedRoll - shipState.roll) * (1 - Math.exp(-5.5 * deltaTime));
+
+            // --- 更新飞船旋转 ---
+            ship.rotation.set(shipState.pitch, shipState.yaw, shipState.roll, 'YXZ');
+
+            // --- 更新飞船位置 ---
+            const forward = new THREE.Vector3(0, 0, -1);
+            forward.applyQuaternion(ship.quaternion);
+            ship.position.addScaledVector(forward, shipState.speed * deltaTime);
+
+            // --- 更新星空跟随 ---
+            starField.position.copy(ship.position);
+            planets.position.copy(ship.position);
+
+            // --- 更新太空尘埃 ---
+            for (let i = 0; i < dustCount; i++) {
+                dustPositions[i * 3 + 2] -= dustSpeeds[i] * deltaTime;
+                // 如果尘埃移动到飞船后方太远，重置到前方
+                if (dustPositions[i * 3 + 2] < -100) {
+                    resetDust(i, false);
+                }
+            }
+            dustGeometry.attributes.position.needsUpdate = true;
+
+            // --- 更新尾焰粒子 ---
+            for (let i = 0; i < particleCount; i++) {
+                particleLifespans[i] -= deltaTime;
+                if (particleLifespans[i] <= 0) {
+                    resetParticle(i);
+                }
+                updateParticlePosition(i, particleLifespans[i]);
+                // 根据生命周期调整粒子透明度（通过大小模拟）
+                const lifeRatio = particleLifespans[i] / particleMaxLifespans[i];
+                particleSizes[i] = (0.15 + Math.random() * 0.1) * (0.4 + lifeRatio * 0.8);
+            }
+            particleGeometry.attributes.position.needsUpdate = true;
+            particleGeometry.attributes.size.needsUpdate = true;
+
+            // --- 尾焰锥体动画（火焰跳动）---
+            const flamePulse = 1 + Math.sin(elapsedTime * 18) * 0.12 + Math.sin(elapsedTime * 7.3) * 0.08;
+            flames.forEach((flame, index) => {
+                const baseScale = index < 2 ? 1.0 : index < 4 ? 0.85 : 0.7;
+                const individualPulse = 1 + Math.sin(elapsedTime * 15 + index * 1.7) * 0.1;
+                flame.scale.set(1, flamePulse * individualPulse, 1);
+                flame.material.opacity = (index < 2 ? 0.5 : index < 4 ? 0.8 : 0.9) *
+                    (0.85 + Math.sin(elapsedTime * 22 + index * 2.1) * 0.15);
+            });
+
+            // --- 引擎灯光跟随 ---
+            engineGlowLight.position.copy(ship.position);
+            engineGlowLight.position.z += 2.5;
+            engineGlowLight.intensity = 2.0 + Math.sin(elapsedTime * 12) * 0.8 + Math.sin(elapsedTime * 5.3) * 0.5;
+
+            // --- 导航灯闪烁 ---
+            navLight.material.opacity = 0.5 + Math.sin(elapsedTime * 8) * 0.4;
+            navLightRed.material.opacity = 0.4 + Math.sin(elapsedTime * 6 + 1) * 0.5;
+            navLightGreen.material.opacity = 0.4 + Math.sin(elapsedTime * 6 + 3) * 0.5;
+
+            // --- 相机跟随 ---
+            const cameraEuler = new THREE.Euler(shipState.pitch, shipState.yaw, 0, 'YXZ');
+            const cameraQuat = new THREE.Quaternion().setFromEuler(cameraEuler);
+            const cameraOffset = new THREE.Vector3(0, 3.8, 10.5);
+            cameraOffset.applyQuaternion(cameraQuat);
+            const targetCameraPos = ship.position.clone().add(cameraOffset);
+
+            // 平滑相机移动
+            camera.position.lerp(targetCameraPos, 1 - Math.exp(-CAMERA_SMOOTHNESS * 60 * deltaTime));
+
+            // 相机看向飞船前方一点
+            const lookTarget = ship.position.clone().add(forward.clone().multiplyScalar(5));
+            lookTarget.y += 1.2;
+            camera.lookAt(lookTarget);
+
+            // --- 更新HUD ---
+            updateHUD();
+
+            // --- 渲染 ---
+            renderer.render(scene, camera);
+        }
+
+        // ==================== 窗口大小调整 ====================
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // ==================== 启动 ====================
+        // 设置初始相机位置
+        camera.position.set(0, 4.5, 14);
+        camera.lookAt(ship.position);
+
+        // 开始动画循环
+        animate();
+
+        console.log('🚀 3D 太空飞船已启动！');
+        console.log('🖱️  移动鼠标控制飞船转向');
+        console.log('⌨️  W/S 加速/减速，R 重置视角');
+
+        // 防止页面滚动
+        window.addEventListener('wheel', (e) => {
+            if (e.target === renderer.domElement) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // 键盘防止滚动
+        window.addEventListener('keydown', (e) => {
+            if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(e.key.toLowerCase())) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    </script>
 </body>
 </html>
