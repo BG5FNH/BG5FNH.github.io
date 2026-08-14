@@ -12,88 +12,95 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background: #1a1418;  /* 深紫灰背景，衬托柔粉色 */
-            color: #f0e6ea;
+            background: #0b1120;
+            color: #e6f1ff;
         }
         .card {
-            background: rgba(255, 240, 245, 0.08);
+            background: rgba(255,255,255,0.05);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 200, 210, 0.2);
+            border: 1px solid rgba(255,255,255,0.1);
             border-radius: 32px;
             padding: 3rem 4rem;
             text-align: center;
             max-width: 700px;
             width: 90%;
-            box-shadow: 0 25px 50px -12px rgba(100, 40, 60, 0.4);
         }
         .badge {
-            background: #d47a8e;  /* 柔和的玫红 */
-            color: #1a1418;
-            padding: 0.25rem 1.2rem;
+            background: #1a73e8;
+            color: white;
+            padding: 0.25rem 1rem;
             border-radius: 20px;
             font-size: 0.8rem;
-            letter-spacing: 1px;
             display: inline-block;
-            font-weight: 600;
         }
-        h1 {
-            font-size: 2.8rem;
-            margin: 0.5rem 0;
-            color: #f0e6ea;
-        }
-        .callsign {
-            color: #e8a0b0;  /* 浅粉色呼号 */
-            font-weight: 600;
-        }
+        h1 { font-size: 2.8rem; margin: 0.5rem 0; }
+        .callsign { color: #60a5fa; }
         .divider {
             width: 60px;
             height: 3px;
-            background: #d47a8e;  /* 玫红分割线 */
+            background: #60a5fa;
             margin: 1.5rem auto;
             border-radius: 10px;
         }
-        .device-info {
-            background: rgba(212, 122, 142, 0.15);
-            padding: 0.5rem 1.2rem;
-            border-radius: 40px;
-            font-size: 0.9rem;
-            color: #e8c0cc;
-            display: inline-block;
-            margin-top: 0.5rem;
-            border: 1px solid rgba(212, 122, 142, 0.2);
+        .info-box {
+            background: rgba(255,255,255,0.05);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            font-size: 1.2rem;
+            color: #cbd5e1;
         }
-        .links a {
-            display: inline-block;
-            margin: 0 0.5rem;
-            color: #e8a0b0;  /* 粉色链接 */
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.2s;
+        .info-box span {
+            color: #60a5fa;
+            font-weight: bold;
         }
-        .links a:hover {
-            color: #f0c8d4;  /* 悬停变浅粉 */
-            text-decoration: underline;
-        }
-        .footer {
-            margin-top: 2rem;
-            font-size: 0.9rem;
-            color: #a08088;
-        }
+        .footer { margin-top: 2rem; font-size: 0.9rem; color: #64748b; }
+        .back-link { color: #60a5fa; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
     <div class="card">
         <span class="badge">🖥️ 电脑版</span>
-        <h1>👋 你好，我是 <span class="callsign">BG5FNH</span></h1>
-        <p style="font-size: 1.1rem; color: #c8b0b8;">业余无线电爱好者 · 浙江杭州</p>
+        <h1>👋 你好，<span class="callsign">BG5FNH</span></h1>
+        <p style="font-size: 1.1rem; color: #94a3b8;">业余无线电爱好者 · 浙江杭州</p>
         <div class="divider"></div>
-        <p>欢迎来到我的个人主页（电脑版）。<br>这里可以展示更丰富的内容，比如通联日志、设备清单、照片墙等。</p>
-        <div class="device-info">🌸 您正在使用电脑访问本页面</div>
-        <div class="links" style="margin-top: 1.5rem;">
-            <a href="https://www.qrz.com/db/BG5FNH" target="_blank">📻 我的 QRZ 页面</a>
-            <a href="/" style="color: #a08088;">← 返回首页</a>
+
+        <!-- 显示从 URL 接收到的屏幕尺寸 -->
+        <div class="info-box">
+            📐 屏幕尺寸：<span id="displayWidth">--</span> × <span id="displayHeight">--</span> px
+        </div>
+
+        <p>欢迎来到电脑版主页，这里将展示更多内容。</p>
+        <div style="margin-top: 1.5rem;">
+            <a href="https://www.qrz.com/db/BG5FNH" target="_blank" class="back-link">📻 QRZ 页面</a>
+            <span style="margin: 0 0.5rem; color: #334155;">|</span>
+            <a href="/" class="back-link">← 返回首页</a>
         </div>
         <div class="footer">📡 73 de BG5FNH</div>
     </div>
+
+    <script>
+        // ============================================================
+        // 从 URL 中读取查询参数
+        // ============================================================
+        function getQueryParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        const w = getQueryParam('width');
+        const h = getQueryParam('height');
+
+        // 如果参数存在，更新到页面上
+        if (w !== null && h !== null) {
+            document.getElementById('displayWidth').textContent = w;
+            document.getElementById('displayHeight').textContent = h;
+        } else {
+            // 如果没收到参数，显示 fallback（用当前窗口尺寸）
+            document.getElementById('displayWidth').textContent = window.innerWidth;
+            document.getElementById('displayHeight').textContent = window.innerHeight;
+        }
+    </script>
 </body>
 </html>
