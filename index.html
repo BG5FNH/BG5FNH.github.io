@@ -1,26 +1,39 @@
-<!DOCTYPE html>
-<html>、
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>跳转中</title>
-    <style>
-        body { background: black; margin: 0; }  /* 纯黑背景 */
+<!DOCTYPE html>   <!-- 告诉浏览器：我是HTML5文档，按现代标准解析 -->
+<html>            <!-- HTML文档的根标签，所有内容都包在里面 -->
+<head>            <!-- 头部：给浏览器看的配置信息，用户看不见 -->
+    <meta charset="UTF-8">   <!-- 字符编码：告诉浏览器用UTF-8解码，支持中文 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  <!-- 视口设置：让页面在手机上不缩放，按设备宽度显示 -->
+    <title>跳转中</title>    <!-- 浏览器标签页上显示的文字 -->
+    <style>                  <!-- 样式标签：给页面化妆 -->
+        body { background: black; margin: 0; }  /* 背景全黑，去除外边距 */
     </style>
-</head>
-<body>
-    <script>
+</head>           <!-- 头部结束 -->
+<body>            <!-- 身体：用户能看到的内容 -->
+    <script>      <!-- JavaScript脚本开始：这里是"逻辑"部分 -->
         // 1. 获取浏览器的用户代理（设备名片）
         let ua = navigator.userAgent;
+        // 解释：navigator.userAgent 是一个内置变量，存着浏览器和设备信息
+        // 比如电脑上会显示 "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+        // 手机上会显示 "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X)"
 
         // 2. 检查是否包含手机关键词（Android/iPhone/手机）
         let isMobile = /Android|iPhone|iPad|Mobile/i.test(ua);
+        // 解释：用正则表达式（/.../）检查 ua 里有没有这些词
+        // | 是“或”的意思，/i 表示忽略大小写
+        // .test(ua) 检查 ua 字符串是否匹配，返回 true 或 false
 
         // 3. 根据结果决定跳转路径
         let target = isMobile ? '/mobile/' : '/pc/';
-
+        // 解释：三元运算符，相当于 if/else 的简写
+        // 如果 isMobile 为 true → 去 '/mobile/'
+        // 如果 isMobile 为 false → 去 '/pc/'
+    setTimeout(() => {window.location.href = target;}, 3000);
+// 意思是：3 秒后，把箭头函数里的代码放到任务队列里，等主线程空闲了再执行。
         // 4. 执行跳转
-        window.location.href = target;
-    </script>
-</body>
-</html>
+
+        // 解释：location 是浏览器的地址栏对象
+        // .href 表示要跳转的目标地址
+        // 把 target 的值赋给它，浏览器就会立即跳转
+    </script>     <!-- JavaScript结束 -->
+</body>           <!-- 身体结束 -->
+</html>           <!-- 根标签结束 -->
