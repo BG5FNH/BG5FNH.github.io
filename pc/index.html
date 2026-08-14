@@ -12,68 +12,86 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background: #0b1120;
-            color: #e6f1ff;
+            background: #1a1418;  /* 深紫灰背景，衬托柔粉色 */
+            color: #f0e6ea;
         }
         .card {
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 240, 245, 0.08);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255, 200, 210, 0.2);
             border-radius: 32px;
             padding: 3rem 4rem;
             text-align: center;
             max-width: 700px;
             width: 90%;
+            box-shadow: 0 25px 50px -12px rgba(100, 40, 60, 0.4);
         }
         .badge {
-            background: #1a73e8;
-            color: white;
-            padding: 0.25rem 1rem;
+            background: #d47a8e;  /* 柔和的玫红 */
+            color: #1a1418;
+            padding: 0.25rem 1.2rem;
             border-radius: 20px;
             font-size: 0.8rem;
             letter-spacing: 1px;
             display: inline-block;
+            font-weight: 600;
         }
-        h1 { font-size: 2.8rem; margin: 0.5rem 0; }
-        .callsign { color: #60a5fa; }
+        h1 {
+            font-size: 2.8rem;
+            margin: 0.5rem 0;
+            color: #f0e6ea;
+        }
+        .callsign {
+            color: #e8a0b0;  /* 浅粉色呼号 */
+            font-weight: 600;
+        }
         .divider {
             width: 60px;
             height: 3px;
-            background: #60a5fa;
+            background: #d47a8e;  /* 玫红分割线 */
             margin: 1.5rem auto;
             border-radius: 10px;
         }
         .device-info {
-            background: rgba(255,255,255,0.05);
-            padding: 0.5rem 1rem;
+            background: rgba(212, 122, 142, 0.15);
+            padding: 0.5rem 1.2rem;
             border-radius: 40px;
             font-size: 0.9rem;
-            color: #94a3b8;
+            color: #e8c0cc;
             display: inline-block;
             margin-top: 0.5rem;
+            border: 1px solid rgba(212, 122, 142, 0.2);
         }
         .links a {
             display: inline-block;
             margin: 0 0.5rem;
-            color: #60a5fa;
+            color: #e8a0b0;  /* 粉色链接 */
             text-decoration: none;
             font-weight: 500;
+            transition: color 0.2s;
         }
-        .links a:hover { text-decoration: underline; }
-        .footer { margin-top: 2rem; font-size: 0.9rem; color: #64748b; }
+        .links a:hover {
+            color: #f0c8d4;  /* 悬停变浅粉 */
+            text-decoration: underline;
+        }
+        .footer {
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #a08088;
+        }
     </style>
 </head>
 <body>
     <div class="card">
         <span class="badge">🖥️ 电脑版</span>
         <h1>👋 你好，我是 <span class="callsign">BG5FNH</span></h1>
-        <p style="font-size: 1.1rem; color: #94a3b8;">业余无线电爱好者 · 浙江杭州</p>
+        <p style="font-size: 1.1rem; color: #c8b0b8;">业余无线电爱好者 · 浙江杭州</p>
         <div class="divider"></div>
         <p>欢迎来到我的个人主页（电脑版）。<br>这里可以展示更丰富的内容，比如通联日志、设备清单、照片墙等。</p>
-        <div class="device-info">📊 您正在使用电脑访问本页面</div>
+        <div class="device-info">🌸 您正在使用电脑访问本页面</div>
         <div class="links" style="margin-top: 1.5rem;">
-            <a href="https://www.qrz.com/db/BG5FNH" target="_blank">📻 QRZ 页面</a>
-            <a href="/" style="color: #64748b;">← 返回首页</a>
+            <a href="https://www.qrz.com/db/BG5FNH" target="_blank">📻 我的 QRZ 页面</a>
+            <a href="/" style="color: #a08088;">← 返回首页</a>
         </div>
         <div class="footer">📡 73 de BG5FNH</div>
     </div>
