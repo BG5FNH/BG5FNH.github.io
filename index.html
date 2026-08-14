@@ -3,20 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BG5FNH · 电脑版</title>
+    <title>BG5FNH · 识别中</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        /* 过渡样式 */
         body {
-            background: #000000;  /* 纯黑背景 */
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #0b1120;
+            color: #e6f1ff;
+            margin: 0;
         }
+        .loader { text-align: center; }
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #60a5fa;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <!-- 页面没有任何内容 -->
+    <div class="loader">
+        <div class="spinner"></div>
+        <p style="margin-top: 1rem; color: #94a3b8;">正在识别您的设备...</p>
+    </div>
+
+    <script>
+        // ============================================================
+        // 1. 获取屏幕尺寸
+        // ============================================================
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+
+        // ============================================================
+        // 2. 检测设备类型（沿用之前的逻辑）
+        // ============================================================
+        function detectDevice() {
+            const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            const ua = navigator.userAgent.toLowerCase();
+            const isMobileUA = /mobile|android|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(ua);
+            const isTablet = /ipad|tablet/.test(ua) && width >= 768;
+            if (isTablet) return 'pc';
+            if (width < 768 || (hasTouch && isMobileUA)) return 'mobile';
+            return 'pc';
+        }
+
+        // ============================================================
+        // 3. 构造带参数的跳转 URL
+        // ============================================================
+        const device = detectDevice();
+        const basePath = device === 'mobile' ? '/mobile/' : '/pc/';
+        // 将尺寸作为查询参数附加（例如 /pc/?width=1920&height=1080）
+        const targetUrl = basePath + '?width=' + width + '&height=' + height;
+
+        // ============================================================
+        // 4. 延迟跳转
+        // ============================================================
+        setTimeout(function() {
+            window.location.href = targetUrl;
+        }, 300);
+    </script>
 </body>
 </html>
