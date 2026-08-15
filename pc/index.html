@@ -716,9 +716,8 @@
             shipState.pitch = THREE.MathUtils.clamp(shipState.pitch, -MAX_PITCH, MAX_PITCH);
 
             // --- 滚转控制 Q/E (累积，无限制) ---
-            // 根据用户反馈，方向调整为：Q 向左滚转（世界向右旋转？），我们这里定义为 Q 减小滚转角，E 增大滚转角
-            if (keys['q']) shipState.rollAngle -= ROLL_SPEED * deltaTime;
-            if (keys['e']) shipState.rollAngle += ROLL_SPEED * deltaTime;
+            if (keys['e']) shipState.rollAngle -= ROLL_SPEED * deltaTime;
+            if (keys['q']) shipState.rollAngle += ROLL_SPEED * deltaTime;
 
             // --- 更新飞船旋转（只应用偏航和俯仰，不应用滚转） ---
             ship.rotation.set(shipState.pitch, shipState.yaw, 0, 'YXZ');
