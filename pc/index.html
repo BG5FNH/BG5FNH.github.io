@@ -37,6 +37,11 @@
 
     #stage canvas {
       display: block;
+      cursor: grab;
+    }
+
+    #stage canvas:active {
+      cursor: grabbing;
     }
 
     #overlay {
@@ -46,11 +51,10 @@
       pointer-events: none;
     }
 
-      .node-hit,
-      .node-label {
-        display: none;
-      }
-
+    .node-hit,
+    .node-label {
+      display: none;
+    }
 
     .node-hit {
       position: absolute;
@@ -94,7 +98,6 @@
       letter-spacing: 3px;
     }
 
-    /* 左上角返回主视线（聚焦树状图后出现） */
     #backToOverview {
       position: fixed;
       top: 22px;
@@ -155,64 +158,56 @@
       padding: 30px;
       line-height: 2;
     }
-      /* 第二击：展示页从金色点浮现，背景神经元模糊但可见 */
-      #pageOverlay {
-        position: fixed;
-        inset: 0;
-        z-index: 8;
-        display: none;
-        pointer-events: none;
-      }
 
-      #pageOverlay.active {
-        display: block;
-        pointer-events: auto;
-      }
+    /* 第二击：展示页从金色点浮现，背景神经元模糊但可见 */
+    #pageOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 8;
+      display: none;
+      pointer-events: none;
+    }
 
-      #pageOverlay .page-blur {
-        position: absolute;
-        inset: 0;
-        background: rgba(11, 11, 13, 0.16);
-        backdrop-filter: blur(4px) brightness(0.78);
-        -webkit-backdrop-filter: blur(4px) brightness(0.78);
-        opacity: 0;
-        transition: opacity 0.55s ease;
-      }
+    #pageOverlay.active {
+      display: block;
+      pointer-events: auto;
+    }
 
-      #pageOverlay.active .page-blur {
-        opacity: 1;
-      }
+    #pageOverlay .page-blur {
+      position: absolute;
+      inset: 0;
+      background: rgba(11, 11, 13, 0.16);
+      backdrop-filter: blur(4px) brightness(0.78);
+      -webkit-backdrop-filter: blur(4px) brightness(0.78);
+      opacity: 0;
+      transition: opacity 0.55s ease;
+    }
 
-      #pageFrame {
-        position: absolute;
-        left: 2vw;
-        top: 2vh;
-        width: 96vw;
-        height: 96vh;
-        border: 1px solid rgba(201, 168, 106, 0.45);
-        border-radius: 14px;
-        background: transparent;
-        box-shadow: 0 0 70px rgba(201, 168, 106, 0.22), 0 0 0 1px rgba(201, 168, 106, 0.1) inset;
-        overflow: hidden;
-        opacity: 0;
-        transform: scale(0.05);
-        transform-origin: 50% 50%;
-        transition: transform 0.8s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.55s ease;
-      }
+    #pageOverlay.active .page-blur {
+      opacity: 1;
+    }
 
-      #pageOverlay.active #pageFrame {
-        opacity: 1;
-        transform: scale(1);
-      }
+    #pageFrame {
+      position: absolute;
+      left: 2vw;
+      top: 2vh;
+      width: 96vw;
+      height: 96vh;
+      border: 1px solid rgba(201, 168, 106, 0.45);
+      border-radius: 14px;
+      background: transparent;
+      box-shadow: 0 0 70px rgba(201, 168, 106, 0.22), 0 0 0 1px rgba(201, 168, 106, 0.1) inset;
+      overflow: hidden;
+      opacity: 0;
+      transform: scale(0.05);
+      transform-origin: 50% 50%;
+      transition: transform 0.8s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.55s ease;
+    }
 
-      #pageFrame iframe {
-        display: block;
-        width: 100%;
-        height: 100%;
-        border: none;
-        background: transparent;
-      }
-
+    #pageOverlay.active #pageFrame {
+      opacity: 1;
+      transform: scale(1);
+    }
   </style>
 </head>
 <body>
@@ -224,19 +219,18 @@
     </svg>
     返回主视线
   </button>
-  <div id="hint">点击金色圆点进入对应空间</div>
+  <div id="hint">点击金色圆点进入对应空间 · 按住空白处拖动视图</div>
   <div id="fallback">
     <div>
       <p>three.js 尚未就位，无法启动 3D 主场景。</p>
       <p>请将 <code style="color:#f0e2c4;">three.min.js</code> 放入 <code style="color:#f0e2c4;">pc/js/</code> 文件夹。</p>
-      <p>下载地址：<code style="color:#f0e2c4;">https://github.com/mrdoob/three.js/archive/refs/tags/r128.zip</code></p>
+      <p>下载地址：<code style="color:#f0e2c4;">https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/build/three.min.js</code></p>
     </div>
   </div>
-    <div id="pageOverlay">
-      <div class="page-blur"></div>
-      <iframe id="pageFrame" title="内容页面" src="about:blank"></iframe>
-    </div>
-
+  <div id="pageOverlay">
+    <div class="page-blur"></div>
+    <iframe id="pageFrame" title="内容页面" src="about:blank"></iframe>
+  </div>
 
   <script src="js/three.min.js"></script>
   <script src="js/waypoints.js"></script>
