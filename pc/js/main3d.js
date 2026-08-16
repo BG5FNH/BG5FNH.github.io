@@ -345,7 +345,7 @@
     mode = 'overview';
     focusMain = null;
     if (backBtn) backBtn.style.display = 'none';
-    showHint('点击金色圆点进入对应空间 · 按住空白处拖动视图');
+    showHint('点击金色圆点进入 · 空白处拖动平移 · 双指缩放');
     startAnimation(getOverviewCamera(), null, 2.2);
     anim.fromFocusMain = prevFocus;
   }
@@ -489,6 +489,10 @@
   var dragMoved = false;
   var lastPointerX = 0;
   var lastPointerY = 0;
+  var pointers = {};
+  var pinchStartDist = 0;
+  var pinchStartCamDist = 0;
+
 
   function panCamera(dx, dy) {
     var dir = new THREE.Vector3();
@@ -512,15 +516,50 @@
   renderer.domElement.addEventListener('pointerdown', function (e) {
     if (e.button !== 0 && e.pointerType === 'mouse') return;
     if (anim.running || contentPanelOpen) return;
+      pointers[e.pointerId] = { x: e.clientX, y: e.clientY };
+      var ids = Object.keys(pointers);
+      if (ids.length === 1) {
+        if (Object.keys(pointers).length === 1) dragging = true;
+        dragMoved = false;
+        lastPointerX = e.clientX;
+        lastPointerY = e.clientY;
+      } else if (ids.length === 2) {
+        dragging = false;
+        var p1 = pointers[ids[0]];
+        var p2 = pointers[ids[1]];
+        pinchStartDist = Math.max(1, Math.hypot(p2.x - p1.x, p2.y - p1.y));
+        pinchStartCamDist = camera.position.distanceTo(viewLookAt);
+      }
+
+      if (Object.keys(pointers).length === 1) {
     dragging = true;
     dragMoved = false;
     lastPointerX = e.clientX;
     lastPointerY = e.clientY;
+      }
     renderer.domElement.setPointerCapture && renderer.domElement.setPointerCapture(e.pointerId);
     e.preventDefault();
   });
 
   window.addEventListener('pointermove', function (e) {
+      if (!pointers[e.pointerId]) return;
+      pointers[e.pointerId].x = e.clientX;
+      pointers[e.pointerId].y = e.clientY;
+
+      var ids = Object.keys(pointers);
+      if (ids.length === 2) {
+        var p1 = pointers[ids[0]];
+        var p2 = pointers[ids[1]];
+        var dist = Math.max(1, Math.hypot(p2.x - p1.x, p2.y - p1.y));
+        var newDist = Math.max(5, Math.min(160, pinchStartCamDist * (pinchStartDist / dist)));
+        var toCamera = new THREE.Vector3().subVectors(camera.position, viewLookAt);
+        if (toCamera.length() < 0.001) toCamera.set(0, 0, 1);
+        toCamera.normalize().multiplyScalar(newDist);
+        camera.position.copy(viewLookAt).add(toCamera);
+        camera.lookAt(viewLookAt);
+        return;
+      }
+
     if (!dragging) return;
     var dx = e.clientX - lastPointerX;
     var dy = e.clientY - lastPointerY;
@@ -534,11 +573,13 @@
   });
 
   window.addEventListener('pointerup', function (e) {
+      delete pointers[e.pointerId];
     dragging = false;
     dragMoved = false;
   });
 
-  window.addEventListener('pointercancel', function () {
+  window.addEventListener('pointercancel', function (e) {
+      delete pointers[e.pointerId];
     dragging = false;
     dragMoved = false;
   });
