@@ -136,64 +136,6 @@ body.embedded .page-title {
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.45);
 }
 
-.card,
-.intro-text {
-  overflow-wrap: break-word;
-  word-break: break-word;
-}
-
-/* 个人简介：左侧文字 + 右侧大头照 */
-.intro-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 28px;
-  flex-wrap: wrap;
-}
-
-.intro-text {
-  flex: 1 1 260px;
-  min-width: 0;
-}
-
-.intro-photo {
-  flex: 0 0 180px;
-  max-width: 180px;
-  text-align: center;
-}
-
-.intro-photo img {
-  width: 160px;
-  height: 160px;
-  object-fit: cover;
-  border-radius: 50%;
-  border: 1px solid rgba(201, 168, 106, 0.4);
-  background: rgba(201, 168, 106, 0.06);
-  box-shadow: 0 0 28px rgba(201, 168, 106, 0.22);
-  display: block;
-  margin: 0 auto;
-}
-
-.photo-caption {
-  margin-top: 10px;
-  color: var(--text-muted);
-  font-size: 12px;
-  letter-spacing: 1px;
-}
-
-@media (max-width: 640px) {
-  .intro-photo {
-    flex: 0 0 140px;
-    max-width: 140px;
-  }
-
-  .intro-photo img {
-    width: 120px;
-    height: 120px;
-  }
-}
-
-
-
 .card h2 {
   color: var(--gold);
   font-size: 22px;

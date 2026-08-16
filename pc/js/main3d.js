@@ -345,7 +345,7 @@
     mode = 'overview';
     focusMain = null;
     if (backBtn) backBtn.style.display = 'none';
-    showHint('点击金色圆点进入 · 空白处拖动平移 · 双指缩放');
+    showHint('点击金色圆点进入对应空间 · 按住空白处拖动视图');
     startAnimation(getOverviewCamera(), null, 2.2);
     anim.fromFocusMain = prevFocus;
   }
@@ -479,13 +479,8 @@
       ui.label.style.display = 'block';
       ui.hit.style.left = p.x + 'px';
       ui.hit.style.top = p.y + 'px';
-        var nodeDist = camera.position.distanceTo(n.pos);
-        var worldFont = n.kind === 'main' ? (n.def.scale && n.def.scale > 1.2 ? 0.9 : 0.7) : 0.55;
-        var cssFont = worldFont * window.innerHeight / (2 * nodeDist * Math.tan(THREE.Math.degToRad(camera.fov * 0.5)));
-        cssFont = Math.max(8, Math.min(40, cssFont));
-        ui.label.style.fontSize = cssFont + 'px';
       ui.label.style.left = p.x + 'px';
-      ui.label.style.top = (p.y + 10 + cssFont * 0.55) + 'px';
+      ui.label.style.top = (p.y + 26) + 'px';
     });
   }
 
@@ -494,10 +489,6 @@
   var dragMoved = false;
   var lastPointerX = 0;
   var lastPointerY = 0;
-  var pointers = {};
-  var pinchStartDist = 0;
-  var pinchStartCamDist = 0;
-
 
   function panCamera(dx, dy) {
     var dir = new THREE.Vector3();
@@ -521,50 +512,15 @@
   renderer.domElement.addEventListener('pointerdown', function (e) {
     if (e.button !== 0 && e.pointerType === 'mouse') return;
     if (anim.running || contentPanelOpen) return;
-      pointers[e.pointerId] = { x: e.clientX, y: e.clientY };
-      var ids = Object.keys(pointers);
-      if (ids.length === 1) {
-        if (Object.keys(pointers).length === 1) dragging = true;
-        dragMoved = false;
-        lastPointerX = e.clientX;
-        lastPointerY = e.clientY;
-      } else if (ids.length === 2) {
-        dragging = false;
-        var p1 = pointers[ids[0]];
-        var p2 = pointers[ids[1]];
-        pinchStartDist = Math.max(1, Math.hypot(p2.x - p1.x, p2.y - p1.y));
-        pinchStartCamDist = camera.position.distanceTo(viewLookAt);
-      }
-
-      if (Object.keys(pointers).length === 1) {
     dragging = true;
     dragMoved = false;
     lastPointerX = e.clientX;
     lastPointerY = e.clientY;
-      }
     renderer.domElement.setPointerCapture && renderer.domElement.setPointerCapture(e.pointerId);
     e.preventDefault();
   });
 
   window.addEventListener('pointermove', function (e) {
-      if (!pointers[e.pointerId]) return;
-      pointers[e.pointerId].x = e.clientX;
-      pointers[e.pointerId].y = e.clientY;
-
-      var ids = Object.keys(pointers);
-      if (ids.length === 2) {
-        var p1 = pointers[ids[0]];
-        var p2 = pointers[ids[1]];
-        var dist = Math.max(1, Math.hypot(p2.x - p1.x, p2.y - p1.y));
-        var newDist = Math.max(5, Math.min(160, pinchStartCamDist * (pinchStartDist / dist)));
-        var toCamera = new THREE.Vector3().subVectors(camera.position, viewLookAt);
-        if (toCamera.length() < 0.001) toCamera.set(0, 0, 1);
-        toCamera.normalize().multiplyScalar(newDist);
-        camera.position.copy(viewLookAt).add(toCamera);
-        camera.lookAt(viewLookAt);
-        return;
-      }
-
     if (!dragging) return;
     var dx = e.clientX - lastPointerX;
     var dy = e.clientY - lastPointerY;
@@ -578,35 +534,14 @@
   });
 
   window.addEventListener('pointerup', function (e) {
-      delete pointers[e.pointerId];
     dragging = false;
     dragMoved = false;
   });
 
-  window.addEventListener('pointercancel', function (e) {
-      delete pointers[e.pointerId];
+  window.addEventListener('pointercancel', function () {
     dragging = false;
     dragMoved = false;
   });
-
-  // ---------------- 滚轮缩放 ----------------
-  function zoomCamera(deltaY) {
-    if (anim.running || contentPanelOpen) return;
-    var factor = Math.max(0.8, Math.min(1.25, 1 + deltaY * 0.0011));
-    var toCamera = new THREE.Vector3().subVectors(camera.position, viewLookAt);
-    var dist = toCamera.length();
-    if (dist < 0.001) dist = 1;
-    var newDist = Math.max(5, Math.min(160, dist * factor));
-    toCamera.normalize().multiplyScalar(newDist);
-    camera.position.copy(viewLookAt).add(toCamera);
-    camera.lookAt(viewLookAt);
-  }
-
-  window.addEventListener('wheel', function (e) {
-    e.preventDefault();
-    zoomCamera(e.deltaY);
-  }, { passive: false });
-
 
   // ---------------- 渲染循环 ----------------
   var clock = new THREE.Clock();
