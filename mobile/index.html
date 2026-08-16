@@ -99,6 +99,8 @@
       var viewScale = 1;
       var viewPanX = 0;
       var viewPanY = 0;
+      var viewProgress = 0;
+
       var viewRotate = 0;
       var rotatePivotX = 0;
       var rotatePivotY = 0;
@@ -237,8 +239,28 @@
         function startRotateAnimation(pivotX, pivotY) {
           rotatePivotX = pivotX;
           rotatePivotY = pivotY;
+            viewProgress = 0;
+
           rotAnim = { t: 0, duration: 0.9 };
         }
+
+          function transitionState() {
+            var p = viewProgress;
+            var pivotX = rotatePivotX + (window.innerWidth / 2 - rotatePivotX) * p;
+            var pivotY = rotatePivotY + (window.innerHeight / 2 - rotatePivotY) * p;
+            return { p: p, pivotX: pivotX, pivotY: pivotY };
+          }
+
+          function mainDrawPos(n, s) {
+            if (!s.p) return { x: n.x, y: n.y };
+            return { x: s.pivotX, y: s.pivotY + (n.ty - rotatePivotY) * (1 - s.p) };
+          }
+
+          function childDrawPos(n, s) {
+            if (!s.p) return { x: n.x, y: n.y };
+            return { x: s.pivotX + (n.tx - window.innerWidth / 2) * s.p, y: s.pivotY + (n.ty - window.innerHeight / 2) * s.p };
+          }
+
 
 
       function update(dt) {
@@ -248,9 +270,10 @@
             if (rotAnim.t >= rotAnim.duration) {
               viewRotate = 0;
               rotAnim = null;
+                viewProgress = 0;
             } else {
               var rp = easeInOutCubic(rotAnim.t / rotAnim.duration);
-              viewRotate = rp * Math.PI / 2;
+              viewProgress = rp;
             }
           }
 
@@ -267,6 +290,21 @@
         });
         mainLineAlpha += (targetMainLineAlpha - mainLineAlpha) * k;
         treeAlpha += (targetTreeAlpha - treeAlpha) * k;
+
+          if (rotAnim) {
+            var ts = transitionState();
+            mainNodes.forEach(function (n) {
+              var p = mainDrawPos(n, ts);
+              n.x = p.x;
+              n.y = p.y;
+            });
+            childNodes.forEach(function (n) {
+              var p = childDrawPos(n, ts);
+              n.x = p.x;
+              n.y = p.y;
+            });
+          }
+
       }
 
       function drawGlow(x, y, radius, alpha) {
@@ -313,6 +351,8 @@
         ctx.clearRect(0, 0, W, H);
         ctx.fillStyle = '#0b0b0d';
         ctx.fillRect(0, 0, W, H);
+          var ts = transitionState();
+
 
           if (viewRotate) {
             ctx.save();
@@ -324,7 +364,9 @@
 
         if (mainLineAlpha > 0.02) {
           for (var i = 0; i < mainNodes.length - 1; i++) {
-            drawLine(mainNodes[i].x, mainNodes[i].y, mainNodes[i + 1].x, mainNodes[i + 1].y, mainLineAlpha * 0.75, 1.5);
+            var mp1 = mainDrawPos(mainNodes[i], ts);
+              var mp2 = mainDrawPos(mainNodes[i + 1], ts);
+              drawLine(mp1.x, mp1.y, mp2.x, mp2.y, mainLineAlpha * 0.75 * (1 - ts.p), 1.5);
           }
         }
 
@@ -339,7 +381,9 @@
           if (center) {
             childNodes.forEach(function (n) {
               if (n.mainDef === focusMain && n !== center) {
-                drawLine(center.x, center.y, n.x, n.y, treeAlpha * 0.85, 1.2);
+                var cp1 = childDrawPos(center, ts);
+                  var cp2 = childDrawPos(n, ts);
+                  drawLine(cp1.x, cp1.y, cp2.x, cp2.y, treeAlpha * 0.85 * ts.p, 1.2);
               }
             });
           }
@@ -402,6 +446,8 @@
       }
 
       function handleTap(e) {
+          if (rotAnim) return;
+
         var rect = canvas.getBoundingClientRect();
         var sx = (e.touches && e.touches[0] ? e.touches[0].clientX : e.clientX);
         var sy = (e.touches && e.touches[0] ? e.touches[0].clientY : e.clientY);
