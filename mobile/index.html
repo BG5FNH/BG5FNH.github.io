@@ -32,7 +32,7 @@
       position: fixed;
       inset: 0;
       display: block;
-      touch-action: manipulation;
+      touch-action: none;
     }
 
     #backToOverview {
@@ -81,7 +81,7 @@
     </svg>
     返回
   </button>
-  <div id="hint">点击金色圆点进入对应空间</div>
+  <div id="hint">点击金色圆点进入 · 空白处拖动平移 · 双指缩放</div>
 
   <script src="../pc/js/waypoints.js"></script>
   <script>
@@ -96,6 +96,10 @@
       var backBtn = document.getElementById('backToOverview');
       var hintEl = document.getElementById('hint');
       var touchHandledAt = 0;
+      var viewScale = 1;
+      var viewPanX = 0;
+      var viewPanY = 0;
+
 
       var W = 0;
       var H = 0;
@@ -145,14 +149,14 @@
         var w = W / dpr;
         var h = H / dpr;
 
-        var leftPad = Math.min(36, w * 0.06);
-        var rightPad = Math.min(36, w * 0.06);
+        var topPad = Math.min(28, h * 0.06);
+        var bottomPad = Math.min(28, h * 0.06);
         var total = mainNodes.length;
-        var usable = w - leftPad - rightPad;
+        var usable = h - topPad - bottomPad;
         var step = total > 1 ? usable / (total - 1) : 0;
         mainNodes.forEach(function (n, i) {
-          n.tx = leftPad + step * i;
-          n.ty = h * 0.46;
+          n.tx = w * 0.5;
+          n.ty = topPad + step * i;
           n.targetAlpha = 1;
           n.radius = n.mainDef.scale ? Math.round(14 * n.mainDef.scale + 4) : 14;
         });
@@ -193,6 +197,10 @@
       function setMode(newMode, mainDef) {
         mode = newMode;
         focusMain = mainDef;
+          viewScale = 1;
+          viewPanX = 0;
+          viewPanY = 0;
+
         if (newMode === 'overview') { try { sessionStorage.removeItem('bg5fnh_focus'); } catch (e) { } }
         if (mode === 'focus') {
           targetMainLineAlpha = 0;
@@ -208,7 +216,7 @@
           childNodes.forEach(function (n) { n.targetAlpha = 0; });
           if (backBtn) backBtn.style.display = 'none';
           if (hintEl) {
-            hintEl.textContent = '点击金色圆点进入对应空间';
+            hintEl.textContent = '点击金色圆点进入 · 空白处拖动平移 · 双指缩放';
             hintEl.style.opacity = '1';
           }
         }
@@ -238,9 +246,9 @@
       function drawGlow(x, y, radius, alpha) {
         if (alpha <= 0.02) return;
         var dpr = window.devicePixelRatio || 1;
-        var px = x * dpr;
-        var py = y * dpr;
-        var pr = radius * dpr;
+        var px = (x * viewScale + viewPanX) * dpr;
+        var py = (y * viewScale + viewPanY) * dpr;
+        var pr = radius * viewScale * dpr;
 
         var grad = ctx.createRadialGradient(px, py, 0, px, py, pr * 2.6);
         grad.addColorStop(0, 'rgba(240,226,196,' + (0.95 * alpha) + ')');
@@ -257,10 +265,10 @@
         if (alpha <= 0.02) return;
         var dpr = window.devicePixelRatio || 1;
         ctx.strokeStyle = 'rgba(201,168,106,' + alpha + ')';
-        ctx.lineWidth = (width || 1.5) * dpr;
+        ctx.lineWidth = (width || 1.5) * viewScale * dpr;
         ctx.beginPath();
-        ctx.moveTo(x1 * dpr, y1 * dpr);
-        ctx.lineTo(x2 * dpr, y2 * dpr);
+        ctx.moveTo((x1 * viewScale + viewPanX) * dpr, (y1 * viewScale + viewPanY) * dpr);
+        ctx.lineTo((x2 * viewScale + viewPanX) * dpr, (y2 * viewScale + viewPanY) * dpr);
         ctx.stroke();
       }
 
@@ -268,10 +276,10 @@
         if (alpha <= 0.02) return;
         var dpr = window.devicePixelRatio || 1;
         ctx.fillStyle = 'rgba(201,168,106,' + alpha + ')';
-        ctx.font = ((big ? 13 : 11) * dpr) + 'px "Microsoft YaHei","PingFang SC",sans-serif';
+        ctx.font = ((big ? 13 : 11) * viewScale * dpr) + 'px "Microsoft YaHei","PingFang SC",sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
-        ctx.fillText(text, x * dpr, y * dpr);
+        ctx.fillText(text, (x * viewScale + viewPanX) * dpr, (y * viewScale + viewPanY) * dpr);
       }
 
       function draw() {
@@ -312,6 +320,9 @@
       }
 
       function hitTest(x, y) {
+          x = (x - viewPanX) / viewScale;
+          y = (y - viewPanY) / viewScale;
+
         if (mode === 'overview') {
           for (var i = mainNodes.length - 1; i >= 0; i--) {
             var n = mainNodes[i];
@@ -362,11 +373,95 @@
         if (Date.now() - touchHandledAt < 600) return;
         handleTap(e);
       });
-      canvas.addEventListener('touchstart', function (e) {
+      canvas.addEventListener('touchstart', function (e) { return;
         e.preventDefault();
         touchHandledAt = Date.now();
         handleTap(e);
       }, { passive: false });
+
+        var pointers = {};
+        var panStartX = 0;
+        var panStartY = 0;
+        var panMoved = false;
+        var pinchStartDist = 0;
+        var pinchStartScale = 1;
+        var pinchWorldX = 0;
+        var pinchWorldY = 0;
+
+        function pointerDown(e) {
+          canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId);
+          pointers[e.pointerId] = { x: e.clientX, y: e.clientY, startX: e.clientX, startY: e.clientY, startTime: Date.now() };
+          var ids = Object.keys(pointers);
+
+          if (ids.length === 1) {
+            panStartX = e.clientX;
+            panStartY = e.clientY;
+            panMoved = false;
+          } else if (ids.length === 2) {
+            var p1 = pointers[ids[0]];
+            var p2 = pointers[ids[1]];
+            pinchStartDist = Math.max(1, Math.hypot(p2.x - p1.x, p2.y - p1.y));
+            pinchStartScale = viewScale;
+            var rect = canvas.getBoundingClientRect();
+            var focalX = ((p1.x + p2.x) / 2) - rect.left;
+            var focalY = ((p1.y + p2.y) / 2) - rect.top;
+            pinchWorldX = (focalX - viewPanX) / viewScale;
+            pinchWorldY = (focalY - viewPanY) / viewScale;
+          }
+          e.preventDefault();
+        }
+
+        function pointerMove(e) {
+          if (!pointers[e.pointerId]) return;
+          pointers[e.pointerId].x = e.clientX;
+          pointers[e.pointerId].y = e.clientY;
+          var ids = Object.keys(pointers);
+
+          if (ids.length === 1) {
+            var dx = e.clientX - pointers[e.pointerId].startX;
+            var dy = e.clientY - pointers[e.pointerId].startY;
+            if (!panMoved && Math.hypot(dx, dy) < 6) return;
+            panMoved = true;
+            viewPanX += e.clientX - panStartX;
+            viewPanY += e.clientY - panStartY;
+            panStartX = e.clientX;
+            panStartY = e.clientY;
+          } else if (ids.length === 2) {
+            var p1 = pointers[ids[0]];
+            var p2 = pointers[ids[1]];
+            var dist = Math.max(1, Math.hypot(p2.x - p1.x, p2.y - p1.y));
+            var newScale = Math.max(0.5, Math.min(2.5, pinchStartScale * (dist / pinchStartDist)));
+            var rect = canvas.getBoundingClientRect();
+            var focalX = ((p1.x + p2.x) / 2) - rect.left;
+            var focalY = ((p1.y + p2.y) / 2) - rect.top;
+            viewPanX = focalX - pinchWorldX * newScale;
+            viewPanY = focalY - pinchWorldY * newScale;
+            viewScale = newScale;
+          }
+          e.preventDefault();
+        }
+
+        function pointerUp(e) {
+          var info = pointers[e.pointerId];
+          delete pointers[e.pointerId];
+
+          if (info && Object.keys(pointers).length === 0) {
+            var dt = Date.now() - info.startTime;
+            var dist = Math.hypot(e.clientX - info.startX, e.clientY - info.startY);
+            if (!panMoved && dist < 8 && dt < 500 && Date.now() - touchHandledAt > 300) {
+              touchHandledAt = Date.now();
+              handleTap(e);
+            }
+            panMoved = false;
+          }
+          e.preventDefault();
+        }
+
+        canvas.addEventListener('pointerdown', pointerDown);
+        canvas.addEventListener('pointermove', pointerMove);
+        canvas.addEventListener('pointerup', pointerUp);
+        canvas.addEventListener('pointercancel', pointerUp);
+
 
       if (backBtn) {
         backBtn.addEventListener('click', function () {
