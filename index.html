@@ -1,40 +1,19 @@
-<!DOCTYPE html>   <!-- 声明文档类型为 HTML5，让浏览器按标准模式解析 -->
-<html>            <!-- HTML 根标签，页面所有内容都在这里 -->
-<head>            <!-- 头部：存放页面配置信息，用户不可见 -->
-    <meta charset="UTF-8">   <!-- 字符编码 UTF-8，支持中文显示 -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">  <!-- 移动端视口设置，让页面按设备宽度显示且不缩放 -->
-    <title>跳转中</title>    <!-- 浏览器标签页标题 -->
-    <style>                  <!-- CSS 样式开始 -->
-        /* 清除所有默认边距，确保背景完全纯黑 */
-        * {
-            margin: 0;         /* 所有元素外边距归零 */
-            padding: 0;        /* 所有元素内边距归零 */
-        }
-        html, body {
-            width: 100%;       /* 宽度占满视口 */
-            height: 100%;      /* 高度占满视口 */
-            background: #000;  /* 背景色纯黑（#000 等同于 #000000） */
-        }
-    </style>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BG5FNH - 跳转中</title>
+  <script>
+    (function () {
+      var ua = navigator.userAgent || navigator.vendor || window.opera || '';
+      var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone/i.test(ua) || (window.innerWidth <= 768 && 'ontouchstart' in window);
+      var target = (isMobile ? 'mobile' : 'pc') + '/index.html';
+      window.location.replace(target);
+    })();
+  </script>
 </head>
-<body>            <!-- 用户可见的内容 -->
-    <script>      <!-- JavaScript 逻辑部分 -->
-        // 1. 获取浏览器的用户代理字符串（设备型号+浏览器信息）
-        let ua = navigator.userAgent;
-
-        // 2. 检查 UA 中是否包含手机/平板的关键词
-        let isMobile = /Android|iPhone|iPad|Mobile/i.test(ua);
-        // 返回 true（手机） 或 false（电脑）
-
-        // 3. 根据结果决定跳转路径
-        let target = isMobile ? '/mobile/' : '/pc/';
-        // true → /mobile/，false → /pc/
-
-        // 4. 延迟 3 秒后跳转（让黑屏展示一会儿）
-        setTimeout(() => {
-            window.location.href = target;   // 执行跳转
-        }, 3000);
-        // 3000 = 3 秒（1000 毫秒 = 1 秒）
-    </script>
+<body>
+  <p style="background:#0b0b0d;color:#c9a86a;font-family:sans-serif;display:flex;height:100vh;margin:0;align-items:center;justify-content:center;">正在跳转至适合您设备的页面…</p>
 </body>
 </html>

@@ -1,62 +1,245 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>显示飞船</title>
-    <style>
-        body { margin: 0; overflow: hidden; background: #000; }
-        canvas { display: block; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BG5FNH · 个人网页</title>
+  <style>
+    :root {
+      --bg: #0b0b0d;
+      --gold: #c9a86a;
+      --gold-soft: #8a7348;
+      --gold-line: #4a4033;
+      --text: #e6d7b8;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: var(--bg);
+      overflow: hidden;
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", "Segoe UI", sans-serif;
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    #stage {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+    }
+
+    #stage canvas {
+      display: block;
+    }
+
+    #overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+      .node-hit,
+      .node-label {
+        display: none;
+      }
+
+
+    .node-hit {
+      position: absolute;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      pointer-events: auto;
+      transition: box-shadow 0.25s ease, background 0.25s ease;
+    }
+
+    .node-hit:hover {
+      background: rgba(201, 168, 106, 0.08);
+      box-shadow: 0 0 24px rgba(201, 168, 106, 0.45), inset 0 0 12px rgba(201, 168, 106, 0.25);
+    }
+
+    .node-label {
+      position: absolute;
+      transform: translate(-50%, 0);
+      text-align: center;
+      white-space: nowrap;
+      color: var(--gold);
+      font-size: 14px;
+      letter-spacing: 2px;
+      pointer-events: auto;
+      cursor: pointer;
+      text-shadow: 0 0 12px rgba(201, 168, 106, 0.35);
+      transition: color 0.2s ease, text-shadow 0.2s ease;
+    }
+
+    .node-label:hover {
+      color: #f0e2c4;
+      text-shadow: 0 0 18px rgba(201, 168, 106, 0.65);
+    }
+
+    .node-label.big {
+      font-size: 17px;
+      letter-spacing: 3px;
+    }
+
+    /* 左上角返回主视线（聚焦树状图后出现） */
+    #backToOverview {
+      position: fixed;
+      top: 22px;
+      left: 22px;
+      z-index: 5;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: rgba(11, 11, 13, 0.45);
+      border: 1px solid rgba(201, 168, 106, 0.35);
+      border-radius: 999px;
+      color: var(--gold);
+      cursor: pointer;
+      font-size: 14px;
+      letter-spacing: 1px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      pointer-events: auto;
+      transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    #backToOverview:hover {
+      background: rgba(201, 168, 106, 0.12);
+      border-color: var(--gold);
+      color: #f0e2c4;
+      box-shadow: 0 0 18px rgba(201, 168, 106, 0.22);
+    }
+
+    #backToOverview svg {
+      display: block;
+    }
+
+    #hint {
+      position: fixed;
+      left: 50%;
+      bottom: 28px;
+      transform: translateX(-50%);
+      z-index: 3;
+      color: rgba(201, 168, 106, 0.75);
+      font-size: 13px;
+      letter-spacing: 2px;
+      pointer-events: none;
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+      transition: opacity 0.6s ease;
+    }
+
+    #fallback {
+      position: fixed;
+      inset: 0;
+      z-index: 9;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: var(--bg);
+      color: var(--gold);
+      padding: 30px;
+      line-height: 2;
+    }
+      /* 第二击：展示页从金色点浮现，背景神经元模糊但可见 */
+      #pageOverlay {
+        position: fixed;
+        inset: 0;
+        z-index: 8;
+        display: none;
+        pointer-events: none;
+      }
+
+      #pageOverlay.active {
+        display: block;
+        pointer-events: auto;
+      }
+
+      #pageOverlay .page-blur {
+        position: absolute;
+        inset: 0;
+        background: rgba(11, 11, 13, 0.16);
+        backdrop-filter: blur(4px) brightness(0.78);
+        -webkit-backdrop-filter: blur(4px) brightness(0.78);
+        opacity: 0;
+        transition: opacity 0.55s ease;
+      }
+
+      #pageOverlay.active .page-blur {
+        opacity: 1;
+      }
+
+      #pageFrame {
+        position: absolute;
+        left: 2vw;
+        top: 2vh;
+        width: 96vw;
+        height: 96vh;
+        border: 1px solid rgba(201, 168, 106, 0.45);
+        border-radius: 14px;
+        background: transparent;
+        box-shadow: 0 0 70px rgba(201, 168, 106, 0.22), 0 0 0 1px rgba(201, 168, 106, 0.1) inset;
+        overflow: hidden;
+        opacity: 0;
+        transform: scale(0.05);
+        transform-origin: 50% 50%;
+        transition: transform 0.8s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.55s ease;
+      }
+
+      #pageOverlay.active #pageFrame {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      #pageFrame iframe {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border: none;
+        background: transparent;
+      }
+
+  </style>
 </head>
 <body>
+  <div id="stage"></div>
+  <div id="overlay"></div>
+  <button id="backToOverview" aria-label="返回主视线">
+    <svg viewBox="0 0 24 24" width="20" height="20">
+      <path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+    返回主视线
+  </button>
+  <div id="hint">点击金色圆点进入对应空间</div>
+  <div id="fallback">
+    <div>
+      <p>three.js 尚未就位，无法启动 3D 主场景。</p>
+      <p>请将 <code style="color:#f0e2c4;">three.min.js</code> 放入 <code style="color:#f0e2c4;">pc/js/</code> 文件夹。</p>
+      <p>下载地址：<code style="color:#f0e2c4;">https://github.com/mrdoob/three.js/archive/refs/tags/r128.zip</code></p>
+    </div>
+  </div>
+    <div id="pageOverlay">
+      <div class="page-blur"></div>
+      <iframe id="pageFrame" title="内容页面" src="about:blank"></iframe>
+    </div>
 
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
-            }
-        }
-    </script>
 
-    <script type="module">
-        import * as THREE from 'three';
-        import { createShip } from './ships/ship.js';
-
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x111122);
-
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(8, 5, 10);
-        camera.lookAt(0, 0, 0);
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        document.body.appendChild(renderer.domElement);
-
-        const ambientLight = new THREE.AmbientLight(0x404060);
-        scene.add(ambientLight);
-        const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
-        dirLight.position.set(5, 10, 7);
-        scene.add(dirLight);
-
-        const ship = createShip();
-        ship.position.set(0, 0, 0);
-        scene.add(ship);
-
-        function animate() {
-            requestAnimationFrame(animate);
-            ship.rotation.y += 0.005;
-            renderer.render(scene, camera);
-        }
-        animate();
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-    </script>
+  <script src="js/three.min.js"></script>
+  <script src="js/waypoints.js"></script>
+  <script src="js/main3d.js"></script>
 </body>
 </html>
