@@ -543,6 +543,25 @@
     dragMoved = false;
   });
 
+  // ---------------- 滚轮缩放 ----------------
+  function zoomCamera(deltaY) {
+    if (anim.running || contentPanelOpen) return;
+    var factor = Math.max(0.8, Math.min(1.25, 1 + deltaY * 0.0011));
+    var toCamera = new THREE.Vector3().subVectors(camera.position, viewLookAt);
+    var dist = toCamera.length();
+    if (dist < 0.001) dist = 1;
+    var newDist = Math.max(5, Math.min(160, dist * factor));
+    toCamera.normalize().multiplyScalar(newDist);
+    camera.position.copy(viewLookAt).add(toCamera);
+    camera.lookAt(viewLookAt);
+  }
+
+  window.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    zoomCamera(e.deltaY);
+  }, { passive: false });
+
+
   // ---------------- 渲染循环 ----------------
   var clock = new THREE.Clock();
   function animate() {
