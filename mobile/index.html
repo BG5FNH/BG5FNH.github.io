@@ -89,9 +89,7 @@
       'use strict';
 
       var CFG = window.BG5FNH_WAYPOINTS;
-      if (!CFG) {
-        return;
-      }
+      if (!CFG) return;
 
       var canvas = document.getElementById('view');
       var ctx = canvas.getContext('2d');
@@ -110,11 +108,10 @@
         computeLayouts();
       }
 
-      // ---------------- 节点数据 ----------------
       var mainNodes = [];
       var childNodes = [];
 
-      function makeNode(def, extra) {
+      function makeNode(def) {
         return {
           def: def,
           name: def.name,
@@ -123,34 +120,31 @@
           y: 0,
           tx: 0,
           ty: 0,
-          radius: def.radius || 10,
+          radius: 10,
           alpha: 0,
-          targetAlpha: 0,
-          labelAlpha: 0
+          targetAlpha: 0
         };
       }
 
       CFG.mainLine.nodes.forEach(function (mainDef) {
-        var mainNode = makeNode(mainDef, { radius: mainDef.scale ? 16 * mainDef.scale : 14 });
+        var mainNode = makeNode(mainDef);
         mainNode.mainDef = mainDef;
         mainNode.children = [];
         mainNodes.push(mainNode);
 
         (mainDef.children || []).forEach(function (childDef) {
-          var childNode = makeNode(childDef, { radius: 8 });
+          var childNode = makeNode(childDef);
           childNode.mainDef = mainDef;
           childNodes.push(childNode);
           mainNode.children.push(childNode);
         });
       });
 
-      // ---------------- 布局 ----------------
       function computeLayouts() {
         var dpr = window.devicePixelRatio || 1;
         var w = W / dpr;
         var h = H / dpr;
 
-        // 总览：主线横向，居中偏上一点
         var leftPad = Math.min(36, w * 0.06);
         var rightPad = Math.min(36, w * 0.06);
         var total = mainNodes.length;
@@ -163,7 +157,6 @@
           n.radius = n.mainDef.scale ? Math.round(14 * n.mainDef.scale + 4) : 14;
         });
 
-        // 聚焦：树状图居中，子节点围绕中心
         var cx = w * 0.5;
         var cy = h * 0.50;
         var r = Math.min(w, h) * 0.21;
@@ -190,8 +183,7 @@
         });
       }
 
-      // ---------------- 状态 ----------------
-      var mode = 'overview'; // overview | focus
+      var mode = 'overview';
       var focusMain = null;
       var mainLineAlpha = 1;
       var targetMainLineAlpha = 1;
@@ -201,7 +193,7 @@
       function setMode(newMode, mainDef) {
         mode = newMode;
         focusMain = mainDef;
-        if (newMode === 'overview') { try { sessionStorage.removeItem('bg5fnh_focus'); } catch (e) {} }
+        if (newMode === 'overview') { try { sessionStorage.removeItem('bg5fnh_focus'); } catch (e) { } }
         if (mode === 'focus') {
           targetMainLineAlpha = 0;
           targetTreeAlpha = 1;
@@ -223,15 +215,12 @@
       }
 
       function openNode(mainDef, childDef) {
-        try {
-          sessionStorage.setItem('bg5fnh_focus', mainDef.id);
-        } catch (e) { }
+        try { sessionStorage.setItem('bg5fnh_focus', mainDef.id); } catch (e) { }
         window.location.href = '../WayPoints/' + childDef.url;
       }
 
-      // ---------------- 动画更新 ----------------
       function update(dt) {
-        var k = 1 - Math.pow(0.0008, dt); // 慢速缓动
+        var k = 1 - Math.pow(0.0008, dt);
         mainNodes.forEach(function (n) {
           n.x += (n.tx - n.x) * k;
           n.y += (n.ty - n.y) * k;
@@ -246,7 +235,6 @@
         treeAlpha += (targetTreeAlpha - treeAlpha) * k;
       }
 
-      // ---------------- 绘制 ----------------
       function drawGlow(x, y, radius, alpha) {
         if (alpha <= 0.02) return;
         var dpr = window.devicePixelRatio || 1;
@@ -265,10 +253,10 @@
         ctx.fill();
       }
 
-      function drawLine(x1, y1, x2, y2, alpha, width, color) {
+      function drawLine(x1, y1, x2, y2, alpha, width) {
         if (alpha <= 0.02) return;
         var dpr = window.devicePixelRatio || 1;
-        ctx.strokeStyle = color || 'rgba(201,168,106,' + alpha + ')';
+        ctx.strokeStyle = 'rgba(201,168,106,' + alpha + ')';
         ctx.lineWidth = (width || 1.5) * dpr;
         ctx.beginPath();
         ctx.moveTo(x1 * dpr, y1 * dpr);
@@ -288,15 +276,10 @@
 
       function draw() {
         var dpr = window.devicePixelRatio || 1;
-        var w = W / dpr;
-        var h = H / dpr;
         ctx.clearRect(0, 0, W, H);
-
-        // 背景
         ctx.fillStyle = '#0b0b0d';
         ctx.fillRect(0, 0, W, H);
 
-        // 主线（总览）与树状线（聚焦）
         if (mainLineAlpha > 0.02) {
           for (var i = 0; i < mainNodes.length - 1; i++) {
             drawLine(mainNodes[i].x, mainNodes[i].y, mainNodes[i + 1].x, mainNodes[i + 1].y, mainLineAlpha * 0.75, 1.5);
@@ -306,9 +289,7 @@
         if (treeAlpha > 0.02 && focusMain) {
           var center = null;
           childNodes.forEach(function (n) {
-            if (n.mainDef === focusMain && n.def.dir === 'center') {
-              center = n;
-            }
+            if (n.mainDef === focusMain && n.def.dir === 'center') center = n;
           });
           if (center) {
             childNodes.forEach(function (n) {
@@ -319,7 +300,6 @@
           }
         }
 
-        // 点与标签
         mainNodes.forEach(function (n) {
           drawGlow(n.x, n.y, n.radius, n.alpha);
           drawLabel(n.name, n.x, n.y + n.radius + 5, n.alpha, n.mainDef.scale > 1.2);
@@ -329,29 +309,18 @@
           drawGlow(n.x, n.y, n.radius, n.alpha);
           drawLabel(n.name, n.x, n.y + n.radius + 5, n.alpha, false);
         });
-
-        // 空状态提示
-        if (mode === 'overview') {
-          // 由 hint 元素负责
-        }
       }
 
-      // ---------------- 点击检测 ----------------
       function hitTest(x, y) {
-        var dpr = window.devicePixelRatio || 1;
-        var px = x;
-        var py = y;
-
         if (mode === 'overview') {
           for (var i = mainNodes.length - 1; i >= 0; i--) {
             var n = mainNodes[i];
             if (n.alpha < 0.5) continue;
-            var dx = px - n.x;
-            var dy = py - n.y;
+            var dx = x - n.x;
+            var dy = y - n.y;
             if (dx * dx + dy * dy <= (n.radius + 16) * (n.radius + 16)) {
               return { type: 'main', node: n };
             }
-            // 标签区域
             if (Math.abs(dx) <= 34 && dy > n.radius && dy < n.radius + 28) {
               return { type: 'main', node: n };
             }
@@ -360,8 +329,8 @@
           for (var j = childNodes.length - 1; j >= 0; j--) {
             var c = childNodes[j];
             if (c.mainDef !== focusMain || c.alpha < 0.5) continue;
-            var dx2 = px - c.x;
-            var dy2 = py - c.y;
+            var dx2 = x - c.x;
+            var dy2 = y - c.y;
             if (dx2 * dx2 + dy2 * dy2 <= (c.radius + 16) * (c.radius + 16)) {
               return { type: 'child', node: c };
             }
@@ -389,9 +358,11 @@
         }
       }
 
-      canvas.addEventListener('click', function (e) { if (Date.now() - touchHandledAt < 600) return; handleTap(e); });
+      canvas.addEventListener('click', function (e) {
+        if (Date.now() - touchHandledAt < 600) return;
+        handleTap(e);
+      });
       canvas.addEventListener('touchstart', function (e) {
-        // 阻止双击缩放干扰
         e.preventDefault();
         touchHandledAt = Date.now();
         handleTap(e);
@@ -399,13 +370,10 @@
 
       if (backBtn) {
         backBtn.addEventListener('click', function () {
-          if (mode === 'focus') {
-            setMode('overview', null);
-          }
+          if (mode === 'focus') setMode('overview', null);
         });
       }
 
-      // ---------------- 恢复上次聚焦 ----------------
       function restoreFocus() {
         var saved = null;
         try {
@@ -419,23 +387,13 @@
         });
         if (!found) return;
 
-        // 直接定位到聚焦布局
         setMode('focus', found.mainDef);
-        mainNodes.forEach(function (n) {
-          n.x = n.tx;
-          n.y = n.ty;
-          n.alpha = n.targetAlpha;
-        });
-        childNodes.forEach(function (n) {
-          n.x = n.tx;
-          n.y = n.ty;
-          n.alpha = n.targetAlpha;
-        });
+        mainNodes.forEach(function (n) { n.x = n.tx; n.y = n.ty; n.alpha = n.targetAlpha; });
+        childNodes.forEach(function (n) { n.x = n.tx; n.y = n.ty; n.alpha = n.targetAlpha; });
         mainLineAlpha = targetMainLineAlpha;
         treeAlpha = targetTreeAlpha;
       }
 
-      // ---------------- 启动 ----------------
       var lastTime = performance.now();
       function loop(now) {
         var dt = Math.min(0.05, (now - lastTime) / 1000);
@@ -448,7 +406,6 @@
       window.addEventListener('resize', resize);
       resize();
       setMode('overview', null);
-      // 初始位置直接到位，不播放多余动画
       mainNodes.forEach(function (n) { n.x = n.tx; n.y = n.ty; n.alpha = 1; });
       childNodes.forEach(function (n) { n.x = n.tx; n.y = n.ty; n.alpha = 0; });
       restoreFocus();
