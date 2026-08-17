@@ -37,6 +37,7 @@
 
     #stage canvas {
       display: block;
+        touch-action: none;
       cursor: grab;
     }
 
@@ -131,6 +132,25 @@
       display: block;
     }
 
+      #versionBadge {
+        position: fixed;
+        top: 22px;
+        left: 22px;
+        z-index: 5;
+        padding: 10px 16px;
+        background: rgba(11, 11, 13, 0.45);
+        border: 1px solid rgba(201, 168, 106, 0.35);
+        border-radius: 999px;
+        color: var(--gold);
+        font-size: 14px;
+        letter-spacing: 1px;
+        pointer-events: none;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        transition: opacity 0.3s ease;
+      }
+
+
     #hint {
       position: fixed;
       left: 50%;
@@ -213,6 +233,7 @@
 <body>
   <div id="stage"></div>
   <div id="overlay"></div>
+  <div id="versionBadge">v1.0.0</div>
   <button id="backToOverview" aria-label="返回主视线">
     <svg viewBox="0 0 24 24" width="20" height="20">
       <path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />

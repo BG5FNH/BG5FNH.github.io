@@ -27,6 +27,7 @@
   var hintEl = document.getElementById('hint');
   var pageOverlay = document.getElementById('pageOverlay');
   var pageFrame = document.getElementById('pageFrame');
+  var versionBadge = document.getElementById('versionBadge');
 
   var scene = new THREE.Scene();
   scene.background = new THREE.Color(BG);
@@ -269,6 +270,7 @@
     focusMain = mainDef;
     hideHint();
     if (backBtn) backBtn.style.display = 'inline-flex';
+      hideVersionBadge();
     startAnimation(getFocusCamera(mainDef), mainDef, 2.6);
     anim.fromFocusMain = null;
   }
@@ -346,6 +348,7 @@
     mode = 'overview';
     focusMain = null;
     if (backBtn) backBtn.style.display = 'none';
+      showVersionBadge();
     showHint('点击金色圆点进入 · 空白处拖动平移 · 双指缩放');
     startAnimation(getOverviewCamera(), null, 2.2);
     anim.fromFocusMain = prevFocus;
@@ -353,6 +356,8 @@
 
   function hideHint() { if (hintEl) hintEl.style.opacity = '0'; }
   function showHint(text) { if (hintEl) { hintEl.textContent = text; hintEl.style.opacity = '1'; } }
+  function hideVersionBadge() { if (versionBadge) versionBadge.style.opacity = '0'; }
+  function showVersionBadge() { if (versionBadge) versionBadge.style.opacity = '1'; }
   if (backBtn) backBtn.addEventListener('click', backToOverview);
 
   function setSpriteOpacity(sprite, opacity) {
@@ -573,6 +578,7 @@
         toCamera.normalize().multiplyScalar(newDist);
         camera.position.copy(viewLookAt).add(toCamera);
         camera.lookAt(viewLookAt);
+          e.preventDefault();
         return;
       }
 
@@ -586,6 +592,7 @@
     lastPointerX = e.clientX;
     lastPointerY = e.clientY;
     panCamera(dx, dy);
+      e.preventDefault();
   });
 
   window.addEventListener('pointerup', function (e) {
@@ -641,6 +648,7 @@
     mainNodes.forEach(function (n) { setSpriteOpacity(n.sprite, 1); setUIOpacity(n.ui, 1); });
     childNodes.forEach(function (n) { setChildOpacity(n, 0); });
     try { sessionStorage.removeItem('bg5fnh_focus'); } catch (e) { }
+      showVersionBadge();
     animate();
   }
 
