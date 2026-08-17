@@ -11,8 +11,9 @@
   var CFG = window.BG5FNH_WAYPOINTS;
   if (!CFG) return;
   var MOBILE_LAYOUT = window.BG5FNH_MOBILE_LAYOUT === true;
-  var MOBILE_TOP_Y = 6;
-  var MOBILE_Y_STEP = 4;
+  var MOBILE_TOP_Y = 4.5;
+  var MOBILE_Y_STEP = 3;
+  var MOBILE_LINE_X = -3;
 
   var fallbackEl = document.getElementById('fallback');
   if (!window.THREE) {
@@ -175,18 +176,19 @@
       var mobileMinY = Math.min.apply(null, mobileYs);
       var mobileMaxY = Math.max.apply(null, mobileYs);
       var mobileLineLen = Math.max(0.01, mobileMaxY - mobileMinY);
-      var mobileThick = (window.innerWidth <= 768 && 'ontouchstart' in window) ? 0.3 : 0.16;
+      var mobileThick = 0.18;
       mainLine = new THREE.Mesh(
         new THREE.BoxGeometry(mobileThick, mobileLineLen, mobileThick),
         new THREE.MeshBasicMaterial({ color: GOLD, transparent: true, opacity: 1.0, depthTest: false, depthWrite: false })
       );
-      mainLine.position.set(0, (mobileMinY + mobileMaxY) / 2, 0);
+      mainLine.position.set(MOBILE_LINE_X, (mobileMinY + mobileMaxY) / 2, 0);
     }
   scene.add(mainLine);
 
   CFG.mainLine.nodes.forEach(function (mainDef, index) {
-    var mainPos = MOBILE_LAYOUT ? new THREE.Vector3(0, MOBILE_TOP_Y - index * MOBILE_Y_STEP, 0) : new THREE.Vector3(mainDef.x, CFG.mainLine.y, CFG.mainLine.z);
-    var sprite = makeGlowSprite(mainDef.scale !== undefined ? mainDef.scale * 1.1 : 1.1, GOLD);
+    var mainPos = MOBILE_LAYOUT ? new THREE.Vector3(MOBILE_LINE_X, MOBILE_TOP_Y - index * MOBILE_Y_STEP, 0) : new THREE.Vector3(mainDef.x, CFG.mainLine.y, CFG.mainLine.z);
+    var spriteScale = (mainDef.scale !== undefined ? mainDef.scale * 1.1 : 1.1) * (MOBILE_LAYOUT ? 0.75 : 1);
+    var sprite = makeGlowSprite(spriteScale, GOLD);
     sprite.position.copy(mainPos);
     scene.add(sprite);
 
@@ -269,7 +271,7 @@
     if (MOBILE_LAYOUT) {
       var idx = CFG.mainLine.nodes.indexOf(mainDef);
       var fy = MOBILE_TOP_Y - idx * MOBILE_Y_STEP;
-      return { pos: new THREE.Vector3(0, fy + 18, 0), up: new THREE.Vector3(0, 0, -1), lookAt: new THREE.Vector3(0, fy, 0) };
+      return { pos: new THREE.Vector3(MOBILE_LINE_X, fy + 18, 0), up: new THREE.Vector3(0, 0, -1), lookAt: new THREE.Vector3(MOBILE_LINE_X, fy, 0) };
     }
     var dist = 15;
     return {
@@ -525,7 +527,7 @@
 
       // 解决冲突：保留字体随镜头缩放版本
         var nodeDist = camera.position.distanceTo(n.pos);
-        var worldFont = n.kind === 'main' ? (n.def.scale && n.def.scale > 1.2 ? 0.9 : 0.7) : 0.55;
+        var worldFont = (n.kind === 'main' ? (n.def.scale && n.def.scale > 1.2 ? 0.9 : 0.7) : 0.55) * (MOBILE_LAYOUT ? 0.72 : 1);
         var cssFont = worldFont * window.innerHeight / (2 * nodeDist * Math.tan(camera.fov * Math.PI / 360));
         cssFont = Math.max(8, Math.min(40, cssFont));
         ui.label.style.fontSize = cssFont + 'px';
@@ -539,7 +541,7 @@
       ui.label.style.left = p.x + 'px';
 
         if (MOBILE_LAYOUT && mode === 'overview' && n.kind === 'main') {
-          ui.label.style.left = (p.x + 22) + 'px';
+          ui.label.style.left = (p.x + 18) + 'px';
           ui.label.style.top = p.y + 'px';
           ui.label.style.transform = 'translate(0, -50%)';
           ui.label.style.textAlign = 'left';
