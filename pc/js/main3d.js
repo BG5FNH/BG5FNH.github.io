@@ -11,7 +11,7 @@
   var CFG = window.BG5FNH_WAYPOINTS;
   if (!CFG) return;
   var MOBILE_LAYOUT = window.BG5FNH_MOBILE_LAYOUT === true;
-  var MOBILE_TOP_Y = 6.0;
+  var MOBILE_TOP_Y = 5.0;
   var MOBILE_Y_STEP = 2.0;
   var MOBILE_LINE_X = -3;
 
