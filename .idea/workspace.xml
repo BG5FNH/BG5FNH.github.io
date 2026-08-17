@@ -4,12 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6c11d638-706a-4ffa-99d2-2d8118a06120" name="更改" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pc/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/pc/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pc/js/main3d.js" beforeDir="false" afterPath="$PROJECT_DIR$/pc/js/main3d.js" afterDir="false" />
-    </list>
+    <list default="true" id="6c11d638-706a-4ffa-99d2-2d8118a06120" name="更改" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -80,7 +75,7 @@
       <workItem from="1786782700405" duration="818000" />
       <workItem from="1786783720344" duration="5773000" />
       <workItem from="1786893322594" duration="1581000" />
-      <workItem from="1786901933077" duration="2391000" />
+      <workItem from="1786901933077" duration="2641000" />
     </task>
     <task id="LOCAL-00001" summary="首次提交：PC和移动端页面">
       <option name="closed" value="true" />
@@ -218,7 +213,15 @@
       <option name="project" value="LOCAL" />
       <updated>1786908222853</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="首次提交：PC和移动端页面">
+      <option name="closed" value="true" />
+      <created>1786908674097</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1786908674097</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
