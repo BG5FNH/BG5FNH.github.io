@@ -10,6 +10,9 @@
 
   var CFG = window.BG5FNH_WAYPOINTS;
   if (!CFG) return;
+  var MOBILE_LAYOUT = window.BG5FNH_MOBILE_LAYOUT === true;
+  var MOBILE_TOP_Y = 6;
+  var MOBILE_Y_STEP = 4;
 
   var fallbackEl = document.getElementById('fallback');
   if (!window.THREE) {
@@ -33,10 +36,10 @@
   scene.background = new THREE.Color(BG);
 
   var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 500);
-  camera.position.set(CFG.mainLine.cameraOverview.x, CFG.mainLine.cameraOverview.y, CFG.mainLine.cameraOverview.z);
-  camera.up.set(0, 0, -1);
-  camera.lookAt(CFG.mainLine.cameraLookAtOverview.x, CFG.mainLine.cameraLookAtOverview.y, CFG.mainLine.cameraLookAtOverview.z);
-  var viewLookAt = new THREE.Vector3(CFG.mainLine.cameraLookAtOverview.x, CFG.mainLine.cameraLookAtOverview.y, CFG.mainLine.cameraLookAtOverview.z);
+  if (MOBILE_LAYOUT) { camera.position.set(0, 0, 18); } else { camera.position.set(CFG.mainLine.cameraOverview.x, CFG.mainLine.cameraOverview.y, CFG.mainLine.cameraOverview.z); }
+  if (MOBILE_LAYOUT) { camera.up.set(0, 1, 0); } else { camera.up.set(0, 0, -1); }
+  if (MOBILE_LAYOUT) { camera.lookAt(0, 0, 0); } else { camera.lookAt(CFG.mainLine.cameraLookAtOverview.x, CFG.mainLine.cameraLookAtOverview.y, CFG.mainLine.cameraLookAtOverview.z); }
+  var viewLookAt = MOBILE_LAYOUT ? new THREE.Vector3(0, 0, 0) : new THREE.Vector3(CFG.mainLine.cameraLookAtOverview.x, CFG.mainLine.cameraLookAtOverview.y, CFG.mainLine.cameraLookAtOverview.z);
 
   var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -105,18 +108,30 @@
     'down-left': [0, -0.7071, -0.7071],
     'down-right': [0, -0.7071, 0.7071]
   };
+  var DIR_VECTORS_MOBILE = {
+    'center': [0, 0, 0],
+    'up': [0, 0, -1],
+    'down': [0, 0, 1],
+    'left': [-1, 0, 0],
+    'right': [1, 0, 0],
+    'up-left': [-0.7071, 0, -0.7071],
+    'up-right': [0.7071, 0, -0.7071],
+    'down-left': [-0.7071, 0, 0.7071],
+    'down-right': [0.7071, 0, 0.7071]
+  };
   var DEFAULT_CHILD_DISTANCE = 3.6;
 
-  function buildChildPosition(mainDef, childDef) {
+  function buildChildPosition(mainPos, childDef) {
     if (childDef.x !== undefined && childDef.y !== undefined && childDef.z !== undefined) {
       return new THREE.Vector3(childDef.x, childDef.y, childDef.z);
     }
-    var dir = DIR_VECTORS[childDef.dir] || DIR_VECTORS.center;
+    var table = MOBILE_LAYOUT ? DIR_VECTORS_MOBILE : DIR_VECTORS;
+      var dir = table[childDef.dir] || table.center;
     var dist = childDef.distance !== undefined ? childDef.distance : DEFAULT_CHILD_DISTANCE;
-    var baseY = mainDef.y !== undefined ? mainDef.y : CFG.mainLine.y;
-    var baseZ = mainDef.z !== undefined ? mainDef.z : CFG.mainLine.z;
+    var baseY = mainPos.y;
+    var baseZ = mainPos.z;
     return new THREE.Vector3(
-      mainDef.x + dir[0] * dist,
+      mainPos.x + dir[0] * dist,
       baseY + dir[1] * dist,
       baseZ + dir[2] * dist
     );
@@ -140,6 +155,8 @@
   var mainNodes = [];
   var childNodes = [];
 
+    var mainLine;
+    if (!MOBILE_LAYOUT) {
   var mainLinePoints = CFG.mainLine.nodes.map(function (n) {
     return new THREE.Vector3(n.x, CFG.mainLine.y, CFG.mainLine.z);
   });
@@ -148,15 +165,27 @@
     var mainLineMaxX = Math.max.apply(null, mainLineXs);
     var mainLineLength = Math.max(0.01, mainLineMaxX - mainLineMinX);
       var mainLineThick = (window.innerWidth <= 768 && 'ontouchstart' in window) ? 0.3 : 0.14;
-    var mainLine = new THREE.Mesh(
+    mainLine = new THREE.Mesh(
       new THREE.BoxGeometry(mainLineLength, mainLineThick, mainLineThick),
       new THREE.MeshBasicMaterial({ color: GOLD, transparent: true, opacity: 1.0, depthTest: false, depthWrite: false })
     );
     mainLine.position.set((mainLineMinX + mainLineMaxX) / 2, CFG.mainLine.y, CFG.mainLine.z);
+    } else {
+      var mobileYs = CFG.mainLine.nodes.map(function (n, i) { return MOBILE_TOP_Y - i * MOBILE_Y_STEP; });
+      var mobileMinY = Math.min.apply(null, mobileYs);
+      var mobileMaxY = Math.max.apply(null, mobileYs);
+      var mobileLineLen = Math.max(0.01, mobileMaxY - mobileMinY);
+      var mobileThick = (window.innerWidth <= 768 && 'ontouchstart' in window) ? 0.3 : 0.16;
+      mainLine = new THREE.Mesh(
+        new THREE.BoxGeometry(mobileThick, mobileLineLen, mobileThick),
+        new THREE.MeshBasicMaterial({ color: GOLD, transparent: true, opacity: 1.0, depthTest: false, depthWrite: false })
+      );
+      mainLine.position.set(0, (mobileMinY + mobileMaxY) / 2, 0);
+    }
   scene.add(mainLine);
 
-  CFG.mainLine.nodes.forEach(function (mainDef) {
-    var mainPos = new THREE.Vector3(mainDef.x, CFG.mainLine.y, CFG.mainLine.z);
+  CFG.mainLine.nodes.forEach(function (mainDef, index) {
+    var mainPos = MOBILE_LAYOUT ? new THREE.Vector3(0, MOBILE_TOP_Y - index * MOBILE_Y_STEP, 0) : new THREE.Vector3(mainDef.x, CFG.mainLine.y, CFG.mainLine.z);
     var sprite = makeGlowSprite(mainDef.scale !== undefined ? mainDef.scale * 1.1 : 1.1, GOLD);
     sprite.position.copy(mainPos);
     scene.add(sprite);
@@ -174,7 +203,7 @@
     });
 
     (mainDef.children || []).forEach(function (childDef) {
-      var childPos = buildChildPosition(mainDef, childDef);
+      var childPos = buildChildPosition(mainPos, childDef);
       var childSprite = makeGlowSprite(childDef.scale || 0.85, GOLD);
       childSprite.position.copy(childPos);
       scene.add(childSprite);
@@ -224,6 +253,9 @@
   };
 
   function getOverviewCamera() {
+    if (MOBILE_LAYOUT) {
+      return { pos: new THREE.Vector3(0, 0, 18), up: new THREE.Vector3(0, 1, 0), lookAt: new THREE.Vector3(0, 0, 0) };
+    }
     var c = CFG.mainLine.cameraOverview;
     var l = CFG.mainLine.cameraLookAtOverview;
     return {
@@ -234,6 +266,11 @@
   }
 
   function getFocusCamera(mainDef) {
+    if (MOBILE_LAYOUT) {
+      var idx = CFG.mainLine.nodes.indexOf(mainDef);
+      var fy = MOBILE_TOP_Y - idx * MOBILE_Y_STEP;
+      return { pos: new THREE.Vector3(0, fy + 18, 0), up: new THREE.Vector3(0, 0, -1), lookAt: new THREE.Vector3(0, fy, 0) };
+    }
     var dist = 15;
     return {
       pos: new THREE.Vector3(mainDef.x - dist, 0, 0),
@@ -500,6 +537,19 @@
       //
 
       ui.label.style.left = p.x + 'px';
+
+        if (MOBILE_LAYOUT && mode === 'overview' && n.kind === 'main') {
+          ui.label.style.left = (p.x + 22) + 'px';
+          ui.label.style.top = p.y + 'px';
+          ui.label.style.transform = 'translate(0, -50%)';
+          ui.label.style.textAlign = 'left';
+        } else {
+          ui.label.style.left = p.x + 'px';
+          ui.label.style.top = (p.y + 10 + cssFont * 0.55) + 'px';
+          ui.label.style.transform = 'translate(-50%, 0)';
+          ui.label.style.textAlign = 'center';
+        }
+
       
 
     });
