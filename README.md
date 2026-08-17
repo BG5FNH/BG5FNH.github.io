@@ -2,6 +2,11 @@
 
 纯静态黑金主题个人主页，部署到 GitHub Pages：`https://bg5fnh.github.io/`。
 
+## 当前版本
+
+**v1.0.9**
+
+
 ## 使用前
 
 把 `three.min.js` 放入 `pc/js/`：
