@@ -176,7 +176,7 @@
       var mobileMinY = Math.min.apply(null, mobileYs);
       var mobileMaxY = Math.max.apply(null, mobileYs);
       var mobileLineLen = Math.max(0.01, mobileMaxY - mobileMinY);
-      var mobileThick = 0.12;
+      var mobileThick = 0.08;
       mainLine = new THREE.Mesh(
         new THREE.BoxGeometry(mobileThick, mobileLineLen, mobileThick),
         new THREE.MeshBasicMaterial({ color: GOLD, transparent: true, opacity: 1.0, depthTest: false, depthWrite: false })
