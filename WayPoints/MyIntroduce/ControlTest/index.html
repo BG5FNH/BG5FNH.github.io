@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>编程语言 - BG5FNH</title>
-  <script>window.location.replace('intro.html');</script>
+  <title>控件测试 - BG5FNH</title>
   <script>window.BG5FNH_ROOT = "../../../";</script>
   <link rel="stylesheet" href="../../../assets/style.css" />
   <style>
@@ -27,10 +26,10 @@
     </button>
   </header>
   <main class="page">
-    <h1 class="page-title">编程语言测试页</h1>
-    <p class="page-subtitle">个人介绍 · 编程语言</p>
+    <h1 class="page-title">控件测试</h1>
+    <p class="page-subtitle">个人介绍 · 控件测试</p>
     <section class="card">
-      <h2>控件测试区</h2>
+      <h2>iframe 控件与设备信息测试区</h2>
       <div class="test-grid">
         <div class="test-box">
           <h3>按钮 / 弹窗</h3>
@@ -96,7 +95,6 @@
     (function () {
       var root = window.BG5FNH_ROOT || '../../../';
 
-      // 返回按钮：嵌在 iframe 中时通知主场景关闭浮层
       var btn = document.getElementById('backBtn');
       btn.addEventListener('click', function () {
         try {
