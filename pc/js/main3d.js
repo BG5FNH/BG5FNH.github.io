@@ -12,7 +12,7 @@
   if (!CFG) return;
   var MOBILE_LAYOUT = window.BG5FNH_MOBILE_LAYOUT === true;
   var MOBILE_TOP_Y = 6.0;
-  var MOBILE_Y_STEP = 2.4;
+  var MOBILE_Y_STEP = 2.0;
   var MOBILE_LINE_X = -3;
 
   var fallbackEl = document.getElementById('fallback');
@@ -527,7 +527,7 @@
 
       // 解决冲突：保留字体随镜头缩放版本
         var nodeDist = camera.position.distanceTo(n.pos);
-        var worldFont = (n.kind === 'main' ? (n.def.scale && n.def.scale > 1.2 ? 0.9 : 0.7) : 0.55) * (MOBILE_LAYOUT ? 0.5 : 1);
+        var worldFont = (n.kind === 'main' ? (n.def.scale && n.def.scale > 1.2 ? 0.9 : 0.7) : 0.55) * (MOBILE_LAYOUT ? 0.45 : 1);
           if (mode === 'focus') worldFont *= 0.8;
         var cssFont = worldFont * window.innerHeight / (2 * nodeDist * Math.tan(camera.fov * Math.PI / 360));
         cssFont = Math.max(8, Math.min(40, cssFont));
