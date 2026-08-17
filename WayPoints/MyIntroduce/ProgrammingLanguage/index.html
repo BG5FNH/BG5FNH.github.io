@@ -6,15 +6,169 @@
   <title>编程语言 - BG5FNH</title>
   <script>window.BG5FNH_ROOT = "../../../";</script>
   <link rel="stylesheet" href="../../../assets/style.css" />
+  <style>
+    .test-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-top: 14px; }
+    .test-box { border: 1px solid rgba(201,168,106,0.3); border-radius: 12px; padding: 12px 14px; background: rgba(201,168,106,0.05); }
+    .test-box h3 { color: #c9a86a; margin: 0 0 10px; font-size: 15px; }
+    .test-box button, .test-box input, .test-box select, .test-box progress, .test-box meter { margin: 6px 0; }
+    .btn { display: inline-block; padding: 8px 14px; border: 1px solid #c9a86a; border-radius: 999px; color: #c9a86a; background: rgba(201,168,106,0.08); cursor: pointer; }
+    .color-text { font-weight: bold; }
+    pre#deviceInfo { white-space: pre-wrap; font-size: 12px; color: #e6d7b8; background: rgba(0,0,0,0.35); padding: 10px; border-radius: 8px; max-height: 180px; overflow: auto; }
+    input[type=range] { width: 100%; accent-color: #c9a86a; }
+  </style>
 </head>
 <body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+  <main class="page">
+    <h1 class="page-title">编程语言测试页</h1>
+    <p class="page-subtitle">个人介绍 · 编程语言</p>
+    <section class="card">
+      <h2>控件测试区</h2>
+      <div class="test-grid">
+        <div class="test-box">
+          <h3>按钮 / 弹窗</h3>
+          <button class="btn" id="alertBtn">alert()</button>
+          <button class="btn" id="confirmBtn">confirm()</button>
+          <button class="btn" id="promptBtn">prompt()</button>
+        </div>
+        <div class="test-box">
+          <h3>滑动条</h3>
+          <input type="range" id="rangeVal" min="0" max="100" value="40" />
+          <p>当前值：<span id="rangeOut">40</span></p>
+        </div>
+        <div class="test-box">
+          <h3>变色文字</h3>
+          <p class="color-text" id="colorText">点击下面按钮改变颜色</p>
+          <button class="btn" id="colorBtn">随机颜色</button>
+        </div>
+        <div class="test-box">
+          <h3>复选框 / 单选框 / 选择器</h3>
+          <label><input type="checkbox" id="checkBox" checked /> 复选框</label><br />
+          <label><input type="radio" name="radioGroup" checked /> 选项A</label>
+          <label><input type="radio" name="radioGroup" /> 选项B</label><br />
+          <select id="selectBox">
+            <option>Python</option>
+            <option>C / C++</option>
+            <option>JavaScript</option>
+            <option>Rust</option>
+          </select>
+        </div>
+        <div class="test-box">
+          <h3>进度条 / 仪表</h3>
+          <progress id="progressBar" max="100" value="65"></progress><br />
+          <meter min="0" max="100" value="70"></meter>
+        </div>
+        <div class="test-box">
+          <h3>文件 / 颜色 / 日期</h3>
+          <input type="file" id="fileInput" /><br />
+          <input type="color" id="colorInput" value="#c9a86a" /><br />
+          <input type="date" id="dateInput" />
+        </div>
+        <div class="test-box">
+          <h3>音频 / 视频 / 画布</h3>
+          <audio controls src=""></audio>
+          <video controls width="100%" src=""></video>
+          <canvas id="testCanvas" width="200" height="60" style="border:1px solid #4a4033; border-radius:6px;"></canvas>
+        </div>
+        <div class="test-box">
+          <h3>localStorage / sessionStorage</h3>
+          <button class="btn" id="saveStoreBtn">写入 localStorage</button>
+          <button class="btn" id="clearStoreBtn">清除</button>
+          <p id="storeOut">-</p>
+        </div>
+        <div class="test-box">
+          <h3>设备信息</h3>
+          <button class="btn" id="deviceInfoBtn">获取设备信息</button>
+          <pre id="deviceInfo">点击按钮查看</pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
   <script>
-    window.BG5FNH_PAGE = {
-      title: "编程语言",
-      subtitle: "个人介绍 · 编程语言",
-      html: '<h2>编程语言学习</h2><p>学习并使用多种编程语言进行开发，包括 Python、C/C++、JavaScript 等。</p><div class="tags"><span class="tag">Python</span><span class="tag">C / C++</span><span class="tag">JavaScript</span></div><p class="muted">此页面为预留页面，内容后续会逐步补充。</p>'
-    };
+    (function () {
+      var root = window.BG5FNH_ROOT || '../../../';
+
+      // 返回按钮：嵌在 iframe 中时通知主场景关闭浮层
+      var btn = document.getElementById('backBtn');
+      btn.addEventListener('click', function () {
+        try {
+          if (window.parent !== window) {
+            window.parent.postMessage({ type: 'BG5FNH_CLOSE_OVERLAY' }, '*');
+            return;
+          }
+        } catch (e) {}
+        window.location.href = root + 'pc/index.html';
+      });
+
+      document.getElementById('alertBtn').addEventListener('click', function () { alert('iframe 里的 alert 正常'); });
+      document.getElementById('confirmBtn').addEventListener('click', function () { confirm('iframe 里的 confirm 正常吗？'); });
+      document.getElementById('promptBtn').addEventListener('click', function () { var v = prompt('输入点什么：', '测试'); if (v !== null) document.getElementById('storeOut').textContent = '你输入了：' + v; });
+
+      var range = document.getElementById('rangeVal');
+      var rangeOut = document.getElementById('rangeOut');
+      range.addEventListener('input', function () { rangeOut.textContent = range.value; });
+
+      var colorText = document.getElementById('colorText');
+      document.getElementById('colorBtn').addEventListener('click', function () {
+        var c = '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0');
+        colorText.style.color = c;
+        colorText.textContent = '当前颜色：' + c;
+      });
+
+      var canvas = document.getElementById('testCanvas');
+      if (canvas.getContext) {
+        var ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#0b0b0d';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#c9a86a';
+        ctx.font = '16px sans-serif';
+        ctx.fillText('Canvas 渲染正常', 16, 36);
+      }
+
+      var storeOut = document.getElementById('storeOut');
+      document.getElementById('saveStoreBtn').addEventListener('click', function () {
+        try {
+          localStorage.setItem('bg5fnh_test', String(Date.now()));
+          sessionStorage.setItem('bg5fnh_test', 'ok');
+          storeOut.textContent = 'localStorage 写入成功：' + localStorage.getItem('bg5fnh_test');
+        } catch (e) {
+          storeOut.textContent = 'localStorage 不可用：' + e.message;
+        }
+      });
+      document.getElementById('clearStoreBtn').addEventListener('click', function () {
+        localStorage.removeItem('bg5fnh_test');
+        sessionStorage.removeItem('bg5fnh_test');
+        storeOut.textContent = '已清除';
+      });
+
+      document.getElementById('deviceInfoBtn').addEventListener('click', function () {
+        var info = {
+          iframe: window.parent !== window,
+          href: location.href,
+          ua: navigator.userAgent,
+          language: navigator.language,
+          platform: navigator.platform,
+          cookieEnabled: navigator.cookieEnabled,
+          onLine: navigator.onLine,
+          cores: navigator.hardwareConcurrency || 'unknown',
+          memory: navigator.deviceMemory || 'unknown',
+          maxTouchPoints: navigator.maxTouchPoints,
+          screen: screen.width + 'x' + screen.height,
+          viewport: window.innerWidth + 'x' + window.innerHeight,
+          dpr: window.devicePixelRatio,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          referrer: document.referrer
+        };
+        document.getElementById('deviceInfo').textContent = JSON.stringify(info, null, 2);
+      });
+    })();
   </script>
-  <script src="../../../assets/page.js"></script>
 </body>
 </html>
