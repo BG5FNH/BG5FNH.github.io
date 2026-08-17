@@ -271,9 +271,9 @@
     if (MOBILE_LAYOUT) {
       var idx = CFG.mainLine.nodes.indexOf(mainDef);
       var fy = MOBILE_TOP_Y - idx * MOBILE_Y_STEP;
-      return { pos: new THREE.Vector3(MOBILE_LINE_X, fy + 18, 0), up: new THREE.Vector3(0, 0, -1), lookAt: new THREE.Vector3(MOBILE_LINE_X, fy, 0) };
+      return { pos: new THREE.Vector3(MOBILE_LINE_X, fy + 26, 0), up: new THREE.Vector3(0, 0, -1), lookAt: new THREE.Vector3(MOBILE_LINE_X, fy, 0) };
     }
-    var dist = 15;
+    var dist = 24;
     return {
       pos: new THREE.Vector3(mainDef.x - dist, 0, 0),
       up: new THREE.Vector3(0, 1, 0),
@@ -528,6 +528,7 @@
       // 解决冲突：保留字体随镜头缩放版本
         var nodeDist = camera.position.distanceTo(n.pos);
         var worldFont = (n.kind === 'main' ? (n.def.scale && n.def.scale > 1.2 ? 0.9 : 0.7) : 0.55) * (MOBILE_LAYOUT ? 0.5 : 1);
+          if (mode === 'focus') worldFont *= 0.8;
         var cssFont = worldFont * window.innerHeight / (2 * nodeDist * Math.tan(camera.fov * Math.PI / 360));
         cssFont = Math.max(8, Math.min(40, cssFont));
         ui.label.style.fontSize = cssFont + 'px';
