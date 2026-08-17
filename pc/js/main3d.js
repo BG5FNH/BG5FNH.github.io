@@ -165,7 +165,7 @@
     var mainLineMinX = Math.min.apply(null, mainLineXs);
     var mainLineMaxX = Math.max.apply(null, mainLineXs);
     var mainLineLength = Math.max(0.01, mainLineMaxX - mainLineMinX);
-      var mainLineThick = (window.innerWidth <= 768 && 'ontouchstart' in window) ? 0.3 : 0.14;
+      var mainLineThick = (window.innerWidth <= 768 && 'ontouchstart' in window) ? 0.32 : 0.22;
     mainLine = new THREE.Mesh(
       new THREE.BoxGeometry(mainLineLength, mainLineThick, mainLineThick),
       new THREE.MeshBasicMaterial({ color: GOLD, transparent: true, opacity: 1.0, depthTest: false, depthWrite: false })
@@ -176,7 +176,7 @@
       var mobileMinY = Math.min.apply(null, mobileYs);
       var mobileMaxY = Math.max.apply(null, mobileYs);
       var mobileLineLen = Math.max(0.01, mobileMaxY - mobileMinY);
-      var mobileThick = 0.04;
+      var mobileThick = 0.08;
       mainLine = new THREE.Mesh(
         new THREE.BoxGeometry(mobileThick, mobileLineLen, mobileThick),
         new THREE.MeshBasicMaterial({ color: GOLD, transparent: true, opacity: 1.0, depthTest: false, depthWrite: false })
@@ -184,6 +184,7 @@
       mainLine.position.set(MOBILE_LINE_X, (mobileMinY + mobileMaxY) / 2, 0);
     }
   scene.add(mainLine);
+    mainLine.renderOrder = 1;
 
   CFG.mainLine.nodes.forEach(function (mainDef, index) {
     var mainPos = MOBILE_LAYOUT ? new THREE.Vector3(MOBILE_LINE_X, MOBILE_TOP_Y - index * MOBILE_Y_STEP, 0) : new THREE.Vector3(mainDef.x, CFG.mainLine.y, CFG.mainLine.z);
