@@ -29,7 +29,7 @@ window.BG5FNH_WAYPOINTS = {
           { id: 'HardwareDevelopment', name: '硬件开发', dir: 'right', url: 'MyIntroduce/HardwareDevelopment/index.html' },
           { id: 'ProgrammingLanguage', name: '编程语言', dir: 'down', url: 'MyIntroduce/ProgrammingLanguage/intro.html' },
           { id: 'RadioCommunication', name: '无线电通讯', dir: 'left', url: 'MyIntroduce/RadioCommunication/index.html' },
-          { id: 'UnmannedAerialVehicle', name: '无人航空器', dir: 'up-left', distance: 5.2, url: 'MyIntroduce/UnmannedAerialVehicle/index.html' }
+          { id: 'UnmannedAerialVehicle', name: '无人航空器', dir: 'up-left', distance: 5.2, url: 'MyIntroduce/UnmannedAerialVehicle/index.html' },
             { id: 'ControlTest', name: '控件测试', dir: 'up-right', distance: 7.5, url: 'MyIntroduce/ControlTest/index.html' }
         ]
       },

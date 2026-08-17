@@ -13,7 +13,7 @@
   var MOBILE_LAYOUT = window.BG5FNH_MOBILE_LAYOUT === true;
   var MOBILE_TOP_Y = 5.0;
   var MOBILE_Y_STEP = 2.0;
-  var MOBILE_LINE_X = -3;
+  var MOBILE_LINE_X = -2.0;
 
   var fallbackEl = document.getElementById('fallback');
   if (!window.THREE) {
@@ -176,7 +176,7 @@
       var mobileMinY = Math.min.apply(null, mobileYs);
       var mobileMaxY = Math.max.apply(null, mobileYs);
       var mobileLineLen = Math.max(0.01, mobileMaxY - mobileMinY);
-      var mobileThick = 0.08;
+      var mobileThick = 0.12;
       mainLine = new THREE.Mesh(
         new THREE.BoxGeometry(mobileThick, mobileLineLen, mobileThick),
         new THREE.MeshBasicMaterial({ color: GOLD, transparent: true, opacity: 1.0, depthTest: false, depthWrite: false })
@@ -389,7 +389,7 @@
     focusMain = null;
     if (backBtn) backBtn.style.display = 'none';
       showVersionBadge();
-    showHint('点击金色圆点进入 · 空白处拖动平移 · 双指缩放');
+    showHint(MOBILE_LAYOUT ? '点击金色圆点进入 · 空白处拖动 · 双指缩放' : '点击金色圆点进入 · 空白处拖动平移 · 滚轮缩放');
     startAnimation(getOverviewCamera(), null, 2.2);
     anim.fromFocusMain = prevFocus;
   }
