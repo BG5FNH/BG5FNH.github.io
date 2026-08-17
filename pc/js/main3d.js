@@ -176,7 +176,7 @@
       var mobileMinY = Math.min.apply(null, mobileYs);
       var mobileMaxY = Math.max.apply(null, mobileYs);
       var mobileLineLen = Math.max(0.01, mobileMaxY - mobileMinY);
-      var mobileThick = 0.1;
+      var mobileThick = 0.04;
       mainLine = new THREE.Mesh(
         new THREE.BoxGeometry(mobileThick, mobileLineLen, mobileThick),
         new THREE.MeshBasicMaterial({ color: GOLD, transparent: true, opacity: 1.0, depthTest: false, depthWrite: false })
@@ -187,7 +187,7 @@
 
   CFG.mainLine.nodes.forEach(function (mainDef, index) {
     var mainPos = MOBILE_LAYOUT ? new THREE.Vector3(MOBILE_LINE_X, MOBILE_TOP_Y - index * MOBILE_Y_STEP, 0) : new THREE.Vector3(mainDef.x, CFG.mainLine.y, CFG.mainLine.z);
-    var spriteScale = (mainDef.scale !== undefined ? mainDef.scale * 1.1 : 1.1) * (MOBILE_LAYOUT ? 0.75 : 1);
+    var spriteScale = (mainDef.scale !== undefined ? mainDef.scale * 1.1 : 1.1) * (MOBILE_LAYOUT ? 0.6 : 1);
     var sprite = makeGlowSprite(spriteScale, GOLD);
     sprite.position.copy(mainPos);
     scene.add(sprite);
@@ -527,7 +527,7 @@
 
       // 解决冲突：保留字体随镜头缩放版本
         var nodeDist = camera.position.distanceTo(n.pos);
-        var worldFont = (n.kind === 'main' ? (n.def.scale && n.def.scale > 1.2 ? 0.9 : 0.7) : 0.55) * (MOBILE_LAYOUT ? 0.55 : 1);
+        var worldFont = (n.kind === 'main' ? (n.def.scale && n.def.scale > 1.2 ? 0.9 : 0.7) : 0.55) * (MOBILE_LAYOUT ? 0.5 : 1);
         var cssFont = worldFont * window.innerHeight / (2 * nodeDist * Math.tan(camera.fov * Math.PI / 360));
         cssFont = Math.max(8, Math.min(40, cssFont));
         ui.label.style.fontSize = cssFont + 'px';
@@ -637,6 +637,7 @@
     if (!dragging) return;
     var dx = e.clientX - lastPointerX;
     var dy = e.clientY - lastPointerY;
+      if (MOBILE_LAYOUT && mode === 'overview') dx = 0;
     if (!dragMoved) {
       if (Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
       dragMoved = true;
