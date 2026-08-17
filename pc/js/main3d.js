@@ -146,9 +146,10 @@
     var mainLineMinX = Math.min.apply(null, mainLineXs);
     var mainLineMaxX = Math.max.apply(null, mainLineXs);
     var mainLineLength = Math.max(0.01, mainLineMaxX - mainLineMinX);
+      var mainLineThick = (window.innerWidth <= 768 && 'ontouchstart' in window) ? 0.3 : 0.14;
     var mainLine = new THREE.Mesh(
-      new THREE.BoxGeometry(mainLineLength, 0.1, 0.1),
-      new THREE.MeshBasicMaterial({ color: GOLD, transparent: true, opacity: 0.95, depthTest: false, depthWrite: false })
+      new THREE.BoxGeometry(mainLineLength, mainLineThick, mainLineThick),
+      new THREE.MeshBasicMaterial({ color: GOLD, transparent: true, opacity: 1.0, depthTest: false, depthWrite: false })
     );
     mainLine.position.set((mainLineMinX + mainLineMaxX) / 2, CFG.mainLine.y, CFG.mainLine.z);
   scene.add(mainLine);
@@ -479,13 +480,18 @@
       ui.label.style.display = 'block';
       ui.hit.style.left = p.x + 'px';
       ui.hit.style.top = p.y + 'px';
+      // 解决冲突：保留字体随镜头缩放版本
         var nodeDist = camera.position.distanceTo(n.pos);
         var worldFont = n.kind === 'main' ? (n.def.scale && n.def.scale > 1.2 ? 0.9 : 0.7) : 0.55;
-        var cssFont = worldFont * window.innerHeight / (2 * nodeDist * Math.tan(THREE.Math.degToRad(camera.fov * 0.5)));
+        var cssFont = worldFont * window.innerHeight / (2 * nodeDist * Math.tan(camera.fov * Math.PI / 360));
         cssFont = Math.max(8, Math.min(40, cssFont));
         ui.label.style.fontSize = cssFont + 'px';
       ui.label.style.left = p.x + 'px';
       ui.label.style.top = (p.y + 10 + cssFont * 0.55) + 'px';
+      //
+      ui.label.style.left = p.x + 'px';
+            // old top removed
+      //
     });
   }
 
@@ -507,7 +513,7 @@
     var dist = camera.position.distanceTo(viewLookAt);
     if (dist < 0.001) dist = 1;
     var height = renderer.domElement.clientHeight || window.innerHeight;
-    var scale = 2 * Math.tan(THREE.Math.degToRad(camera.fov * 0.5)) * dist / height;
+    var scale = 2 * Math.tan(camera.fov * Math.PI / 360) * dist / height;
 
     var delta = new THREE.Vector3()
       .add(right.clone().multiplyScalar(-dx * scale))
