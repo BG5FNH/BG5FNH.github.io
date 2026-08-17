@@ -480,6 +480,7 @@
       ui.label.style.display = 'block';
       ui.hit.style.left = p.x + 'px';
       ui.hit.style.top = p.y + 'px';
+
       // 解决冲突：保留字体随镜头缩放版本
         var nodeDist = camera.position.distanceTo(n.pos);
         var worldFont = n.kind === 'main' ? (n.def.scale && n.def.scale > 1.2 ? 0.9 : 0.7) : 0.55;
@@ -492,6 +493,10 @@
       ui.label.style.left = p.x + 'px';
             // old top removed
       //
+
+      ui.label.style.left = p.x + 'px';
+      
+
     });
   }
 

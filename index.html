@@ -7,12 +7,17 @@
   <script>
     (function () {
       var ua = navigator.userAgent || navigator.vendor || window.opera || '';
+
       var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone|Mobile/i.test(ua) || (window.innerWidth <= 1024 && (navigator.maxTouchPoints > 0 || 'ontouchstart' in window));
 // conflict resolved
       var target = (isMobile ? 'mobile/index_m.html' : 'pc/index.html');
 // removed old target
       // removed old target
 // conflict resolved
+
+      
+      
+
       window.location.replace(target);
     })();
   </script>
