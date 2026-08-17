@@ -1,0 +1,282 @@
+/* BG5FNH 内容页黑金通用样式（低饱和度） */
+:root {
+  --bg: #0b0b0d;
+  --gold: #c9a86a;
+  --gold-soft: #8a7348;
+  --gold-line: #4a4033;
+  --text: #e6d7b8;
+  --text-muted: #a89878;
+  --card-border: rgba(201, 168, 106, 0.28);
+  --card-bg: rgba(201, 168, 106, 0.05);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", "Segoe UI", sans-serif;
+  line-height: 1.8;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 嵌入在 3D 主场景 iframe 中时：背景透明，露出后方模糊神经元 */
+html.embedded,
+body.embedded {
+  background: transparent;
+}
+
+body.embedded .backdrop {
+  opacity: 0;
+}
+
+body.embedded .card {
+  background: rgba(11, 11, 13, 0.68);
+  border-color: rgba(201, 168, 106, 0.4);
+}
+
+body.embedded .page-title {
+  text-shadow: 0 0 30px rgba(0, 0, 0, 0.9), 0 0 18px rgba(201, 168, 106, 0.35);
+}
+
+/* 底层虚化神经元光点背景 */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(201, 168, 106, 0.12), transparent 32%),
+    radial-gradient(circle at 82% 18%, rgba(138, 115, 72, 0.10), transparent 30%),
+    radial-gradient(circle at 30% 78%, rgba(201, 168, 106, 0.08), transparent 34%),
+    radial-gradient(circle at 72% 70%, rgba(138, 115, 72, 0.10), transparent 30%),
+    radial-gradient(circle at 50% 50%, rgba(201, 168, 106, 0.04), transparent 46%),
+    var(--bg);
+  filter: blur(2px);
+  transform: scale(1.04);
+}
+
+/* 左上角返回区 */
+.topbar {
+  position: fixed;
+  top: 22px;
+  left: 22px;
+  z-index: 10;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(11, 11, 13, 0.45);
+  border: 1px solid rgba(201, 168, 106, 0.35);
+  border-radius: 999px;
+  color: var(--gold);
+  cursor: pointer;
+  font-size: 14px;
+  letter-spacing: 1px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.back-btn:hover {
+  background: rgba(201, 168, 106, 0.12);
+  border-color: var(--gold);
+  color: #f0e2c4;
+  box-shadow: 0 0 18px rgba(201, 168, 106, 0.22);
+}
+
+.back-btn svg {
+  display: block;
+}
+
+/* 主内容 */
+.page {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 96px 24px 64px;
+}
+
+.page-title {
+  text-align: center;
+  font-size: clamp(30px, 5vw, 46px);
+  font-weight: 600;
+  color: var(--gold);
+  letter-spacing: 6px;
+  margin: 0 0 8px;
+  text-shadow: 0 0 24px rgba(201, 168, 106, 0.25);
+}
+
+.page-subtitle {
+  text-align: center;
+  color: var(--text-muted);
+  letter-spacing: 2px;
+  font-size: 14px;
+  margin: 0 0 36px;
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 30px 32px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.45);
+}
+
+.card,
+.intro-text {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* 个人简介：左侧文字 + 右侧大头照 */
+.intro-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.intro-text {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.intro-photo {
+  flex: 0 0 180px;
+  max-width: 180px;
+  text-align: center;
+}
+
+.intro-photo img {
+  width: 160px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 1px solid rgba(201, 168, 106, 0.4);
+  background: rgba(201, 168, 106, 0.06);
+  box-shadow: 0 0 28px rgba(201, 168, 106, 0.22);
+  display: block;
+  margin: 0 auto;
+}
+
+.photo-caption {
+  margin-top: 10px;
+  color: var(--text-muted);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+@media (max-width: 640px) {
+  .intro-photo {
+    flex: 0 0 140px;
+    max-width: 140px;
+  }
+
+  .intro-photo img {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+
+
+.card h2 {
+  color: var(--gold);
+  font-size: 22px;
+  letter-spacing: 2px;
+  margin: 24px 0 10px;
+}
+
+.card h2:first-child {
+  margin-top: 0;
+}
+
+.card p {
+  margin: 8px 0;
+  color: var(--text);
+}
+
+.card .muted {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.card .tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 16px 0 8px;
+}
+
+.card .tag {
+  padding: 6px 14px;
+  border: 1px solid rgba(201, 168, 106, 0.35);
+  border-radius: 999px;
+  color: var(--gold);
+  font-size: 13px;
+  letter-spacing: 1px;
+  background: rgba(201, 168, 106, 0.06);
+}
+
+.card a {
+  color: var(--gold);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(201, 168, 106, 0.5);
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.card a:hover {
+  color: #f0e2c4;
+  border-color: #f0e2c4;
+}
+
+.card .btn {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 10px 22px;
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  color: var(--gold);
+  background: rgba(201, 168, 106, 0.08);
+  letter-spacing: 1px;
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+}
+
+.card .btn:hover {
+  background: rgba(201, 168, 106, 0.18);
+  box-shadow: 0 0 20px rgba(201, 168, 106, 0.25);
+}
+
+@media (max-width: 640px) {
+  .topbar {
+    top: 14px;
+    left: 14px;
+  }
+
+  .back-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .page {
+    padding: 80px 16px 48px;
+  }
+
+  .card {
+    padding: 20px 18px;
+  }
+}

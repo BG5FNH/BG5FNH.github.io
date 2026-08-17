@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BG5FNH - 跳转中</title>
+  <script>
+    (function () {
+      var ua = navigator.userAgent || navigator.vendor || window.opera || '';
+      var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone/i.test(ua) || (window.innerWidth <= 768 && 'ontouchstart' in window);
+      var target = 'pc/index.html';
+      window.location.replace(target);
+    })();
+  </script>
+</head>
+<body>
+  <p style="background:#0b0b0d;color:#c9a86a;font-family:sans-serif;display:flex;height:100vh;margin:0;align-items:center;justify-content:center;">正在跳转至适合您设备的页面…</p>
+</body>
+</html>

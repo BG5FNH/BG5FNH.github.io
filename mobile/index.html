@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>BG5FNH · 手机版</title>
+  <style>
+    :root {
+      --bg: #0b0b0d;
+      --gold: #c9a86a;
+      --gold-soft: #8a7348;
+      --text: #e6d7b8;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: var(--bg);
+      overflow: hidden;
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #view {
+      position: fixed;
+      inset: 0;
+      display: block;
+      touch-action: none;
+    }
+
+    #backToOverview {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 5;
+      display: none;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 13px;
+      background: rgba(11, 11, 13, 0.45);
+      border: 1px solid rgba(201, 168, 106, 0.35);
+      border-radius: 999px;
+      color: var(--gold);
+      font-size: 13px;
+      letter-spacing: 1px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: background 0.25s ease, border-color 0.25s ease;
+    }
+
+    #backToOverview:active {
+      background: rgba(201, 168, 106, 0.15);
+    }
+
+    #hint {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%);
+      z-index: 4;
+      color: rgba(201, 168, 106, 0.8);
+      font-size: 12px;
+      letter-spacing: 1px;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="view"></canvas>
+  <button id="backToOverview" aria-label="返回主视线">
+    <svg viewBox="0 0 24 24" width="18" height="18">
+      <path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+    返回
+  </button>
+  <div id="hint">点击金色圆点进入 · 空白处拖动平移 · 双指缩放</div>
+
+  <script src="../pc/js/waypoints.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      var CFG = window.BG5FNH_WAYPOINTS;
+      if (!CFG) return;
+
+      var canvas = document.getElementById('view');
+      var ctx = canvas.getContext('2d');
+      var backBtn = document.getElementById('backToOverview');
+      var hintEl = document.getElementById('hint');
+      var touchHandledAt = 0;
+      var viewScale = 1;
+      var viewPanX = 0;
+      var viewPanY = 0;
+      var viewProgress = 0;
+
+      var viewRotate = 0;
+      var rotatePivotX = 0;
+      var rotatePivotY = 0;
+      var rotAnim = null;
+
+
+
+      var W = 0;
+      var H = 0;
+
+      function resize() {
+        W = canvas.width = window.innerWidth * (window.devicePixelRatio || 1);
+        H = canvas.height = window.innerHeight * (window.devicePixelRatio || 1);
+        canvas.style.width = window.innerWidth + 'px';
+        canvas.style.height = window.innerHeight + 'px';
+        computeLayouts();
+      }
+
+      var mainNodes = [];
+      var childNodes = [];
+
+      function makeNode(def) {
+        return {
+          def: def,
+          name: def.name,
+          url: def.url,
+          x: 0,
+          y: 0,
+          tx: 0,
+          ty: 0,
+          radius: 10,
+          alpha: 0,
+          targetAlpha: 0
+        };
+      }
+
+      CFG.mainLine.nodes.forEach(function (mainDef) {
+        var mainNode = makeNode(mainDef);
+        mainNode.mainDef = mainDef;
+        mainNode.children = [];
+        mainNodes.push(mainNode);
+
+        (mainDef.children || []).forEach(function (childDef) {
+          var childNode = makeNode(childDef);
+          childNode.mainDef = mainDef;
+          childNodes.push(childNode);
+          mainNode.children.push(childNode);
+        });
+      });
+
+      function computeLayouts() {
+        var dpr = window.devicePixelRatio || 1;
+        var w = W / dpr;
+        var h = H / dpr;
+
+        var topPad = Math.min(28, h * 0.06);
+        var bottomPad = Math.min(28, h * 0.06);
+        var total = mainNodes.length;
+        var usable = h - topPad - bottomPad;
+        var step = total > 1 ? usable / (total - 1) : 0;
+        mainNodes.forEach(function (n, i) {
+          n.tx = w * 0.5;
+          n.ty = topPad + step * i;
+          n.targetAlpha = 1;
+          n.radius = n.mainDef.scale ? Math.round(14 * n.mainDef.scale + 4) : 14;
+        });
+
+        var cx = w * 0.5;
+        var cy = h * 0.50;
+        var r = Math.min(w, h) * 0.21;
+        var diagonal = r * 0.72;
+
+        var DIR = {
+          'center': [0, 0],
+          'up': [0, -r],
+          'down': [0, r],
+          'left': [-r, 0],
+          'right': [r, 0],
+          'up-left': [-diagonal, -diagonal],
+          'up-right': [diagonal, -diagonal],
+          'down-left': [-diagonal, diagonal],
+          'down-right': [diagonal, diagonal]
+        };
+
+        childNodes.forEach(function (n) {
+          var d = DIR[n.def.dir] || DIR.center;
+          n.tx = cx + d[0];
+          n.ty = cy + d[1];
+          n.targetAlpha = 0;
+          n.radius = n.def.dir === 'center' ? 13 : 9;
+        });
+      }
+
+      var mode = 'overview';
+      var focusMain = null;
+      var mainLineAlpha = 1;
+      var targetMainLineAlpha = 1;
+      var treeAlpha = 0;
+      var targetTreeAlpha = 0;
+
+      function setMode(newMode, mainDef) {
+        mode = newMode;
+        focusMain = mainDef;
+          viewScale = 1;
+          viewPanX = 0;
+          viewPanY = 0;
+
+        if (newMode === 'overview') { try { sessionStorage.removeItem('bg5fnh_focus'); } catch (e) { } }
+        if (mode === 'focus') {
+          targetMainLineAlpha = 0;
+          targetTreeAlpha = 1;
+          mainNodes.forEach(function (n) { n.targetAlpha = 0; });
+          childNodes.forEach(function (n) { n.targetAlpha = n.mainDef === mainDef ? 1 : 0; });
+          if (backBtn) backBtn.style.display = 'flex';
+          if (hintEl) hintEl.style.opacity = '0';
+        } else {
+          targetMainLineAlpha = 1;
+          targetTreeAlpha = 0;
+          mainNodes.forEach(function (n) { n.targetAlpha = 1; });
+          childNodes.forEach(function (n) { n.targetAlpha = 0; });
+          if (backBtn) backBtn.style.display = 'none';
+          if (hintEl) {
+            hintEl.textContent = '点击金色圆点进入 · 空白处拖动平移 · 双指缩放';
+            hintEl.style.opacity = '1';
+          }
+        }
+      }
+
+      function openNode(mainDef, childDef) {
+        try { sessionStorage.setItem('bg5fnh_focus', mainDef.id); } catch (e) { }
+        window.location.href = '../WayPoints/' + childDef.url;
+      }
+
+        function easeInOutCubic(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+
+        function startRotateAnimation(pivotX, pivotY) {
+          rotatePivotX = pivotX;
+          rotatePivotY = pivotY;
+            viewProgress = 0;
+
+          rotAnim = { t: 0, duration: 0.9 };
+        }
+
+          function transitionState() {
+            var p = viewProgress;
+            var pivotX = rotatePivotX + (window.innerWidth / 2 - rotatePivotX) * p;
+            var pivotY = rotatePivotY + (window.innerHeight / 2 - rotatePivotY) * p;
+            return { p: p, pivotX: pivotX, pivotY: pivotY };
+          }
+
+          function mainDrawPos(n, s) {
+            if (!s.p) return { x: n.x, y: n.y };
+            return { x: s.pivotX, y: s.pivotY + (n.ty - rotatePivotY) * (1 - s.p) };
+          }
+
+          function childDrawPos(n, s) {
+            if (!s.p) return { x: n.x, y: n.y };
+            return { x: s.pivotX + (n.tx - window.innerWidth / 2) * s.p, y: s.pivotY + (n.ty - window.innerHeight / 2) * s.p };
+          }
+
+
+
+      function update(dt) {
+
+          if (rotAnim) {
+            rotAnim.t += dt;
+            if (rotAnim.t >= rotAnim.duration) {
+              viewRotate = 0;
+              rotAnim = null;
+                viewProgress = 0;
+            } else {
+              var rp = easeInOutCubic(rotAnim.t / rotAnim.duration);
+              viewProgress = rp;
+            }
+          }
+
+        var k = 1 - Math.pow(0.0008, dt);
+        mainNodes.forEach(function (n) {
+          n.x += (n.tx - n.x) * k;
+          n.y += (n.ty - n.y) * k;
+          n.alpha += (n.targetAlpha - n.alpha) * k;
+        });
+        childNodes.forEach(function (n) {
+          n.x += (n.tx - n.x) * k;
+          n.y += (n.ty - n.y) * k;
+          n.alpha += (n.targetAlpha - n.alpha) * k;
+        });
+        mainLineAlpha += (targetMainLineAlpha - mainLineAlpha) * k;
+        treeAlpha += (targetTreeAlpha - treeAlpha) * k;
+
+          if (rotAnim) {
+            var ts = transitionState();
+            mainNodes.forEach(function (n) {
+              var p = mainDrawPos(n, ts);
+              n.x = p.x;
+              n.y = p.y;
+            });
+            childNodes.forEach(function (n) {
+              var p = childDrawPos(n, ts);
+              n.x = p.x;
+              n.y = p.y;
+            });
+          }
+
+      }
+
+      function drawGlow(x, y, radius, alpha) {
+        if (alpha <= 0.02) return;
+        var dpr = window.devicePixelRatio || 1;
+        var px = (x * viewScale + viewPanX) * dpr;
+        var py = (y * viewScale + viewPanY) * dpr;
+        var pr = radius * viewScale * dpr;
+
+        var grad = ctx.createRadialGradient(px, py, 0, px, py, pr * 2.6);
+        grad.addColorStop(0, 'rgba(240,226,196,' + (0.95 * alpha) + ')');
+        grad.addColorStop(0.25, 'rgba(201,168,106,' + (0.85 * alpha) + ')');
+        grad.addColorStop(0.55, 'rgba(138,115,72,' + (0.32 * alpha) + ')');
+        grad.addColorStop(1, 'rgba(138,115,72,0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(px, py, pr * 2.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function drawLine(x1, y1, x2, y2, alpha, width) {
+        if (alpha <= 0.02) return;
+        var dpr = window.devicePixelRatio || 1;
+        ctx.strokeStyle = 'rgba(201,168,106,' + alpha + ')';
+        ctx.lineWidth = (width || 1.5) * viewScale * dpr;
+        ctx.beginPath();
+        ctx.moveTo((x1 * viewScale + viewPanX) * dpr, (y1 * viewScale + viewPanY) * dpr);
+        ctx.lineTo((x2 * viewScale + viewPanX) * dpr, (y2 * viewScale + viewPanY) * dpr);
+        ctx.stroke();
+      }
+
+      function drawLabel(text, x, y, alpha, big) {
+        if (alpha <= 0.02) return;
+        var dpr = window.devicePixelRatio || 1;
+        ctx.fillStyle = 'rgba(201,168,106,' + alpha + ')';
+        ctx.font = ((big ? 13 : 11) * viewScale * dpr) + 'px "Microsoft YaHei","PingFang SC",sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText(text, (x * viewScale + viewPanX) * dpr, (y * viewScale + viewPanY) * dpr);
+      }
+
+      function draw() {
+        var dpr = window.devicePixelRatio || 1;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#0b0b0d';
+        ctx.fillRect(0, 0, W, H);
+          var ts = transitionState();
+
+
+          if (viewRotate) {
+            ctx.save();
+            ctx.translate(rotatePivotX * dpr, rotatePivotY * dpr);
+            ctx.rotate(viewRotate);
+            ctx.translate(-rotatePivotX * dpr, -rotatePivotY * dpr);
+          }
+
+
+        if (mainLineAlpha > 0.02) {
+          for (var i = 0; i < mainNodes.length - 1; i++) {
+            var mp1 = mainDrawPos(mainNodes[i], ts);
+              var mp2 = mainDrawPos(mainNodes[i + 1], ts);
+              drawLine(mp1.x, mp1.y, mp2.x, mp2.y, mainLineAlpha * 0.75 * (1 - ts.p), 1.5);
+          }
+        }
+
+          if (viewRotate) ctx.restore();
+
+
+        if (treeAlpha > 0.02 && focusMain) {
+          var center = null;
+          childNodes.forEach(function (n) {
+            if (n.mainDef === focusMain && n.def.dir === 'center') center = n;
+          });
+          if (center) {
+            childNodes.forEach(function (n) {
+              if (n.mainDef === focusMain && n !== center) {
+                var cp1 = childDrawPos(center, ts);
+                  var cp2 = childDrawPos(n, ts);
+                  drawLine(cp1.x, cp1.y, cp2.x, cp2.y, treeAlpha * 0.85 * ts.p, 1.2);
+              }
+            });
+          }
+        }
+
+          if (viewRotate) {
+            ctx.save();
+            ctx.translate(rotatePivotX * dpr, rotatePivotY * dpr);
+            ctx.rotate(viewRotate);
+            ctx.translate(-rotatePivotX * dpr, -rotatePivotY * dpr);
+          }
+
+
+        mainNodes.forEach(function (n) {
+          drawGlow(n.x, n.y, n.radius, n.alpha);
+          drawLabel(n.name, n.x, n.y + n.radius + 5, n.alpha, n.mainDef.scale > 1.2);
+        });
+
+          if (viewRotate) ctx.restore();
+
+
+        childNodes.forEach(function (n) {
+          drawGlow(n.x, n.y, n.radius, n.alpha);
+          drawLabel(n.name, n.x, n.y + n.radius + 5, n.alpha, false);
+        });
+      }
+
+      function hitTest(x, y) {
+          x = (x - viewPanX) / viewScale;
+          y = (y - viewPanY) / viewScale;
+
+        if (mode === 'overview') {
+          for (var i = mainNodes.length - 1; i >= 0; i--) {
+            var n = mainNodes[i];
+            if (n.alpha < 0.5) continue;
+            var dx = x - n.x;
+            var dy = y - n.y;
+            if (dx * dx + dy * dy <= (n.radius + 16) * (n.radius + 16)) {
+              return { type: 'main', node: n };
+            }
+            if (Math.abs(dx) <= 34 && dy > n.radius && dy < n.radius + 28) {
+              return { type: 'main', node: n };
+            }
+          }
+        } else if (mode === 'focus' && focusMain) {
+          for (var j = childNodes.length - 1; j >= 0; j--) {
+            var c = childNodes[j];
+            if (c.mainDef !== focusMain || c.alpha < 0.5) continue;
+            var dx2 = x - c.x;
+            var dy2 = y - c.y;
+            if (dx2 * dx2 + dy2 * dy2 <= (c.radius + 16) * (c.radius + 16)) {
+              return { type: 'child', node: c };
+            }
+            if (Math.abs(dx2) <= 32 && dy2 > c.radius && dy2 < c.radius + 26) {
+              return { type: 'child', node: c };
+            }
+          }
+        }
+        return null;
+      }
+
+      function handleTap(e) {
+          if (rotAnim) return;
+
+        var rect = canvas.getBoundingClientRect();
+        var sx = (e.touches && e.touches[0] ? e.touches[0].clientX : e.clientX);
+        var sy = (e.touches && e.touches[0] ? e.touches[0].clientY : e.clientY);
+        var x = sx - rect.left;
+        var y = sy - rect.top;
+        var hit = hitTest(x, y);
+        if (!hit) return;
+
+        if (hit.type === 'main') {
+          setMode('focus', hit.node.mainDef);
+            startRotateAnimation(hit.node.tx, hit.node.ty);
+        } else if (hit.type === 'child') {
+          openNode(hit.node.mainDef, hit.node.def);
+        }
+      }
+
+      canvas.addEventListener('click', function (e) {
+        if (Date.now() - touchHandledAt < 600) return;
+        handleTap(e);
+      });
+      canvas.addEventListener('touchstart', function (e) { return;
+        e.preventDefault();
+        touchHandledAt = Date.now();
+        handleTap(e);
+      }, { passive: false });
+
+        var pointers = {};
+        var panStartX = 0;
+        var panStartY = 0;
+        var panMoved = false;
+        var pinchStartDist = 0;
+        var pinchStartScale = 1;
+        var pinchWorldX = 0;
+        var pinchWorldY = 0;
+
+        function pointerDown(e) {
+            if (rotAnim) return;
+
+          canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId);
+          pointers[e.pointerId] = { x: e.clientX, y: e.clientY, startX: e.clientX, startY: e.clientY, startTime: Date.now() };
+          var ids = Object.keys(pointers);
+
+          if (ids.length === 1) {
+            panStartX = e.clientX;
+            panStartY = e.clientY;
+            panMoved = false;
+          } else if (ids.length === 2) {
+            var p1 = pointers[ids[0]];
+            var p2 = pointers[ids[1]];
+            pinchStartDist = Math.max(1, Math.hypot(p2.x - p1.x, p2.y - p1.y));
+            pinchStartScale = viewScale;
+            var rect = canvas.getBoundingClientRect();
+            var focalX = ((p1.x + p2.x) / 2) - rect.left;
+            var focalY = ((p1.y + p2.y) / 2) - rect.top;
+            pinchWorldX = (focalX - viewPanX) / viewScale;
+            pinchWorldY = (focalY - viewPanY) / viewScale;
+          }
+          e.preventDefault();
+        }
+
+        function pointerMove(e) {
+            if (rotAnim) return;
+
+          if (!pointers[e.pointerId]) return;
+          pointers[e.pointerId].x = e.clientX;
+          pointers[e.pointerId].y = e.clientY;
+          var ids = Object.keys(pointers);
+
+          if (ids.length === 1) {
+            var dx = e.clientX - pointers[e.pointerId].startX;
+            var dy = e.clientY - pointers[e.pointerId].startY;
+            if (!panMoved && Math.hypot(dx, dy) < 6) return;
+            panMoved = true;
+            viewPanX += e.clientX - panStartX;
+            viewPanY += e.clientY - panStartY;
+            panStartX = e.clientX;
+            panStartY = e.clientY;
+          } else if (ids.length === 2) {
+            var p1 = pointers[ids[0]];
+            var p2 = pointers[ids[1]];
+            var dist = Math.max(1, Math.hypot(p2.x - p1.x, p2.y - p1.y));
+            var newScale = Math.max(0.5, Math.min(2.5, pinchStartScale * (dist / pinchStartDist)));
+            var rect = canvas.getBoundingClientRect();
+            var focalX = ((p1.x + p2.x) / 2) - rect.left;
+            var focalY = ((p1.y + p2.y) / 2) - rect.top;
+            viewPanX = focalX - pinchWorldX * newScale;
+            viewPanY = focalY - pinchWorldY * newScale;
+            viewScale = newScale;
+          }
+          e.preventDefault();
+        }
+
+        function pointerUp(e) {
+          var info = pointers[e.pointerId];
+          delete pointers[e.pointerId];
+
+          if (info && Object.keys(pointers).length === 0) {
+            var dt = Date.now() - info.startTime;
+            var dist = Math.hypot(e.clientX - info.startX, e.clientY - info.startY);
+            if (!panMoved && dist < 8 && dt < 500 && Date.now() - touchHandledAt > 300) {
+              touchHandledAt = Date.now();
+              handleTap(e);
+            }
+            panMoved = false;
+          }
+          e.preventDefault();
+        }
+
+        canvas.addEventListener('pointerdown', pointerDown);
+        canvas.addEventListener('pointermove', pointerMove);
+        canvas.addEventListener('pointerup', pointerUp);
+        canvas.addEventListener('pointercancel', pointerUp);
+
+
+      if (backBtn) {
+        backBtn.addEventListener('click', function () {
+          if (mode === 'focus') setMode('overview', null);
+        });
+      }
+
+      function restoreFocus() {
+        var saved = null;
+        try {
+          saved = sessionStorage.getItem('bg5fnh_focus');
+          sessionStorage.removeItem('bg5fnh_focus');
+        } catch (e) { }
+        if (!saved) return;
+        var found = null;
+        mainNodes.forEach(function (n) {
+          if (n.mainDef.id === saved) found = n;
+        });
+        if (!found) return;
+
+        setMode('focus', found.mainDef);
+        mainNodes.forEach(function (n) { n.x = n.tx; n.y = n.ty; n.alpha = n.targetAlpha; });
+        childNodes.forEach(function (n) { n.x = n.tx; n.y = n.ty; n.alpha = n.targetAlpha; });
+        mainLineAlpha = targetMainLineAlpha;
+        treeAlpha = targetTreeAlpha;
+      }
+
+      var lastTime = performance.now();
+      function loop(now) {
+        var dt = Math.min(0.05, (now - lastTime) / 1000);
+        lastTime = now;
+        update(dt);
+        draw();
+        requestAnimationFrame(loop);
+      }
+
+      window.addEventListener('resize', resize);
+      resize();
+      setMode('overview', null);
+      mainNodes.forEach(function (n) { n.x = n.tx; n.y = n.ty; n.alpha = 1; });
+      childNodes.forEach(function (n) { n.x = n.tx; n.y = n.ty; n.alpha = 0; });
+      restoreFocus();
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>
