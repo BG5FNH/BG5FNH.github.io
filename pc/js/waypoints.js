@@ -40,7 +40,34 @@ window.BG5FNH_WAYPOINTS = {
         scale: 1.0,
         children: [
           { id: 'ResourceShare', name: '资料分享', dir: 'center', url: 'ResourceShare/index.html' },
-          { id: 'SoftwareResources', name: '软件资源', dir: 'up', url: 'ResourceShare/SoftwareResources/index.html' },
+          {
+              id: 'SoftwareResources',
+              name: '软件资源',
+              dir: 'up',
+              url: 'ResourceShare/SoftwareResources/index.html',
+              children: [
+                {
+                  id: 'CrackedSoftware',
+                  name: '软件破解资源分享',
+                  dir: 'up',
+                  distance: 3.4,
+                  url: 'ResourceShare/SoftwareResources/CrackedSoftware/index.html',
+                  children: [
+                    {
+                      id: 'JianYingCrack',
+                      name: '剪映破解版',
+                      dir: 'right',
+                      distance: 3.4,
+                      url: 'ResourceShare/SoftwareResources/CrackedSoftware/JianYingCrack/index.html',
+                      children: [
+                        { id: 'JianYingPC', name: 'PC端', dir: 'up-right', distance: 2.8, url: 'ResourceShare/SoftwareResources/CrackedSoftware/JianYingCrack/PC/index.html' },
+                        { id: 'JianYingMobile', name: '手机端', dir: 'down-right', distance: 2.8, url: 'ResourceShare/SoftwareResources/CrackedSoftware/JianYingCrack/Mobile/index.html' }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
           { id: 'HardwareResources', name: '硬件资料', dir: 'right', url: 'ResourceShare/HardwareResources/index.html' },
           { id: 'Templates', name: '模板文档', dir: 'down', url: 'ResourceShare/Templates/index.html' },
           { id: 'RadioResources', name: '无线电资料', dir: 'left', url: 'ResourceShare/RadioResources/index.html' }

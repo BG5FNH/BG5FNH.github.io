@@ -205,8 +205,9 @@
       ui: ui
     });
 
-    (mainDef.children || []).forEach(function (childDef) {
-      var childPos = buildChildPosition(mainPos, childDef);
+    function addChildNodes(parentPos, childDefs) {
+        (childDefs || []).forEach(function (childDef) {
+      var childPos = buildChildPosition(parentPos, childDef);
       var childSprite = makeGlowSprite(childDef.scale || 0.85, GOLD);
       childSprite.position.copy(childPos);
       scene.add(childSprite);
@@ -228,12 +229,18 @@
       childUI.hit.addEventListener('click', function () { onChildNodeClick(mainDef, childDef, node); });
       childUI.label.addEventListener('click', function () { onChildNodeClick(mainDef, childDef, node); });
 
-      if (childPos.distanceTo(mainPos) > 0.001) {
-        var line = makeLine([mainPos.clone(), childPos.clone()], GOLD, 0);
+      if (childPos.distanceTo(parentPos) > 0.001) {
+        var line = makeLine([parentPos.clone(), childPos.clone()], GOLD, 0);
         scene.add(line);
         node.line = line;
       }
+          if (childDef.children && childDef.children.length) {
+            addChildNodes(childPos, childDef.children);
+          }
+
     });
+      }
+      addChildNodes(mainPos, mainDef.children);
   });
 
   var mode = 'overview';
