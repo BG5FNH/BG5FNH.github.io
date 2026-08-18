@@ -241,6 +241,60 @@
     });
       }
       addChildNodes(mainPos, mainDef.children);
+
+        // 新坐标制：points 配置 + path 文件夹嵌套决定父子关系
+        var pointDefs = mainDef.points || [];
+        function getPointByPath(path) {
+          for (var pi = 0; pi < pointDefs.length; pi++) {
+            if (pointDefs[pi].path === path) return pointDefs[pi];
+          }
+          return null;
+        }
+        function getParentPath(path) {
+          var slashIndex = path.lastIndexOf('/');
+          return slashIndex === -1 ? null : path.slice(0, slashIndex);
+        }
+        function pointPosToWorld(h, v) {
+          var unit = CFG.gridUnit || 3.6;
+          if (MOBILE_LAYOUT) {
+            return new THREE.Vector3(mainPos.x + h * unit, mainPos.y, mainPos.z - v * unit);
+          }
+          return new THREE.Vector3(mainPos.x, mainPos.y + v * unit, mainPos.z + h * unit);
+        }
+
+        pointDefs.forEach(function (pointDef) {
+          var childPos = pointPosToWorld(pointDef.pos[0], pointDef.pos[1]);
+          var childSprite = makeGlowSprite(pointDef.scale || 0.85, GOLD);
+          childSprite.position.copy(childPos);
+          scene.add(childSprite);
+
+          var childUI = createNodeUI(pointDef.name, false);
+          var node = {
+            kind: 'child',
+            def: pointDef,
+            mainDef: mainDef,
+            pos: childPos,
+            sprite: childSprite,
+            ui: childUI,
+            line: null,
+            baseScale: pointDef.scale || 0.85
+          };
+          childNodes.push(node);
+
+          childUI.hit.addEventListener('click', function () { onChildNodeClick(mainDef, pointDef, node); });
+          childUI.label.addEventListener('click', function () { onChildNodeClick(mainDef, pointDef, node); });
+
+          var parentPath = getParentPath(pointDef.path);
+          var parentDef = parentPath ? getPointByPath(parentPath) : null;
+          var parentPos = parentDef ? pointPosToWorld(parentDef.pos[0], parentDef.pos[1]) : mainPos;
+
+          if (childPos.distanceTo(parentPos) > 0.001) {
+            var line = makeLine([parentPos.clone(), childPos.clone()], GOLD, 0);
+            scene.add(line);
+            node.line = line;
+          }
+        });
+
   });
 
   var mode = 'overview';
