@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320">
-  <rect width="320" height="320" rx="160" fill="#0b0b0d" stroke="#c9a86a" stroke-width="4"/>
-  <circle cx="160" cy="125" r="48" fill="none" stroke="#8a7348" stroke-width="6"/>
-  <path d="M70 275c12-52 46-76 90-76s78 24 90 76" fill="none" stroke="#8a7348" stroke-width="6"/>
-  <text x="160" y="245" text-anchor="middle" fill="#c9a86a" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="22">大头照位置</text>
-</svg>
