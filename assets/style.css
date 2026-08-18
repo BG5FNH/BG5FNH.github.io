@@ -43,6 +43,13 @@ body.embedded .backdrop {
 body.embedded .card {
   background: rgba(11, 11, 13, 0.68);
   border-color: rgba(201, 168, 106, 0.4);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+body.embedded .back-btn {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 body.embedded .page-title {
