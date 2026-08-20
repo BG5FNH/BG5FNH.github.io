@@ -33,7 +33,8 @@ window.BG5FNH_WAYPOINTS = {
           { path: 'MyIntroduce/ProgrammingLanguage', name: '编程语言', pos: [0, -1], url: 'MyIntroduce/ProgrammingLanguage/intro.html' },
           { path: 'MyIntroduce/RadioCommunication', name: '无线电通讯', pos: [-1, 0], url: 'MyIntroduce/RadioCommunication/index.html' },
           { path: 'MyIntroduce/UnmannedAerialVehicle', name: '穿越机', pos: [-1, 1], url: 'MyIntroduce/UnmannedAerialVehicle/index.html' },
-          { path: 'MyIntroduce/ControlTest', name: '控件测试', pos: [1.5, 1.5], url: 'MyIntroduce/ControlTest/index.html' }
+          { path: 'MyIntroduce/ControlTest', name: '控件测试', pos: [1.5, 1.5], url: 'MyIntroduce/ControlTest/index.html' },
+            { path: 'MyIntroduce/Accounts', name: '我的账号', pos: [0, -2], url: 'MyIntroduce/Accounts/index.html' }
         ]
       },
       {
