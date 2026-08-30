@@ -554,7 +554,7 @@
   // ================= 宇宙系统 =================
   var universeStack = [];
   var uniAnim = {
-    active: false, phase: 'enter', elapsed: 0, duration: 1, diveRatio: 0.5, shrinkRatio: 0.45,
+    active: false, phase: 'enter', elapsed: 0, duration: 1, diveRatio: 0.35, growStart: 0.70, shrinkRatio: 0.40,
     fromPos: new THREE.Vector3(), divePos: new THREE.Vector3(), toPos: new THREE.Vector3(),
     fromLook: new THREE.Vector3(), toLook: new THREE.Vector3(),
     fromBg: null, toBg: null,
@@ -675,8 +675,9 @@
     uniAnim.active = true;
     uniAnim.phase = 'enter';
     uniAnim.elapsed = 0;
-    uniAnim.duration = 2.2;
-    uniAnim.diveRatio = 0.5;
+    uniAnim.duration = 2.4;
+    uniAnim.diveRatio = 0.35;
+    uniAnim.growStart = 0.70;
     uniAnim.fromPos.copy(camera.position);
     uniAnim.divePos.copy(getDivePos(node.pos, 3.0));
     uniAnim.toPos.copy(getUniverseViewCamera(entry).pos);
@@ -707,8 +708,8 @@
     uniAnim.active = true;
     uniAnim.phase = 'exit';
     uniAnim.elapsed = 0;
-    uniAnim.duration = 1.4;
-    uniAnim.shrinkRatio = 0.45;
+    uniAnim.duration = 1.6;
+    uniAnim.shrinkRatio = 0.40;
     uniAnim.fromPos.copy(camera.position);
     uniAnim.toPos.copy(toCam.pos);
     uniAnim.fromLook.copy(viewLookAt);
@@ -731,28 +732,37 @@
     var fadeOut = uniAnim.fadeOutNodes || [];
 
     if (uniAnim.phase === 'enter') {
-      var ratio = uniAnim.diveRatio || 0.5;
-      if (t < ratio) {
-        // 阶段一：镜头慢慢转向并钻入光点，宇宙光点保持最小
-        var lt = easeInOutCubic(clamp01(t / ratio));
+      var diveRatio = uniAnim.diveRatio || 0.35;
+      var growStart = uniAnim.growStart || 0.70;
+      if (t < diveRatio) {
+        // 阶段1：镜头慢慢转向并钻入光点
+        var lt = easeInOutCubic(clamp01(t / diveRatio));
         camera.position.lerpVectors(uniAnim.fromPos, uniAnim.divePos, lt);
         var lookA = new THREE.Vector3().lerpVectors(uniAnim.fromLook, uniAnim.toLook, lt);
         camera.lookAt(lookA);
         viewLookAt.copy(lookA);
         fadeIn.forEach(function (n) { setChildOpacity(n, 0); if (n.kind === 'point') setNodeScale(n, 0.001); });
         fadeOut.forEach(function (n) { setChildOpacity(n, 1 - lt); });
-      } else {
-        // 阶段二：镜头退回宇宙视角，宇宙光点从小到大长出来
-        var lt2 = easeInOutCubic(clamp01((t - ratio) / (1 - ratio)));
+      } else if (t < growStart) {
+        // 阶段2：镜头退回宇宙视角，光点保持最小尚未出现
+        var lt2 = easeInOutCubic(clamp01((t - diveRatio) / (growStart - diveRatio)));
         camera.position.lerpVectors(uniAnim.divePos, uniAnim.toPos, lt2);
         camera.lookAt(uniAnim.toLook);
         viewLookAt.copy(uniAnim.toLook);
-        fadeIn.forEach(function (n) { setChildOpacity(n, lt2); if (n.kind === 'point') setNodeScale(n, n.baseScale * lt2); });
+        fadeIn.forEach(function (n) { setChildOpacity(n, 0); if (n.kind === 'point') setNodeScale(n, 0.001); });
+        fadeOut.forEach(function (n) { setChildOpacity(n, 0); });
+      } else {
+        // 阶段3：镜头停住，宇宙光点从最小慢慢变大长出来
+        var lt3 = easeInOutCubic(clamp01((t - growStart) / (1 - growStart)));
+        camera.position.copy(uniAnim.toPos);
+        camera.lookAt(uniAnim.toLook);
+        viewLookAt.copy(uniAnim.toLook);
+        fadeIn.forEach(function (n) { setChildOpacity(n, lt3); if (n.kind === 'point') setNodeScale(n, n.baseScale * lt3); });
         fadeOut.forEach(function (n) { setChildOpacity(n, 0); });
       }
     } else {
-      // 退出：先向中间缩小，再退回父星图
-      var shrinkRatio = uniAnim.shrinkRatio || 0.45;
+      // 退出：先向中间缩小（镜头停住），再退回父星图
+      var shrinkRatio = uniAnim.shrinkRatio || 0.40;
       if (t < shrinkRatio) {
         var lt = easeInOutCubic(clamp01(t / shrinkRatio));
         camera.position.copy(uniAnim.fromPos);
