@@ -50,6 +50,21 @@
   function clamp01(v) { return Math.max(0, Math.min(1, v)); }
   function easeInOutCubic(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
 
+  function hexColor(str, fallback) {
+    if (typeof str === 'string' && str.charAt(0) === '#') {
+      var n = parseInt(str.slice(1), 16);
+      if (!isNaN(n)) return n;
+    }
+    return fallback;
+  }
+  function colorToCss(n) {
+    return '#' + ('00000' + Math.floor(n).toString(16)).slice(-6);
+  }
+  function colorToRgba(n, a) {
+    var r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+  }
+
   function makeGlowTexture(size) {
     size = size || 64;
     var canvas = document.createElement('canvas');
@@ -136,6 +151,14 @@
       baseY + dir[1] * dist,
       baseZ + dir[2] * dist
     );
+  }
+
+  function placePoint(center, h, v) {
+    var unit = CFG.gridUnit || 3.6;
+    if (MOBILE_LAYOUT) {
+      return new THREE.Vector3(center.x + h * unit, center.y, center.z - v * unit);
+    }
+    return new THREE.Vector3(center.x, center.y + v * unit, center.z + h * unit);
   }
 
   function createNodeUI(labelText, big) {
@@ -226,8 +249,8 @@
       };
       childNodes.push(node);
 
-      childUI.hit.addEventListener('click', function () { onChildNodeClick(mainDef, childDef, node); });
-      childUI.label.addEventListener('click', function () { onChildNodeClick(mainDef, childDef, node); });
+      childUI.hit.addEventListener('click', function () { onPointClick(node); });
+      childUI.label.addEventListener('click', function () { onPointClick(node); });
 
       if (childPos.distanceTo(parentPos) > 0.001) {
         var line = makeLine([parentPos.clone(), childPos.clone()], GOLD, 0);
@@ -264,11 +287,16 @@
 
         pointDefs.forEach(function (pointDef) {
           var childPos = pointPosToWorld(pointDef.pos[0], pointDef.pos[1]);
-          var childSprite = makeGlowSprite(pointDef.scale || 0.85, GOLD);
+          var entryColor = pointDef.universe ? hexColor(pointDef.universeColor, 0xe8b4b8) : GOLD;
+          var childSprite = makeGlowSprite(pointDef.scale || 0.85, entryColor);
           childSprite.position.copy(childPos);
           scene.add(childSprite);
 
           var childUI = createNodeUI(pointDef.name, false);
+          if (pointDef.universe) {
+            childUI.label.style.color = colorToCss(entryColor);
+            childUI.label.style.textShadow = '0 0 12px ' + colorToRgba(entryColor, 0.35);
+          }
           var node = {
             kind: 'child',
             def: pointDef,
@@ -281,8 +309,8 @@
           };
           childNodes.push(node);
 
-          childUI.hit.addEventListener('click', function () { onChildNodeClick(mainDef, pointDef, node); });
-          childUI.label.addEventListener('click', function () { onChildNodeClick(mainDef, pointDef, node); });
+          childUI.hit.addEventListener('click', function () { onPointClick(node); });
+          childUI.label.addEventListener('click', function () { onPointClick(node); });
 
           var parentPath = getParentPath(pointDef.path);
           var parentDef = parentPath ? getPointByPath(parentPath) : null;
@@ -366,40 +394,43 @@
   }
 
   function onMainNodeClick(mainDef) {
-    if (anim.running || mode === 'focus') return;
+    if (anim.running || uniAnim.active || mode === 'focus') return;
     mode = 'focus';
     focusMain = mainDef;
     hideHint();
-    if (backBtn) backBtn.style.display = 'inline-flex';
+    updateBackButton();
       hideVersionBadge();
     startAnimation(getFocusCamera(mainDef), mainDef, 2.6);
     anim.fromFocusMain = null;
   }
 
-  function onChildNodeClick(mainDef, childDef, node) {
-    if (anim.running || mode !== 'focus') return;
-    openContentPanel(mainDef, childDef, node);
+  function onPointClick(node) {
+    if (anim.running || uniAnim.active || contentPanelOpen) return;
+    if (node.def.universe) {
+      enterUniverse(node);
+    } else {
+      openContentPanel(node);
+    }
   }
 
   var selectedNode = null;
   var selectedGlowTime = 0;
   var contentPanelOpen = false;
 
-  function openContentPanel(mainDef, childDef, node) {
+  function openContentPanel(node) {
     if (contentPanelOpen) return;
     contentPanelOpen = true;
-    // PC 端使用 iframe 浮层，不需要 sessionStorage 记录焦点
     selectedNode = node;
     selectedGlowTime = 0;
 
     setTimeout(function () {
       if (!selectedNode) return;
-      if (mode !== 'focus') return;
+      if (mode !== 'focus' && mode !== 'universe') return;
       var p = projectToScreen(selectedNode.pos);
       var frameLeft = 0.02 * window.innerWidth;
       var frameTop = 0.02 * window.innerHeight;
       pageFrame.style.transformOrigin = (p.x - frameLeft) + 'px ' + (p.y - frameTop) + 'px';
-      pageFrame.src = '../WayPoints/' + childDef.url;
+      pageFrame.src = '../WayPoints/' + selectedNode.def.url;
       pageOverlay.style.display = 'block';
       void pageOverlay.offsetWidth;
       pageOverlay.classList.add('active');
@@ -443,12 +474,17 @@
   });
 
   function backToOverview() {
-    if (anim.running || mode !== 'focus') return;
+    if (anim.running || uniAnim.active) return;
+    if (universeStack.length > 0) {
+      exitUniverse();
+      return;
+    }
+    if (mode !== 'focus') return;
     var prevFocus = focusMain;
     try { sessionStorage.removeItem('bg5fnh_focus'); } catch (e) { }
     mode = 'overview';
     focusMain = null;
-    if (backBtn) backBtn.style.display = 'none';
+    updateBackButton();
       showVersionBadge();
     showHint(MOBILE_LAYOUT ? '点击金色圆点进入 · 空白处拖动 · 双指缩放' : '点击金色圆点进入 · 空白处拖动平移 · 滚轮缩放');
     startAnimation(getOverviewCamera(), null, 2.2);
@@ -504,8 +540,228 @@
     focusMain = found;
     setCamera(getFocusCamera(found));
     hideHint();
-    if (backBtn) backBtn.style.display = 'inline-flex';
+    updateBackButton();
     applyInstant(found);
+  }
+
+  // ================= 宇宙系统 =================
+  var universeStack = [];
+  var uniAnim = {
+    active: false, phase: 'enter', elapsed: 0, duration: 1, diveRatio: 0.5,
+    fromPos: new THREE.Vector3(), divePos: new THREE.Vector3(), toPos: new THREE.Vector3(),
+    fromLook: new THREE.Vector3(), toLook: new THREE.Vector3(),
+    fromBg: null, toBg: null,
+    fadeInNodes: [], fadeOutNodes: [], entry: null
+  };
+
+  function topUniverse() { return universeStack.length ? universeStack[universeStack.length - 1] : null; }
+
+  function getAllNodes() {
+    var arr = mainNodes.concat(childNodes);
+    for (var i = 0; i < universeStack.length; i++) arr = arr.concat(universeStack[i].nodes);
+    if (uniAnim.active) arr = arr.concat(uniAnim.fadeInNodes).concat(uniAnim.fadeOutNodes);
+    return arr;
+  }
+
+  function updateBackButton() {
+    if (!backBtn) return;
+    var label = document.getElementById('backLabel');
+    if (universeStack.length > 0) {
+      backBtn.style.display = 'inline-flex';
+      if (label) label.textContent = '返回';
+    } else if (mode === 'focus') {
+      backBtn.style.display = 'inline-flex';
+      if (label) label.textContent = '返回主视线';
+    } else {
+      backBtn.style.display = 'none';
+    }
+  }
+
+  function makeUniverseEntry(pointDef, mainDef, centerPos) {
+    var color = hexColor(pointDef.universeColor, 0xe8b4b8);
+    var bg;
+    if (pointDef.universeBg) {
+      bg = new THREE.Color(pointDef.universeBg);
+    } else {
+      var hsl = {};
+      bg = new THREE.Color(color);
+      bg.getHSL(hsl);
+      bg.setHSL(hsl.h, Math.min(0.45, hsl.s * 0.55), 0.07);
+    }
+    return { def: pointDef, mainDef: mainDef, color: color, bg: bg, centerPos: centerPos.clone(), nodes: [] };
+  }
+
+  function buildUniverseNodes(entry) {
+    var defs = entry.def.universePoints || [];
+    var center = entry.centerPos;
+    function getByPath(path) { for (var i = 0; i < defs.length; i++) { if (defs[i].path === path) return defs[i]; } return null; }
+    function parentPath(path) { var s = path.lastIndexOf('/'); return s === -1 ? null : path.slice(0, s); }
+    defs.forEach(function (def) {
+      var pos = placePoint(center, def.pos[0], def.pos[1]);
+      var c = def.universe ? hexColor(def.universeColor, 0xe8b4b8) : entry.color;
+      var sprite = makeGlowSprite(def.scale || 0.8, c);
+      sprite.position.copy(pos);
+      scene.add(sprite);
+      var ui = createNodeUI(def.name, false);
+      ui.label.style.color = colorToCss(c);
+      ui.label.style.textShadow = '0 0 12px ' + colorToRgba(c, 0.35);
+      var node = {
+        kind: 'point', def: def, mainDef: entry.mainDef, universeEntry: entry,
+        pos: pos, sprite: sprite, ui: ui, line: null, baseScale: def.scale || 0.8
+      };
+      entry.nodes.push(node);
+      ui.hit.addEventListener('click', function () { onPointClick(node); });
+      ui.label.addEventListener('click', function () { onPointClick(node); });
+      var pp = parentPath(def.path);
+      var pDef = pp ? getByPath(pp) : null;
+      var pPos = pDef ? placePoint(center, pDef.pos[0], pDef.pos[1]) : center;
+      if (pos.distanceTo(pPos) > 0.001) {
+        var line = makeLine([pPos.clone(), pos.clone()], entry.color, 0);
+        scene.add(line);
+        node.line = line;
+      }
+    });
+  }
+
+  function destroyUniverseNodes(entry) {
+    entry.nodes.forEach(function (n) {
+      scene.remove(n.sprite);
+      if (n.line) scene.remove(n.line);
+      if (n.ui.hit && n.ui.hit.parentNode) n.ui.hit.parentNode.removeChild(n.ui.hit);
+      if (n.ui.label && n.ui.label.parentNode) n.ui.label.parentNode.removeChild(n.ui.label);
+    });
+    entry.nodes.length = 0;
+  }
+
+  function getUniverseViewCamera(entry) {
+    var dist = MOBILE_LAYOUT ? 26 : 24;
+    var c = entry.centerPos;
+    if (MOBILE_LAYOUT) {
+      return { pos: new THREE.Vector3(c.x, c.y + dist, c.z), up: new THREE.Vector3(0, 0, -1), lookAt: c.clone() };
+    }
+    return { pos: new THREE.Vector3(c.x - dist, c.y, c.z), up: new THREE.Vector3(0, 1, 0), lookAt: c.clone() };
+  }
+
+  function getDivePos(centerPos, dist) {
+    if (MOBILE_LAYOUT) return new THREE.Vector3(centerPos.x, centerPos.y + dist, centerPos.z);
+    return new THREE.Vector3(centerPos.x - dist, centerPos.y, centerPos.z);
+  }
+
+  function currentLevelNodes() {
+    if (universeStack.length) return topUniverse().nodes;
+    if (mode === 'focus' && focusMain) return childNodes.filter(function (n) { return n.mainDef === focusMain; });
+    return mainNodes;
+  }
+
+  function enterUniverse(node) {
+    if (anim.running || uniAnim.active || contentPanelOpen) return;
+    var pointDef = node.def;
+    var mainDef = node.mainDef || focusMain;
+    var entry = makeUniverseEntry(pointDef, mainDef, node.pos);
+    buildUniverseNodes(entry);
+
+    var parentNodes = currentLevelNodes();
+    universeStack.push(entry);
+    mode = 'universe';
+
+    uniAnim.active = true;
+    uniAnim.phase = 'enter';
+    uniAnim.elapsed = 0;
+    uniAnim.duration = 2.2;
+    uniAnim.diveRatio = 0.5;
+    uniAnim.fromPos.copy(camera.position);
+    uniAnim.divePos.copy(getDivePos(node.pos, 3.0));
+    uniAnim.toPos.copy(getUniverseViewCamera(entry).pos);
+    uniAnim.fromLook.copy(viewLookAt);
+    uniAnim.toLook.copy(node.pos);
+    uniAnim.fromBg = scene.background.clone();
+    uniAnim.toBg = entry.bg.clone();
+    uniAnim.fadeInNodes = entry.nodes;
+    uniAnim.fadeOutNodes = parentNodes;
+    uniAnim.entry = null;
+    updateBackButton();
+  }
+
+  function exitUniverse() {
+    if (anim.running || uniAnim.active || contentPanelOpen || !universeStack.length) return;
+    var entry = universeStack.pop();
+
+    var parentNodes;
+    if (universeStack.length) {
+      parentNodes = topUniverse().nodes;
+      mode = 'universe';
+    } else {
+      parentNodes = childNodes.filter(function (n) { return n.mainDef === focusMain; });
+      mode = 'focus';
+    }
+    var toCam = universeStack.length ? getUniverseViewCamera(topUniverse()) : getFocusCamera(focusMain);
+
+    uniAnim.active = true;
+    uniAnim.phase = 'exit';
+    uniAnim.elapsed = 0;
+    uniAnim.duration = 1.3;
+    uniAnim.fromPos.copy(camera.position);
+    uniAnim.toPos.copy(toCam.pos);
+    uniAnim.fromLook.copy(viewLookAt);
+    uniAnim.toLook.copy(toCam.lookAt);
+    uniAnim.fromBg = scene.background.clone();
+    uniAnim.toBg = universeStack.length ? topUniverse().bg.clone() : new THREE.Color(BG);
+    uniAnim.fadeInNodes = parentNodes;
+    uniAnim.fadeOutNodes = entry.nodes;
+    uniAnim.entry = entry;
+    updateBackButton();
+  }
+
+  function updateUniverseAnim(dt) {
+    if (!uniAnim.active) return;
+    uniAnim.elapsed += dt;
+    var t = clamp01(uniAnim.elapsed / uniAnim.duration);
+    var e = easeInOutCubic(t);
+
+    if (uniAnim.phase === 'enter') {
+      var ratio = uniAnim.diveRatio || 0.5;
+      if (t < ratio) {
+        var lt = easeInOutCubic(clamp01(t / ratio));
+        camera.position.lerpVectors(uniAnim.fromPos, uniAnim.divePos, lt);
+        var lookA = new THREE.Vector3().lerpVectors(uniAnim.fromLook, uniAnim.toLook, lt);
+        camera.lookAt(lookA);
+        viewLookAt.copy(lookA);
+      } else {
+        var lt2 = easeInOutCubic(clamp01((t - ratio) / (1 - ratio)));
+        camera.position.lerpVectors(uniAnim.divePos, uniAnim.toPos, lt2);
+        camera.lookAt(uniAnim.toLook);
+        viewLookAt.copy(uniAnim.toLook);
+      }
+      var outE = easeInOutCubic(clamp01(t / ratio));
+      var inE = easeInOutCubic(clamp01((t - ratio) / (1 - ratio)));
+      (uniAnim.fadeOutNodes || []).forEach(function (n) { setChildOpacity(n, 1 - outE); });
+      (uniAnim.fadeInNodes || []).forEach(function (n) { setChildOpacity(n, inE); });
+    } else {
+      camera.position.lerpVectors(uniAnim.fromPos, uniAnim.toPos, e);
+      var look = new THREE.Vector3().lerpVectors(uniAnim.fromLook, uniAnim.toLook, e);
+      camera.lookAt(look);
+      viewLookAt.copy(look);
+      (uniAnim.fadeOutNodes || []).forEach(function (n) { setChildOpacity(n, 1 - e); });
+      (uniAnim.fadeInNodes || []).forEach(function (n) { setChildOpacity(n, e); });
+    }
+
+    if (uniAnim.fromBg && uniAnim.toBg) scene.background.copy(uniAnim.fromBg).lerp(uniAnim.toBg, e);
+
+    if (mode === 'universe') {
+      mainLine.material.opacity = 0;
+      mainNodes.forEach(function (n) { setSpriteOpacity(n.sprite, 0); setUIOpacity(n.ui, 0); });
+    }
+
+    if (t >= 1) {
+      uniAnim.active = false;
+      (uniAnim.fadeInNodes || []).forEach(function (n) { setChildOpacity(n, 1); });
+      (uniAnim.fadeOutNodes || []).forEach(function (n) { setChildOpacity(n, 0); });
+      if (mode === 'universe' && universeStack.length) scene.background.copy(topUniverse().bg);
+      else if (mode !== 'universe') scene.background.copy(new THREE.Color(BG));
+      if (uniAnim.phase === 'exit' && uniAnim.entry) { destroyUniverseNodes(uniAnim.entry); uniAnim.entry = null; }
+      uniAnim.fadeInNodes = [];
+      uniAnim.fadeOutNodes = [];
+    }
   }
 
   function updateAnimation(dt) {
@@ -563,14 +819,18 @@
   }
 
   function updateUI() {
-    var all = mainNodes.concat(childNodes);
+    var all = getAllNodes();
     all.forEach(function (n) {
       var ui = n.ui;
       var visible = false;
-      if (mode === 'overview') {
+      if (uniAnim.active) {
+        visible = true;
+      } else if (mode === 'overview') {
         visible = n.kind === 'main';
       } else if (mode === 'focus' && focusMain) {
         visible = n.kind === 'child' && n.mainDef === focusMain;
+      } else if (mode === 'universe') {
+        visible = n.kind === 'point' && n.universeEntry === topUniverse();
       }
       var uiOpacity = parseFloat(ui.hit.style.opacity || '0');
       if (uiOpacity < 0.05) visible = false;
@@ -590,7 +850,7 @@
       // 解决冲突：保留字体随镜头缩放版本
         var nodeDist = camera.position.distanceTo(n.pos);
         var worldFont = (n.kind === 'main' ? (n.def.scale && n.def.scale > 1.2 ? 0.9 : 0.7) : 0.55) * (MOBILE_LAYOUT ? 0.45 : 1);
-          if (mode === 'focus') worldFont *= 0.8;
+          if (mode === 'focus' || mode === 'universe') worldFont *= 0.8;
         var cssFont = worldFont * window.innerHeight / (2 * nodeDist * Math.tan(camera.fov * Math.PI / 360));
         cssFont = Math.max(8, Math.min(40, cssFont));
         ui.label.style.fontSize = cssFont + 'px';
@@ -651,7 +911,7 @@
 
   renderer.domElement.addEventListener('pointerdown', function (e) {
     if (e.button !== 0 && e.pointerType === 'mouse') return;
-    if (anim.running || contentPanelOpen) return;
+    if (anim.running || uniAnim.active || contentPanelOpen) return;
       pointers[e.pointerId] = { x: e.clientX, y: e.clientY };
       var ids = Object.keys(pointers);
       if (ids.length === 1) {
@@ -725,7 +985,7 @@
 
   // ---------------- 滚轮缩放 ----------------
   function zoomCamera(deltaY) {
-    if (anim.running || contentPanelOpen) return;
+    if (anim.running || uniAnim.active || contentPanelOpen) return;
     var factor = Math.max(0.8, Math.min(1.25, 1 + deltaY * 0.0011));
     var toCamera = new THREE.Vector3().subVectors(camera.position, viewLookAt);
     var dist = toCamera.length();
@@ -748,6 +1008,7 @@
     requestAnimationFrame(animate);
     var dt = clock.getDelta();
     updateAnimation(dt);
+    updateUniverseAnim(dt);
     updateSelectedGlow(dt);
     updateUI();
     renderer.render(scene, camera);
