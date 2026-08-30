@@ -514,6 +514,13 @@
     setUIOpacity(node.ui, opacity);
   }
 
+  function setNodeScale(node, scale) {
+    if (node && node.sprite) {
+      var s = Math.max(0.001, scale);
+      node.sprite.scale.set(s, s, 1);
+    }
+  }
+
   function applyInstant(mainDef) {
     if (!mainDef) {
       mainLine.material.opacity = 0.9;
@@ -547,7 +554,7 @@
   // ================= 宇宙系统 =================
   var universeStack = [];
   var uniAnim = {
-    active: false, phase: 'enter', elapsed: 0, duration: 1, diveRatio: 0.5,
+    active: false, phase: 'enter', elapsed: 0, duration: 1, diveRatio: 0.5, shrinkRatio: 0.45,
     fromPos: new THREE.Vector3(), divePos: new THREE.Vector3(), toPos: new THREE.Vector3(),
     fromLook: new THREE.Vector3(), toLook: new THREE.Vector3(),
     fromBg: null, toBg: null,
@@ -600,6 +607,7 @@
       var pos = placePoint(center, def.pos[0], def.pos[1]);
       var c = def.universe ? hexColor(def.universeColor, 0xe8b4b8) : entry.color;
       var sprite = makeGlowSprite(def.scale || 0.8, c);
+      sprite.scale.set(0.001, 0.001, 1);
       sprite.position.copy(pos);
       scene.add(sprite);
       var ui = createNodeUI(def.name, false);
@@ -699,7 +707,8 @@
     uniAnim.active = true;
     uniAnim.phase = 'exit';
     uniAnim.elapsed = 0;
-    uniAnim.duration = 1.3;
+    uniAnim.duration = 1.4;
+    uniAnim.shrinkRatio = 0.45;
     uniAnim.fromPos.copy(camera.position);
     uniAnim.toPos.copy(toCam.pos);
     uniAnim.fromLook.copy(viewLookAt);
@@ -718,31 +727,48 @@
     var t = clamp01(uniAnim.elapsed / uniAnim.duration);
     var e = easeInOutCubic(t);
 
+    var fadeIn = uniAnim.fadeInNodes || [];
+    var fadeOut = uniAnim.fadeOutNodes || [];
+
     if (uniAnim.phase === 'enter') {
       var ratio = uniAnim.diveRatio || 0.5;
       if (t < ratio) {
+        // 阶段一：镜头慢慢转向并钻入光点，宇宙光点保持最小
         var lt = easeInOutCubic(clamp01(t / ratio));
         camera.position.lerpVectors(uniAnim.fromPos, uniAnim.divePos, lt);
         var lookA = new THREE.Vector3().lerpVectors(uniAnim.fromLook, uniAnim.toLook, lt);
         camera.lookAt(lookA);
         viewLookAt.copy(lookA);
+        fadeIn.forEach(function (n) { setChildOpacity(n, 0); if (n.kind === 'point') setNodeScale(n, 0.001); });
+        fadeOut.forEach(function (n) { setChildOpacity(n, 1 - lt); });
       } else {
+        // 阶段二：镜头退回宇宙视角，宇宙光点从小到大长出来
         var lt2 = easeInOutCubic(clamp01((t - ratio) / (1 - ratio)));
         camera.position.lerpVectors(uniAnim.divePos, uniAnim.toPos, lt2);
         camera.lookAt(uniAnim.toLook);
         viewLookAt.copy(uniAnim.toLook);
+        fadeIn.forEach(function (n) { setChildOpacity(n, lt2); if (n.kind === 'point') setNodeScale(n, n.baseScale * lt2); });
+        fadeOut.forEach(function (n) { setChildOpacity(n, 0); });
       }
-      var outE = easeInOutCubic(clamp01(t / ratio));
-      var inE = easeInOutCubic(clamp01((t - ratio) / (1 - ratio)));
-      (uniAnim.fadeOutNodes || []).forEach(function (n) { setChildOpacity(n, 1 - outE); });
-      (uniAnim.fadeInNodes || []).forEach(function (n) { setChildOpacity(n, inE); });
     } else {
-      camera.position.lerpVectors(uniAnim.fromPos, uniAnim.toPos, e);
-      var look = new THREE.Vector3().lerpVectors(uniAnim.fromLook, uniAnim.toLook, e);
-      camera.lookAt(look);
-      viewLookAt.copy(look);
-      (uniAnim.fadeOutNodes || []).forEach(function (n) { setChildOpacity(n, 1 - e); });
-      (uniAnim.fadeInNodes || []).forEach(function (n) { setChildOpacity(n, e); });
+      // 退出：先向中间缩小，再退回父星图
+      var shrinkRatio = uniAnim.shrinkRatio || 0.45;
+      if (t < shrinkRatio) {
+        var lt = easeInOutCubic(clamp01(t / shrinkRatio));
+        camera.position.copy(uniAnim.fromPos);
+        camera.lookAt(uniAnim.fromLook);
+        viewLookAt.copy(uniAnim.fromLook);
+        fadeOut.forEach(function (n) { setChildOpacity(n, 1 - lt); if (n.kind === 'point') setNodeScale(n, n.baseScale * (1 - lt)); });
+        fadeIn.forEach(function (n) { setChildOpacity(n, 0); });
+      } else {
+        var lt2 = easeInOutCubic(clamp01((t - shrinkRatio) / (1 - shrinkRatio)));
+        camera.position.lerpVectors(uniAnim.fromPos, uniAnim.toPos, lt2);
+        var look = new THREE.Vector3().lerpVectors(uniAnim.fromLook, uniAnim.toLook, lt2);
+        camera.lookAt(look);
+        viewLookAt.copy(look);
+        fadeOut.forEach(function (n) { setChildOpacity(n, 0); if (n.kind === 'point') setNodeScale(n, 0.001); });
+        fadeIn.forEach(function (n) { setChildOpacity(n, lt2); });
+      }
     }
 
     if (uniAnim.fromBg && uniAnim.toBg) scene.background.copy(uniAnim.fromBg).lerp(uniAnim.toBg, e);
@@ -754,8 +780,8 @@
 
     if (t >= 1) {
       uniAnim.active = false;
-      (uniAnim.fadeInNodes || []).forEach(function (n) { setChildOpacity(n, 1); });
-      (uniAnim.fadeOutNodes || []).forEach(function (n) { setChildOpacity(n, 0); });
+      fadeIn.forEach(function (n) { setChildOpacity(n, 1); if (n.kind === 'point') setNodeScale(n, n.baseScale); });
+      fadeOut.forEach(function (n) { setChildOpacity(n, 0); if (n.kind === 'point') setNodeScale(n, 0.001); });
       if (mode === 'universe' && universeStack.length) scene.background.copy(topUniverse().bg);
       else if (mode !== 'universe') scene.background.copy(new THREE.Color(BG));
       if (uniAnim.phase === 'exit' && uniAnim.entry) { destroyUniverseNodes(uniAnim.entry); uniAnim.entry = null; }
