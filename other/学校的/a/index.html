@@ -154,6 +154,27 @@
     80% { transform: translateX(3px); }
   }
 
+  /* ============ 图片 ============ */
+  .figure {
+    margin: 0;
+    width: 100%;
+    max-width: min(560px, 86vw);
+    display: flex;
+    justify-content: center;
+  }
+
+  .figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 46vh;
+    object-fit: contain;
+    border-radius: 10px;
+    box-shadow:
+      0 0 0 1px rgba(217, 180, 91, 0.26),
+      0 0 34px rgba(217, 180, 91, 0.12);
+  }
+
   /* ============ 弹出框 ============ */
   .mask {
     position: fixed;
@@ -248,6 +269,10 @@
       />
       <button type="submit">确认</button>
     </form>
+
+    <figure class="figure">
+      <img src="./image.jpg" alt="配图" loading="lazy" decoding="async" />
+    </figure>
   </main>
 
   <div class="signature">--肖和</div>
