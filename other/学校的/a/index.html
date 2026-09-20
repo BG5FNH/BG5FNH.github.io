@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#000000" />
+<title>我可不会为了一个面试去搭建一个动态网站</title>
+<style>
+  :root {
+    --gold: #d9b45b;
+    --gold-soft: rgba(217, 180, 91, 0.72);
+    --gold-dim: rgba(217, 180, 91, 0.42);
+    --gold-line: rgba(217, 180, 91, 0.28);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #000;
+  }
+
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(48px, 9vh, 100px) clamp(20px, 6vw, 64px) clamp(88px, 14vh, 130px);
+    font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+                 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: var(--gold);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* 极淡的暖色光晕，让纯黑不那么死 */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 42%, rgba(217, 180, 91, 0.07), transparent 62%);
+    pointer-events: none;
+  }
+
+  main {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(34px, 7vh, 72px);
+  }
+
+  /* ============ 顶部文字 ============ */
+  .line {
+    margin: 0;
+    max-width: 22em;
+    text-align: center;
+    font-size: clamp(20px, 5.2vw, 38px);
+    font-weight: 500;
+    line-height: 1.72;
+    letter-spacing: 0.06em;
+    color: var(--gold);
+    text-shadow:
+      0 0 6px rgba(217, 180, 91, 0.35),
+      0 0 22px rgba(217, 180, 91, 0.18);
+    will-change: transform;
+    transform-origin: 50% 60%;
+    animation: sway 5.4s ease-in-out infinite;
+  }
+
+  /* 微微晃动：位移 <2px + 旋转 <0.4deg */
+  @keyframes sway {
+    0%   { transform: translate3d(0, 0, 0) rotate(0deg); }
+    18%  { transform: translate3d(-1.3px, 1px, 0) rotate(-0.34deg); }
+    36%  { transform: translate3d(1.5px, -0.8px, 0) rotate(0.30deg); }
+    54%  { transform: translate3d(-1px, 1.2px, 0) rotate(-0.22deg); }
+    72%  { transform: translate3d(1.2px, -1.1px, 0) rotate(0.33deg); }
+    88%  { transform: translate3d(-0.7px, 0.6px, 0) rotate(-0.18deg); }
+    100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  }
+
+  /* ============ 输入区 ============ */
+  .answer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    max-width: min(580px, 90vw);
+  }
+
+  .answer input {
+    flex: 1 1 240px;
+    min-width: 0;
+    padding: 15px 20px;
+    background: rgba(217, 180, 91, 0.05);
+    border: 1px solid var(--gold-line);
+    border-radius: 10px;
+    color: var(--gold);
+    font-family: inherit;
+    font-size: clamp(16px, 4vw, 18px);
+    letter-spacing: 0.04em;
+    outline: none;
+    transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+  }
+
+  .answer input::placeholder {
+    color: var(--gold-dim);
+    letter-spacing: 0.04em;
+  }
+
+  .answer input:focus {
+    border-color: rgba(217, 180, 91, 0.62);
+    background: rgba(217, 180, 91, 0.08);
+    box-shadow:
+      0 0 0 3px rgba(217, 180, 91, 0.10),
+      0 0 24px rgba(217, 180, 91, 0.14);
+  }
+
+  .answer button {
+    flex: 0 0 auto;
+    padding: 15px 32px;
+    border: 1px solid rgba(217, 180, 91, 0.55);
+    border-radius: 10px;
+    background: linear-gradient(180deg, rgba(217, 180, 91, 0.16), rgba(217, 180, 91, 0.05));
+    color: var(--gold);
+    font-family: inherit;
+    font-size: clamp(16px, 4vw, 18px);
+    letter-spacing: 0.18em;
+    cursor: pointer;
+    transition: background 0.25s, box-shadow 0.25s, transform 0.12s;
+  }
+
+  .answer button:hover {
+    background: rgba(217, 180, 91, 0.22);
+    box-shadow: 0 0 24px rgba(217, 180, 91, 0.22);
+  }
+
+  .answer button:active { transform: translateY(1px); }
+
+  /* 答错时输入框抖一下 */
+  .shake { animation: shake 0.42s ease; }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-7px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(3px); }
+  }
+
+  /* ============ 弹出框 ============ */
+  .mask {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.78);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.28s ease, visibility 0.28s;
+  }
+
+  .mask.show { opacity: 1; visibility: visible; }
+
+  .modal {
+    width: min(360px, 86vw);
+    padding: 34px 26px 26px;
+    text-align: center;
+    border: 1px solid rgba(217, 180, 91, 0.35);
+    border-radius: 16px;
+    background: linear-gradient(180deg, #14100a, #0a0806);
+    box-shadow:
+      0 0 60px rgba(217, 180, 91, 0.14),
+      0 20px 60px rgba(0, 0, 0, 0.6);
+    transform: scale(0.92) translateY(10px);
+    opacity: 0;
+    transition: transform 0.34s cubic-bezier(0.2, 0.9, 0.3, 1.2), opacity 0.28s;
+  }
+
+  .mask.show .modal { transform: none; opacity: 1; }
+
+  .modal-emoji {
+    font-size: clamp(56px, 16vw, 72px);
+    line-height: 1;
+    filter: drop-shadow(0 0 18px rgba(217, 180, 91, 0.35));
+  }
+
+  .modal-text {
+    margin: 20px 0 0;
+    font-size: clamp(16px, 4.4vw, 19px);
+    line-height: 1.7;
+    letter-spacing: 0.05em;
+    color: var(--gold);
+    text-shadow: 0 0 12px rgba(217, 180, 91, 0.25);
+  }
+
+  .modal-hint {
+    margin: 16px 0 0;
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    color: var(--gold-dim);
+  }
+
+  /* ============ 右下角署名 ============ */
+  .signature {
+    position: fixed;
+    z-index: 2;
+    right: clamp(16px, 4.5vw, 44px);
+    bottom: clamp(14px, 3.5vh, 34px);
+    font-size: clamp(13px, 3.2vw, 17px);
+    letter-spacing: 0.12em;
+    color: var(--gold-soft);
+    text-shadow: 0 0 10px rgba(217, 180, 91, 0.25);
+    user-select: none;
+    pointer-events: none;
+  }
+
+  /* 尊重系统的“减弱动态效果”设置 */
+  @media (prefers-reduced-motion: reduce) {
+    .line { animation: none; }
+    .shake { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+  <main>
+    <p class="line">我还真就无聊到搭一个网页，就为了在你闲的没事扫描二维码的时候被震惊一下。</p>
+
+    <form class="answer" id="form" autocomplete="off">
+      <input
+        id="input"
+        type="text"
+        inputmode="text"
+        placeholder="请输入-.-./--.-对应的英文"
+        aria-label="答案输入框"
+      />
+      <button type="submit">确认</button>
+    </form>
+  </main>
+
+  <div class="signature">--肖和</div>
+
+  <!-- 弹出框 -->
+  <div class="mask" id="mask" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modal-emoji" id="emoji">👍</div>
+      <p class="modal-text" id="text"></p>
+      <p class="modal-hint">点击任意处关闭</p>
+    </div>
+  </div>
+
+<script>
+  const form   = document.getElementById('form');
+  const input  = document.getElementById('input');
+  const mask   = document.getElementById('mask');
+  const emoji  = document.getElementById('emoji');
+  const text   = document.getElementById('text');
+
+  const ANSWER = 'cq';   // 正确答案
+
+  function openModal(ok) {
+    if (ok) {
+      emoji.textContent = '👍';
+      text.textContent = '真厉害，不过我猜你是用 AI 查的（坏笑）';
+    } else {
+      emoji.textContent = '👎';
+      text.textContent = '';
+    }
+    mask.classList.add('show');
+  }
+
+  function closeModal() {
+    mask.classList.remove('show');
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const value = input.value.trim().toLowerCase();
+
+    if (value === ANSWER) {
+      openModal(true);
+    } else {
+      openModal(false);
+      input.classList.remove('shake');
+      void input.offsetWidth;   // 重置动画
+      input.classList.add('shake');
+    }
+  });
+
+  // 点击遮罩关闭
+  mask.addEventListener('click', closeModal);
+
+  // Esc 关闭
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeModal();
+  });
+</script>
+
+</body>
+</html>
