@@ -14,6 +14,7 @@
   var MOBILE_TOP_Y = 5.0;
   var MOBILE_Y_STEP = 2.0;
   var MOBILE_LINE_X = -2.0;
+  var MOBILE_FOCUS_DIST = 26;
 
   var fallbackEl = document.getElementById('fallback');
   if (!window.THREE) {
@@ -49,6 +50,8 @@
 
   function clamp01(v) { return Math.max(0, Math.min(1, v)); }
   function easeInOutCubic(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+  function easeInQuad(t) { return t * t; }
 
   function hexColor(str, fallback) {
     if (typeof str === 'string' && str.charAt(0) === '#') {
@@ -361,9 +364,10 @@
     if (MOBILE_LAYOUT) {
       var idx = CFG.mainLine.nodes.indexOf(mainDef);
       var fy = MOBILE_TOP_Y - idx * MOBILE_Y_STEP;
-      return { pos: new THREE.Vector3(MOBILE_LINE_X, fy + 26, 0), up: new THREE.Vector3(0, 0, -1), lookAt: new THREE.Vector3(MOBILE_LINE_X, fy, 0) };
+      return { pos: new THREE.Vector3(MOBILE_LINE_X, fy + MOBILE_FOCUS_DIST, 0), up: new THREE.Vector3(0, 0, -1), lookAt: new THREE.Vector3(MOBILE_LINE_X, fy, 0) };
     }
-    var dist = 24;
+    // 星图机位：以 24 为基准，光点超出画面时自动拉远，保证宇宙入口不会跑到屏幕外
+    var dist = getStarMapDistance(mainDef);
     return {
       pos: new THREE.Vector3(mainDef.x - dist, 0, 0),
       up: new THREE.Vector3(0, 1, 0),
@@ -395,6 +399,7 @@
 
   function onMainNodeClick(mainDef) {
     if (anim.running || uniAnim.active || mode === 'focus') return;
+    layoutStarMaps();          // 进星图前按当前视口重排，保证宇宙入口在画面内
     mode = 'focus';
     focusMain = mainDef;
     hideHint();
@@ -553,13 +558,38 @@
 
   // ================= 宇宙系统 =================
   var universeStack = [];
+  /* 宇宙动画时间轴（比例制，1 = 结束）：
+     进场 enter  0 ── 0.42 ── 0.53 ── 0.72 ── 1
+                  ※探入      ※穿膜   ※白光退去   ※内部星云长满
+     退场 exit   0 ── 0.36 ── 0.50 ────────────── 1
+                  ※缩回      ※穿膜     ※退回星图
+  */
   var uniAnim = {
-    active: false, phase: 'enter', elapsed: 0, duration: 1, diveRatio: 0.35, growStart: 0.70, shrinkRatio: 0.40,
-    fromPos: new THREE.Vector3(), divePos: new THREE.Vector3(), toPos: new THREE.Vector3(),
-    fromLook: new THREE.Vector3(), toLook: new THREE.Vector3(),
-    fromBg: null, toBg: null,
-    fadeInNodes: [], fadeOutNodes: [], entry: null
+    active: false,
+    phase: 'enter',
+    elapsed: 0,
+    duration: 2.8,
+    diveEnd: 0.42,
+    flashPeak: 0.52,
+    floodEnd: 0.80,
+    shrinkEnd: 0.36,
+    exitPeak: 0.50,
+    fromPos: new THREE.Vector3(),
+    divePos: new THREE.Vector3(),
+    toPos: new THREE.Vector3(),
+    fromLook: new THREE.Vector3(),
+    toLook: new THREE.Vector3(),
+    fromUp: new THREE.Vector3(),
+    toUp: new THREE.Vector3(),
+    fromBg: null,
+    toBg: null,
+    fadeInNodes: [],
+    fadeOutNodes: [],
+    entry: null,
+    cutDone: false
   };
+  var universeClock = 0;
+  var WHITE = new THREE.Color(0xffffff);
 
   function topUniverse() { return universeStack.length ? universeStack[universeStack.length - 1] : null; }
 
@@ -584,7 +614,7 @@
     }
   }
 
-  function makeUniverseEntry(pointDef, mainDef, centerPos) {
+  function makeUniverseEntry(pointDef, mainDef, centerPos, srcNode) {
     var color = hexColor(pointDef.universeColor, 0xe8b4b8);
     var bg;
     if (pointDef.universeBg) {
@@ -593,66 +623,195 @@
       var hsl = {};
       bg = new THREE.Color(color);
       bg.getHSL(hsl);
-      bg.setHSL(hsl.h, Math.min(0.45, hsl.s * 0.55), 0.07);
+      bg.setHSL(hsl.h, Math.min(0.5, hsl.s * 0.6), 0.06);
     }
-    return { def: pointDef, mainDef: mainDef, color: color, bg: bg, centerPos: centerPos.clone(), nodes: [] };
+    return {
+      def: pointDef,
+      mainDef: mainDef,
+      color: color,
+      bg: bg,
+      centerPos: centerPos.clone(),
+      srcNode: srcNode || null,
+      srcScale: srcNode ? (srcNode.baseScale || 0.85) : 0.85,
+      srcColorHex: srcNode ? srcNode.sprite.material.color.getHex() : GOLD,
+      maxOriginDist: 1,
+      nodes: []
+    };
   }
 
+  // 宇宙内部光点：先全部建在中心（scale 0.001 / 透明度 0），等穿膜后往外长
   function buildUniverseNodes(entry) {
     var defs = entry.def.universePoints || [];
     var center = entry.centerPos;
-    function getByPath(path) { for (var i = 0; i < defs.length; i++) { if (defs[i].path === path) return defs[i]; } return null; }
-    function parentPath(path) { var s = path.lastIndexOf('/'); return s === -1 ? null : path.slice(0, s); }
-    defs.forEach(function (def) {
-      var pos = placePoint(center, def.pos[0], def.pos[1]);
+
+    defs.forEach(function (def, index) {
+      var basePos = placePoint(center, def.pos[0], def.pos[1]);
       var c = def.universe ? hexColor(def.universeColor, 0xe8b4b8) : entry.color;
       var sprite = makeGlowSprite(def.scale || 0.8, c);
       sprite.scale.set(0.001, 0.001, 1);
-      sprite.position.copy(pos);
+      sprite.position.copy(center);
+      sprite.material.opacity = 0;
+      sprite.renderOrder = 2;
       scene.add(sprite);
+
       var ui = createNodeUI(def.name, false);
       ui.label.style.color = colorToCss(c);
       ui.label.style.textShadow = '0 0 12px ' + colorToRgba(c, 0.35);
+      setUIOpacity(ui, 0);
+
       var node = {
-        kind: 'point', def: def, mainDef: entry.mainDef, universeEntry: entry,
-        pos: pos, sprite: sprite, ui: ui, line: null, baseScale: def.scale || 0.8
+        kind: 'point',
+        def: def,
+        mainDef: entry.mainDef,
+        universeEntry: entry,
+        pos: center.clone(),
+        basePos: basePos.clone(),
+        sprite: sprite,
+        ui: ui,
+        line: null,
+        baseScale: def.scale || 0.8,
+        originDist: Math.max(0.001, basePos.distanceTo(center)),
+        phase: index * 0.9,
+        parentNode: null
       };
       entry.nodes.push(node);
+
       ui.hit.addEventListener('click', function () { onPointClick(node); });
       ui.label.addEventListener('click', function () { onPointClick(node); });
-      var pp = parentPath(def.path);
-      var pDef = pp ? getByPath(pp) : null;
-      var pPos = pDef ? placePoint(center, pDef.pos[0], pDef.pos[1]) : center;
-      if (pos.distanceTo(pPos) > 0.001) {
-        var line = makeLine([pPos.clone(), pos.clone()], entry.color, 0);
-        scene.add(line);
-        node.line = line;
-      }
     });
+
+    function byPath(path) {
+      for (var i = 0; i < entry.nodes.length; i++) {
+        if (entry.nodes[i].def.path === path) return entry.nodes[i];
+      }
+      return null;
+    }
+    function parentPath(path) {
+      var s = path.lastIndexOf('/');
+      return s === -1 ? null : path.slice(0, s);
+    }
+
+    var maxD = 0.001;
+    entry.nodes.forEach(function (n) {
+      var pp = parentPath(n.def.path);
+      var pNode = pp ? byPath(pp) : null;
+      n.parentNode = pNode;
+      var pPos = pNode ? pNode.basePos : center;
+      if (n.basePos.distanceTo(pPos) > 0.001) {
+        var line = makeLine([center.clone(), center.clone()], entry.color, 0);
+        line.frustumCulled = false;
+        line.renderOrder = 1;
+        scene.add(line);
+        n.line = line;
+      }
+      maxD = Math.max(maxD, n.originDist);
+    });
+    entry.maxOriginDist = maxD;
   }
 
   function destroyUniverseNodes(entry) {
     entry.nodes.forEach(function (n) {
       scene.remove(n.sprite);
-      if (n.line) scene.remove(n.line);
+      if (n.sprite.material) n.sprite.material.dispose();
+      if (n.line) {
+        scene.remove(n.line);
+        if (n.line.geometry) n.line.geometry.dispose();
+      }
       if (n.ui.hit && n.ui.hit.parentNode) n.ui.hit.parentNode.removeChild(n.ui.hit);
       if (n.ui.label && n.ui.label.parentNode) n.ui.label.parentNode.removeChild(n.ui.label);
     });
     entry.nodes.length = 0;
   }
 
+  // ---- 穿膜白光层分两层：
+  //      flashBase 负责在穿膜那一帧把换景整个遮住（只在峰值附近才不透明）
+  //      flashGlow 是白色爆光，边缘透明，散开时不会在画面四角留下灰褐色雾
+  var flashBase = document.createElement('div');
+  flashBase.setAttribute('aria-hidden', 'true');
+  flashBase.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:7;' +
+    'opacity:0;pointer-events:none;will-change:opacity;background:#000;';
+  document.body.appendChild(flashBase);
+
+  var flashGlow = document.createElement('div');
+  flashGlow.setAttribute('aria-hidden', 'true');
+  flashGlow.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:7;' +
+    'opacity:0;pointer-events:none;will-change:opacity;' +
+    'background:radial-gradient(circle at 50% 50%, #ffffff 0%, rgba(255,255,255,0.72) 18%,' +
+    'rgba(255,255,255,0.26) 38%, rgba(255,255,255,0) 68%);';
+  document.body.appendChild(flashGlow);
+
+  function setFlash(colorHex, alpha) {
+    var a = clamp01(alpha);
+    if (a <= 0.002) {
+      flashBase.style.opacity = '0';
+      flashGlow.style.opacity = '0';
+      return;
+    }
+    var c = colorToCss(colorHex === undefined || colorHex === null ? 0xe8b4b8 : colorHex);
+    flashBase.style.background = c;
+    flashBase.style.opacity = String(Math.pow(a, 2.6));   // 只有接近全白时才铺满
+    flashGlow.style.opacity = String(Math.pow(a, 1.05));  // 白光慢慢散
+  }
+
+  // 只改已有几何的顶点，避免每帧重建 BufferGeometry
+  function moveLine(line, a, b) {
+    var attr = line && line.geometry && line.geometry.attributes.position;
+    if (!attr) return;
+    attr.array[0] = a.x; attr.array[1] = a.y; attr.array[2] = a.z;
+    attr.array[3] = b.x; attr.array[4] = b.y; attr.array[5] = b.z;
+    attr.needsUpdate = true;
+  }
+
+  // 0 → 1（peak）→ 0（downEnd）的白光曲线，peak 之后保留 hold 长度的全白，
+  // 保证换景那一下绝对看不见。
+  function flashCurve(t, upStart, peak, downEnd, hold) {
+    if (t <= upStart) return 0;
+    if (t < peak) {
+      var a = (t - upStart) / Math.max(0.001, peak - upStart);
+      return a * a;
+    }
+    var h = hold === undefined ? 0.05 : hold;
+    if (t < peak + h) return 1;
+    if (t >= downEnd) return 0;
+    var b = (t - peak - h) / Math.max(0.001, downEnd - peak - h);
+    return Math.pow(1 - clamp01(b), 1.7);
+  }
+
+  // 让一组光点刚好塞进镜头，返回需要的相机距离
+  function fitDistance(maxH, maxV, pad) {
+    var tan = Math.tan(camera.fov * Math.PI / 360);
+    var byV = (maxV + pad) / tan;
+    var byH = (maxH + pad) / (tan * Math.max(0.2, camera.aspect));
+    return Math.max(byV, byH);
+  }
+
+  function starBounds(points) {
+    var unit = CFG.gridUnit || 3.6;
+    var maxH = 0;
+    var maxV = 0;
+    (points || []).forEach(function (p) {
+      if (!p || !p.pos) return;
+      maxH = Math.max(maxH, Math.abs(p.pos[0] * unit));
+      maxV = Math.max(maxV, Math.abs(p.pos[1] * unit));
+    });
+    return { h: maxH, v: maxV, unit: unit };
+  }
+
+  // 星图机位：至少 24，光点越界时自动拉远（否则宇宙入口会被切在屏幕外）
+  function getStarMapDistance(mainDef) {
+    var b = starBounds(mainDef.points);
+    return Math.max(24, fitDistance(b.h, b.v, b.unit * 0.25) * 1.04);
+  }
+
   function getUniverseViewCamera(entry) {
-    var dist = MOBILE_LAYOUT ? 26 : 24;
+    var b = starBounds(entry.def.universePoints);
+    var dist = fitDistance(b.h, b.v, b.unit * 1.2);
+    dist = Math.max(13, Math.min(MOBILE_LAYOUT ? 34 : 32, dist));
     var c = entry.centerPos;
     if (MOBILE_LAYOUT) {
       return { pos: new THREE.Vector3(c.x, c.y + dist, c.z), up: new THREE.Vector3(0, 0, -1), lookAt: c.clone() };
     }
     return { pos: new THREE.Vector3(c.x - dist, c.y, c.z), up: new THREE.Vector3(0, 1, 0), lookAt: c.clone() };
-  }
-
-  function getDivePos(centerPos, dist) {
-    if (MOBILE_LAYOUT) return new THREE.Vector3(centerPos.x, centerPos.y + dist, centerPos.z);
-    return new THREE.Vector3(centerPos.x - dist, centerPos.y, centerPos.z);
   }
 
   function currentLevelNodes() {
@@ -661,33 +820,84 @@
     return mainNodes;
   }
 
+  /* 手机端重排星图：
+     手机屏幕窄，而 pos 的数值是按「横向也能放下」设计的，直接把 3.2 格摆上去会被切在屏幕外
+     （「软件破解资源分享」这个宇宙入口就是这样点不到的）。这里按当前视口把每个导航点的
+     星图等比压进可视范围；桌面端不动。窗口尺寸变化、每次进入星图都会重排。 */
+  function layoutStarMaps() {
+    if (!MOBILE_LAYOUT) return;
+    var unit = CFG.gridUnit || 3.6;
+    var mt = Math.tan(camera.fov * Math.PI / 360);
+    // 0.80 / 0.82 是留给「光点文字」的余量，压得太满会让边缘的文字被切掉
+    var halfW = mt * MOBILE_FOCUS_DIST * Math.max(0.2, camera.aspect) * 0.80;
+    var halfH = mt * MOBILE_FOCUS_DIST * 0.82;
+
+    CFG.mainLine.nodes.forEach(function (mainDef, mainIndex) {
+      var defs = mainDef.points || [];
+      if (!defs.length) return;
+      var b = starBounds(defs);
+      var hs = b.h > 0.001 ? Math.min(1, halfW / b.h) : 1;
+      var vs = b.v > 0.001 ? Math.min(1, halfH / b.v) : 1;
+      var mainPos = new THREE.Vector3(MOBILE_LINE_X, MOBILE_TOP_Y - mainIndex * MOBILE_Y_STEP, 0);
+      var mine = [];
+
+      childNodes.forEach(function (n) {
+        if (n.mainDef !== mainDef || !n.def || !n.def.pos) return;
+        mine.push(n);
+        n.pos.set(mainPos.x + n.def.pos[0] * unit * hs, mainPos.y, mainPos.z - n.def.pos[1] * unit * vs);
+        n.sprite.position.copy(n.pos);
+      });
+
+      mine.forEach(function (n) {
+        if (!n.line) return;
+        var cut = n.def.path.lastIndexOf('/');
+        var parentPath = cut === -1 ? null : n.def.path.slice(0, cut);
+        var from = mainPos;
+        for (var i = 0; i < mine.length; i++) {
+          if (mine[i].def.path === parentPath) { from = mine[i].pos; break; }
+        }
+        moveLine(n.line, from, n.pos);
+      });
+    });
+  }
+
   function enterUniverse(node) {
     if (anim.running || uniAnim.active || contentPanelOpen) return;
     var pointDef = node.def;
     var mainDef = node.mainDef || focusMain;
-    var entry = makeUniverseEntry(pointDef, mainDef, node.pos);
+    var entry = makeUniverseEntry(pointDef, mainDef, node.pos, node);
     buildUniverseNodes(entry);
 
     var parentNodes = currentLevelNodes();
     universeStack.push(entry);
     mode = 'universe';
 
+    var cam = getUniverseViewCamera(entry);
+    var toward = new THREE.Vector3().subVectors(camera.position, entry.centerPos);
+    if (toward.lengthSq() < 0.0001) toward.set(-1, 0, 0);
+    toward.normalize();
+
     uniAnim.active = true;
     uniAnim.phase = 'enter';
     uniAnim.elapsed = 0;
-    uniAnim.duration = 2.4;
-    uniAnim.diveRatio = 0.35;
-    uniAnim.growStart = 0.70;
+    uniAnim.duration = MOBILE_LAYOUT ? 3.0 : 2.8;
+    uniAnim.cutDone = false;
     uniAnim.fromPos.copy(camera.position);
-    uniAnim.divePos.copy(getDivePos(node.pos, 3.0));
-    uniAnim.toPos.copy(getUniverseViewCamera(entry).pos);
     uniAnim.fromLook.copy(viewLookAt);
-    uniAnim.toLook.copy(node.pos);
+    uniAnim.fromUp.copy(camera.up);
+    // 贴着光点表面的机位：镜头要真的「贴上去」而不是远远看着
+    uniAnim.divePos.copy(entry.centerPos).addScaledVector(toward, 0.6);
+    uniAnim.toPos.copy(cam.pos);
+    uniAnim.toLook.copy(cam.lookAt);
+    uniAnim.toUp.copy(cam.up);
     uniAnim.fromBg = scene.background.clone();
     uniAnim.toBg = entry.bg.clone();
     uniAnim.fadeInNodes = entry.nodes;
-    uniAnim.fadeOutNodes = parentNodes;
-    uniAnim.entry = null;
+    uniAnim.fadeOutNodes = parentNodes.filter(function (n) { return n !== node; });
+    uniAnim.entry = entry;
+
+    setFlash(entry.color, 0);
+    hideHint();
     updateBackButton();
   }
 
@@ -705,15 +915,24 @@
     }
     var toCam = universeStack.length ? getUniverseViewCamera(topUniverse()) : getFocusCamera(focusMain);
 
+    var toward = new THREE.Vector3().subVectors(toCam.pos, entry.centerPos);
+    if (toward.lengthSq() < 0.0001) toward.set(-1, 0, 0);
+    toward.normalize();
+
+    entry.nodes.forEach(function (n) { n.exitFrom = n.pos.clone(); });
+
     uniAnim.active = true;
     uniAnim.phase = 'exit';
     uniAnim.elapsed = 0;
-    uniAnim.duration = 1.6;
-    uniAnim.shrinkRatio = 0.40;
+    uniAnim.duration = 1.9;
+    uniAnim.cutDone = false;
     uniAnim.fromPos.copy(camera.position);
-    uniAnim.toPos.copy(toCam.pos);
     uniAnim.fromLook.copy(viewLookAt);
+    uniAnim.fromUp.copy(camera.up);
+    uniAnim.divePos.copy(entry.centerPos).addScaledVector(toward, 0.6);
+    uniAnim.toPos.copy(toCam.pos);
     uniAnim.toLook.copy(toCam.lookAt);
+    uniAnim.toUp.copy(toCam.up);
     uniAnim.fromBg = scene.background.clone();
     uniAnim.toBg = universeStack.length ? topUniverse().bg.clone() : new THREE.Color(BG);
     uniAnim.fadeInNodes = parentNodes;
@@ -722,82 +941,293 @@
     updateBackButton();
   }
 
+  // 穿膜瞬间：镜头已经在宇宙里，星图彻底退场，宇宙光点缩在中心等待生长
+  function applyUniverseCut(entry) {
+    camera.fov = 45;                    // 回到正常焦段
+    camera.updateProjectionMatrix();
+    camera.position.copy(uniAnim.toPos);
+    camera.up.copy(uniAnim.toUp);
+    camera.lookAt(uniAnim.toLook);
+    viewLookAt.copy(uniAnim.toLook);
+    scene.background.copy(entry.bg);
+
+    mainLine.material.opacity = 0;
+    mainNodes.forEach(function (n) { setSpriteOpacity(n.sprite, 0); setUIOpacity(n.ui, 0); });
+    uniAnim.fadeOutNodes.forEach(function (n) { setChildOpacity(n, 0); });
+
+    if (entry.srcNode) {
+      entry.srcNode.sprite.scale.set(entry.srcScale, entry.srcScale, 1);
+      entry.srcNode.sprite.material.color.setHex(entry.srcColorHex);
+      setSpriteOpacity(entry.srcNode.sprite, 0);
+      setUIOpacity(entry.srcNode.ui, 0);
+      // 入口光点自己的连线也要彻底清掉，否则会有一条线留在宇宙里
+      if (entry.srcNode.line) entry.srcNode.line.material.opacity = 0;
+    }
+    entry.nodes.forEach(function (n) {
+      n.sprite.position.copy(entry.centerPos);
+      n.sprite.scale.set(0.001, 0.001, 1);
+      n.sprite.material.opacity = 0;
+      n.pos.copy(entry.centerPos);
+      setUIOpacity(n.ui, 0);
+      if (n.line) n.line.material.opacity = 0;
+    });
+  }
+
+  // 退场穿膜瞬间：宇宙节点销毁，镜头退到光点表面，随后飞回星图
+  function applyUniverseExitCut(entry) {
+    scene.background.copy(uniAnim.toBg);
+    mainLine.material.opacity = 0;
+    uniAnim.fadeInNodes.forEach(function (n) { setChildOpacity(n, 0); });
+    if (entry.srcNode) {
+      entry.srcNode.sprite.scale.set(entry.srcScale, entry.srcScale, 1);
+      entry.srcNode.sprite.material.color.setHex(entry.srcColorHex);
+      setSpriteOpacity(entry.srcNode.sprite, 0);
+      setUIOpacity(entry.srcNode.ui, 0);
+    }
+    destroyUniverseNodes(entry);
+  }
+
+  function finishUniverseEnter(entry) {
+    uniAnim.active = false;
+    uniAnim.fadeInNodes = [];
+    uniAnim.fadeOutNodes = [];
+    setFlash(entry.color, 0);
+    camera.fov = 45;
+    camera.updateProjectionMatrix();
+    scene.background.copy(entry.bg);
+    if (entry.srcNode && entry.srcNode.line) entry.srcNode.line.material.opacity = 0;
+    entry.nodes.forEach(function (n) {
+      n.sprite.position.copy(n.basePos);
+      n.sprite.scale.set(n.baseScale, n.baseScale, 1);
+      n.sprite.material.opacity = 1;
+      n.pos.copy(n.basePos);
+      setUIOpacity(n.ui, 1);
+      if (n.line) {
+        moveLine(n.line, n.parentNode ? n.parentNode.basePos : entry.centerPos, n.basePos);
+        n.line.material.opacity = 0.9;
+      }
+    });
+    updateBackButton();
+  }
+
+  function finishUniverseExit(entry) {
+    uniAnim.active = false;
+    uniAnim.fadeInNodes = [];
+    uniAnim.fadeOutNodes = [];
+    setFlash(entry ? entry.color : 0, 0);
+    if (universeStack.length) {
+      var top = topUniverse();
+      top.nodes.forEach(function (n) {
+        n.pos.copy(n.basePos);
+        n.sprite.position.copy(n.basePos);
+        n.sprite.scale.set(n.baseScale, n.baseScale, 1);
+        n.sprite.material.opacity = 1;
+        setUIOpacity(n.ui, 1);
+      });
+      scene.background.copy(top.bg);
+      mainLine.material.opacity = 0;
+    } else if (mode === 'focus' && focusMain) {
+      applyInstant(focusMain);
+      scene.background.copy(new THREE.Color(BG));
+    } else {
+      applyInstant(null);
+      scene.background.copy(new THREE.Color(BG));
+    }
+    updateBackButton();
+  }
+
   function updateUniverseAnim(dt) {
     if (!uniAnim.active) return;
     uniAnim.elapsed += dt;
-    var t = clamp01(uniAnim.elapsed / uniAnim.duration);
-    var e = easeInOutCubic(t);
+    var t = clamp01(uniAnim.elapsed / (uniAnim.duration || 2.8));
+    var entry = uniAnim.entry;
+    if (!entry) { uniAnim.active = false; return; }
 
-    var fadeIn = uniAnim.fadeInNodes || [];
-    var fadeOut = uniAnim.fadeOutNodes || [];
-
+    // ==================== 进场 ====================
     if (uniAnim.phase === 'enter') {
-      var diveRatio = uniAnim.diveRatio || 0.35;
-      var growStart = uniAnim.growStart || 0.70;
-      if (t < diveRatio) {
-        // 阶段1：镜头慢慢转向并钻入光点
-        var lt = easeInOutCubic(clamp01(t / diveRatio));
-        camera.position.lerpVectors(uniAnim.fromPos, uniAnim.divePos, lt);
-        var lookA = new THREE.Vector3().lerpVectors(uniAnim.fromLook, uniAnim.toLook, lt);
-        camera.lookAt(lookA);
-        viewLookAt.copy(lookA);
-        fadeIn.forEach(function (n) { setChildOpacity(n, 0); if (n.kind === 'point') setNodeScale(n, 0.001); });
-        fadeOut.forEach(function (n) { setChildOpacity(n, 1 - lt); });
-      } else if (t < growStart) {
-        // 阶段2：镜头退回宇宙视角，光点保持最小尚未出现
-        var lt2 = easeInOutCubic(clamp01((t - diveRatio) / (growStart - diveRatio)));
-        camera.position.lerpVectors(uniAnim.divePos, uniAnim.toPos, lt2);
-        camera.lookAt(uniAnim.toLook);
-        viewLookAt.copy(uniAnim.toLook);
-        fadeIn.forEach(function (n) { setChildOpacity(n, 0); if (n.kind === 'point') setNodeScale(n, 0.001); });
-        fadeOut.forEach(function (n) { setChildOpacity(n, 0); });
+      var diveEnd = uniAnim.diveEnd;
+      var peak = uniAnim.flashPeak;
+      var floodEnd = uniAnim.floodEnd;
+      var maxDist = entry.maxOriginDist || 1;
+
+      if (t < diveEnd) {
+        /* ① 探入：镜头沿一条弧线慢慢贴近光点，被点中的光点自己涨开成一片光，
+              其余光点与文字在最后阶段淡掉。 */
+        var lt = easeInOutCubic(clamp01(t / diveEnd));
+
+        var dir = new THREE.Vector3().subVectors(uniAnim.fromPos, entry.centerPos);
+        if (dir.lengthSq() < 0.0001) dir.set(-1, 0, 0);
+        dir.normalize();
+        var perp = new THREE.Vector3().crossVectors(dir, uniAnim.fromUp);
+        if (perp.lengthSq() < 0.0001) perp.set(0, 1, 0);
+        perp.normalize();
+
+        camera.position
+          .lerpVectors(uniAnim.fromPos, uniAnim.divePos, lt)
+          .addScaledVector(perp, Math.sin(Math.PI * lt) * (MOBILE_LAYOUT ? 0.9 : 1.6));
+        camera.up.copy(uniAnim.fromUp);
+        // 视线不要第一帧就「弹」到光点上：跟镜头一起平滑转过去，避免跳一下
+        var aim = easeInOutCubic(clamp01(lt * 1.45));
+        var lookNow = new THREE.Vector3().lerpVectors(uniAnim.fromLook, entry.centerPos, aim);
+        camera.lookAt(lookNow);
+        viewLookAt.copy(lookNow);
+        camera.fov = 45 - 6 * lt;          // 镜头焦段微微收窄，强化「推进去」的压迫感
+        camera.updateProjectionMatrix();
+
+        uniAnim.fadeOutNodes.forEach(function (n) {
+          setChildOpacity(n, Math.pow(1 - lt, 1.5));
+        });
+        mainLine.material.opacity = 0;
+        mainNodes.forEach(function (n) { setSpriteOpacity(n.sprite, 0); setUIOpacity(n.ui, 0); });
+
+        var src = entry.srcNode;
+        if (src) {
+          var s = entry.srcScale * (1 + 7 * lt * lt * lt);
+          src.sprite.scale.set(s, s, 1);
+          src.sprite.material.color.setHex(entry.srcColorHex).lerp(WHITE, lt * 0.85);
+          setSpriteOpacity(src.sprite, 1);
+          setUIOpacity(src.ui, Math.pow(1 - lt, 2));   // 它自己的文字也要让开，不要顶在爆光上
+          if (src.line) src.line.material.opacity = 0.9 * Math.pow(1 - lt, 1.5);
+        }
+
+        scene.background.copy(uniAnim.fromBg).lerp(entry.bg, 0.35 * lt);
+      } else if (t < peak) {
+        /* ② 穿膜：再往里挤一点点，白光把整个画面吃掉，此刻换景。 */
+        var lt2 = easeInQuad(clamp01((t - diveEnd) / Math.max(0.001, peak - diveEnd)));
+        var inward = new THREE.Vector3().subVectors(entry.centerPos, uniAnim.divePos);
+        if (inward.lengthSq() < 0.0001) inward.set(1, 0, 0);
+        inward.normalize();
+
+        camera.position.copy(uniAnim.divePos).addScaledVector(inward, 0.32 * lt2);
+        camera.up.copy(uniAnim.fromUp);
+        camera.lookAt(entry.centerPos);
+        viewLookAt.copy(entry.centerPos);
+
+        var src2 = entry.srcNode;
+        if (src2) {
+          var s2 = entry.srcScale * (8 + 30 * lt2);
+          src2.sprite.scale.set(s2, s2, 1);
+          src2.sprite.material.color.copy(WHITE);
+          setSpriteOpacity(src2.sprite, 1);
+          if (src2.line) src2.line.material.opacity = 0;
+        }
+
+        uniAnim.fadeOutNodes.forEach(function (n) { setChildOpacity(n, 0); });
+        scene.background.copy(uniAnim.fromBg).lerp(entry.bg, 0.35 + 0.65 * lt2);
       } else {
-        // 阶段3：镜头停住，宇宙光点从最小慢慢变大长出来
-        var lt3 = easeInOutCubic(clamp01((t - growStart) / (1 - growStart)));
-        camera.position.copy(uniAnim.toPos);
-        camera.lookAt(uniAnim.toLook);
-        viewLookAt.copy(uniAnim.toLook);
-        fadeIn.forEach(function (n) { setChildOpacity(n, lt3); if (n.kind === 'point') setNodeScale(n, n.baseScale * lt3); });
-        fadeOut.forEach(function (n) { setChildOpacity(n, 0); });
+        /* ③ 内部宇宙：白光从中心退去，内部光点从刚才那个点的位置一粒粒长出来。 */
+        if (!uniAnim.cutDone) {
+          uniAnim.cutDone = true;
+          applyUniverseCut(entry);
+        }
+
+        entry.nodes.forEach(function (n) {
+          // 越靠近中心的点越早长出来，整片星云像从光点里一层层涌出来
+          var start = peak - 0.07 + 0.12 * (n.originDist / maxDist);
+          var local = clamp01((t - start) / Math.max(0.05, 1 - start));
+          var le = easeOutCubic(local);
+          n.sprite.position.lerpVectors(entry.centerPos, n.basePos, le);
+          var sc = Math.max(0.001, n.baseScale * (0.08 + 0.92 * local));
+          n.sprite.scale.set(sc, sc, 1);
+          n.sprite.material.opacity = clamp01(local * 2.8);
+          setUIOpacity(n.ui, clamp01((local - 0.45) * 2.2));
+          n.pos.copy(n.sprite.position);
+        });
+        entry.nodes.forEach(function (n) {
+          if (!n.line) return;
+          var from = n.parentNode ? n.parentNode.pos : entry.centerPos;
+          moveLine(n.line, from, n.pos);
+          n.line.material.opacity = 0.9 * clamp01((n.sprite.material.opacity || 0) * 0.85);
+        });
       }
+
+      // 白光统一在这里算，保证三个阶段衔接处不会「跳亮」：
+      // 探入时从 0 涨到 peak 全白 → 换景 → 从中心退掉
+      var enterFlash = t < peak
+        ? flashCurve(t, diveEnd * 0.66, peak, floodEnd, 0.05)
+        : Math.pow(1 - clamp01((t - peak - 0.04) / Math.max(0.001, floodEnd - peak - 0.04)), 2);
+      setFlash(entry.color, enterFlash);
+
+      if (t >= 1) finishUniverseEnter(entry);
+      return;
+    }
+
+    // ==================== 退场 ====================
+    var shrinkEnd = uniAnim.shrinkEnd;
+    var peak2 = uniAnim.exitPeak;
+
+    if (t < shrinkEnd) {
+      /* ① 缩回：内部光点连同连线一起收进中心那一点，越收越暗。 */
+      var lt3 = easeInOutCubic(clamp01(t / shrinkEnd));
+      entry.nodes.forEach(function (n) {
+        n.sprite.position.lerpVectors(n.exitFrom || n.basePos, entry.centerPos, lt3);
+        var sc2 = Math.max(0.001, n.baseScale * (1 - lt3));
+        n.sprite.scale.set(sc2, sc2, 1);
+        n.sprite.material.opacity = clamp01(1 - lt3);
+        setUIOpacity(n.ui, clamp01(1 - lt3 * 1.4));
+        n.pos.copy(n.sprite.position);
+      });
+      entry.nodes.forEach(function (n) {
+        if (!n.line) return;
+        var from = n.parentNode ? n.parentNode.pos : entry.centerPos;
+        moveLine(n.line, from, n.pos);
+        n.line.material.opacity = 0.9 * clamp01(1 - lt3);
+      });
+    } else if (t < peak2) {
+      /* ② 已经收成一个点，等白光涨满（此段镜头和画面都静止） */
+      entry.nodes.forEach(function (n) { setUIOpacity(n.ui, 0); });
     } else {
-      // 退出：先向中间缩小（镜头停住），再退回父星图
-      var shrinkRatio = uniAnim.shrinkRatio || 0.40;
-      if (t < shrinkRatio) {
-        var lt = easeInOutCubic(clamp01(t / shrinkRatio));
-        camera.position.copy(uniAnim.fromPos);
-        camera.lookAt(uniAnim.fromLook);
-        viewLookAt.copy(uniAnim.fromLook);
-        fadeOut.forEach(function (n) { setChildOpacity(n, 1 - lt); if (n.kind === 'point') setNodeScale(n, n.baseScale * (1 - lt)); });
-        fadeIn.forEach(function (n) { setChildOpacity(n, 0); });
-      } else {
-        var lt2 = easeInOutCubic(clamp01((t - shrinkRatio) / (1 - shrinkRatio)));
-        camera.position.lerpVectors(uniAnim.fromPos, uniAnim.toPos, lt2);
-        var look = new THREE.Vector3().lerpVectors(uniAnim.fromLook, uniAnim.toLook, lt2);
-        camera.lookAt(look);
-        viewLookAt.copy(look);
-        fadeOut.forEach(function (n) { setChildOpacity(n, 0); if (n.kind === 'point') setNodeScale(n, 0.001); });
-        fadeIn.forEach(function (n) { setChildOpacity(n, lt2); });
+      /* ③ 在全白里把镜头放回光点表面，再一路拉回星图。 */
+      if (!uniAnim.cutDone) {
+        uniAnim.cutDone = true;
+        applyUniverseExitCut(entry);
       }
-    }
 
-    if (uniAnim.fromBg && uniAnim.toBg) scene.background.copy(uniAnim.fromBg).lerp(uniAnim.toBg, e);
+      var rt = clamp01((t - peak2) / Math.max(0.001, 1 - peak2));
+      var re = easeInOutCubic(rt);
 
-    if (mode === 'universe') {
+      camera.position.lerpVectors(uniAnim.divePos, uniAnim.toPos, re);
+      camera.up.copy(uniAnim.toUp);
+      var look = new THREE.Vector3().lerpVectors(uniAnim.fromLook, uniAnim.toLook, re);
+      camera.lookAt(look);
+      viewLookAt.copy(look);
+
+      uniAnim.fadeInNodes.forEach(function (n) { setChildOpacity(n, clamp01(re * 1.15)); });
+      if (entry.srcNode) {
+        entry.srcNode.sprite.scale.set(entry.srcScale, entry.srcScale, 1);
+        setSpriteOpacity(entry.srcNode.sprite, clamp01(re * 1.15));
+      }
       mainLine.material.opacity = 0;
-      mainNodes.forEach(function (n) { setSpriteOpacity(n.sprite, 0); setUIOpacity(n.ui, 0); });
     }
 
-    if (t >= 1) {
-      uniAnim.active = false;
-      fadeIn.forEach(function (n) { setChildOpacity(n, 1); if (n.kind === 'point') setNodeScale(n, n.baseScale); });
-      fadeOut.forEach(function (n) { setChildOpacity(n, 0); if (n.kind === 'point') setNodeScale(n, 0.001); });
-      if (mode === 'universe' && universeStack.length) scene.background.copy(topUniverse().bg);
-      else if (mode !== 'universe') scene.background.copy(new THREE.Color(BG));
-      if (uniAnim.phase === 'exit' && uniAnim.entry) { destroyUniverseNodes(uniAnim.entry); uniAnim.entry = null; }
-      uniAnim.fadeInNodes = [];
-      uniAnim.fadeOutNodes = [];
-    }
+    // 白光同样统一算：涨到 peak2 全白 → 穿膜 → 在返程前半段退掉
+    var exitFlash = t < peak2
+      ? flashCurve(t, shrinkEnd * 0.55, peak2, 1, 0.06)
+      : Math.pow(1 - clamp01((t - peak2 - 0.05) / Math.max(0.001, 0.62 - peak2)), 1.6);
+    setFlash(entry.color, exitFlash);
+
+    if (t >= 1) finishUniverseExit(entry);
+  }
+
+  // 宇宙静止时的呼吸：光点与连线极缓慢地起伏，让内部空间「活着」
+  function updateUniverseIdle(dt) {
+    if (uniAnim.active || contentPanelOpen) return;
+    if (mode !== 'universe' || !universeStack.length) return;
+    var top = topUniverse();
+    if (!top || !top.nodes.length) return;
+
+    universeClock += dt;
+    top.nodes.forEach(function (n) {
+      var bob = Math.sin(universeClock * 0.7 + n.phase) * 0.07;
+      var bob2 = Math.cos(universeClock * 0.52 + n.phase * 1.3) * 0.05;
+      n.pos.set(n.basePos.x + bob2, n.basePos.y + bob, n.basePos.z + bob * 0.35);
+      n.sprite.position.copy(n.pos);
+    });
+    top.nodes.forEach(function (n) {
+      if (!n.line) return;
+      var from = n.parentNode ? n.parentNode.pos : top.centerPos;
+      moveLine(n.line, from, n.pos);
+    });
   }
 
   function updateAnimation(dt) {
@@ -1045,6 +1475,7 @@
     var dt = clock.getDelta();
     updateAnimation(dt);
     updateUniverseAnim(dt);
+    updateUniverseIdle(dt);
     updateSelectedGlow(dt);
     updateUI();
     renderer.render(scene, camera);
@@ -1054,12 +1485,14 @@
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    layoutStarMaps();          // 转屏 / 改窗口后重新把星图压进画面
   });
 
   function init() {
     mainLine.material.opacity = 0.9;
     mainNodes.forEach(function (n) { setSpriteOpacity(n.sprite, 1); setUIOpacity(n.ui, 1); });
     childNodes.forEach(function (n) { setChildOpacity(n, 0); });
+    layoutStarMaps();
     try { sessionStorage.removeItem('bg5fnh_focus'); } catch (e) { }
       showVersionBadge();
     animate();

@@ -1,10 +1,10 @@
-# BG5FNH 个人网页
+﻿# BG5FNH 个人网页
 
 纯静态黑金主题个人主页，部署到 GitHub Pages：`https://bg5fnh.github.io/`。
 
 ## 当前版本
 
-**v1.3.2**
+**v1.3.3**
 
 
 ## 使用前
