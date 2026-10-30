@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>B站视频 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../";</script>
+  <link rel="stylesheet" href="../../../assets/style.css" />
+  <style>
+    /* ===== 页面局部样式：只复用黑金变量，不改通用模板 ===== */
+    .video-wrap {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 96px 24px 72px;
+    }
+
+    .stage {
+      position: relative;
+      margin: 18px 0 14px;
+      border: 1px solid rgba(201, 168, 106, 0.35);
+      border-radius: 16px;
+      overflow: hidden;
+      background: #000;
+      box-shadow: 0 0 50px rgba(201, 168, 106, 0.14), 0 10px 40px rgba(0, 0, 0, 0.55);
+      aspect-ratio: 16 / 9;
+    }
+
+    /* 老浏览器没有 aspect-ratio 时用 padding 兜底 */
+    @supports not (aspect-ratio: 16 / 9) {
+      .stage::before { content: ""; display: block; padding-top: 56.25%; }
+      .stage iframe { position: absolute; inset: 0; }
+    }
+
+    .stage iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+      background: #000;
+    }
+
+    .stage-empty {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      text-align: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 50% 45%, rgba(201, 168, 106, 0.10), transparent 62%),
+        #0b0b0d;
+    }
+
+    .stage-empty .big {
+      font-size: 15px;
+      letter-spacing: 2px;
+      color: var(--gold);
+    }
+
+    .stage-empty .sub {
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+    }
+
+    /* ===== 输入行 ===== */
+    .bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .bar input[type="text"] {
+      flex: 1 1 320px;
+      min-width: 0;
+      padding: 12px 16px;
+      background: rgba(201, 168, 106, 0.05);
+      border: 1px solid rgba(201, 168, 106, 0.3);
+      border-radius: 999px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14px;
+      letter-spacing: 1px;
+      outline: none;
+      transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+    }
+
+    .bar input[type="text"]::placeholder {
+      color: rgba(168, 152, 120, 0.8);
+    }
+
+    .bar input[type="text"]:focus {
+      border-color: rgba(201, 168, 106, 0.65);
+      background: rgba(201, 168, 106, 0.09);
+      box-shadow: 0 0 0 3px rgba(201, 168, 106, 0.1), 0 0 22px rgba(201, 168, 106, 0.14);
+    }
+
+    .bar button {
+      padding: 12px 24px;
+      border: 1px solid rgba(201, 168, 106, 0.55);
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(201, 168, 106, 0.16), rgba(201, 168, 106, 0.05));
+      color: var(--gold);
+      font-family: inherit;
+      font-size: 14px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: background 0.25s, box-shadow 0.25s, transform 0.12s;
+    }
+
+    .bar button:hover {
+      background: rgba(201, 168, 106, 0.24);
+      box-shadow: 0 0 22px rgba(201, 168, 106, 0.22);
+    }
+
+    .bar button:active { transform: translateY(1px); }
+
+    .tip {
+      margin: 10px 2px 0;
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      min-height: 18px;
+    }
+
+    .tip.warn { color: #d9a3a3; }
+
+    /* ===== 播放列表 ===== */
+    .list-title {
+      margin: 28px 0 12px;
+      font-size: 13px;
+      letter-spacing: 3px;
+      color: rgba(201, 168, 106, 0.75);
+    }
+
+    .list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+    }
+
+    .item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid rgba(201, 168, 106, 0.22);
+      border-radius: 12px;
+      background: rgba(201, 168, 106, 0.04);
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      font-family: inherit;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    }
+
+    .item:hover {
+      border-color: rgba(201, 168, 106, 0.55);
+      background: rgba(201, 168, 106, 0.1);
+    }
+
+    .item.active {
+      border-color: var(--gold);
+      background: rgba(201, 168, 106, 0.14);
+      box-shadow: 0 0 20px rgba(201, 168, 106, 0.2);
+    }
+
+    .item .dot {
+      flex: 0 0 8px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(201, 168, 106, 0.45);
+      box-shadow: 0 0 10px rgba(201, 168, 106, 0.3);
+    }
+
+    .item.active .dot {
+      background: var(--gold);
+      box-shadow: 0 0 14px rgba(201, 168, 106, 0.8);
+    }
+
+    .item .txt {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .item .code {
+      display: block;
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+    }
+
+    .open-link {
+      display: inline-block;
+      margin-top: 18px;
+      font-size: 13px;
+      letter-spacing: 1px;
+      color: var(--gold);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(201, 168, 106, 0.45);
+    }
+
+    .open-link:hover { color: #f0e2c4; border-color: #f0e2c4; }
+
+    @media (max-width: 640px) {
+      .video-wrap { padding: 78px 14px 56px; }
+      .bar button { flex: 1 1 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="video-wrap">
+    <h1 class="page-title">B站视频</h1>
+    <p class="page-subtitle">在页面里直接播放 · 支持 BV 号 / av 号 / 完整链接</p>
+
+    <section class="stage" id="stage">
+      <iframe id="player" title="B站视频播放器" src="about:blank"
+              allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+              allowfullscreen frameborder="0" scrolling="no"></iframe>
+      <div class="stage-empty" id="empty">
+        <div class="big">还没有载入视频</div>
+        <div class="sub">把 BV 号粘到下面，或直接访问 ?bvid=你的BV号</div>
+        <button class="back-btn" id="demoBtn" style="border-radius:999px;">试播一个示例</button>
+      </div>
+    </section>
+
+    <div class="bar">
+      <input type="text" id="input" autocomplete="off" spellcheck="false"
+             placeholder="粘贴 BV1xxxxxxxxx / av123456 / https://www.bilibili.com/video/BV..." />
+      <button id="playBtn">播放</button>
+    </div>
+    <p class="tip" id="tip"></p>
+
+    <div class="list-title" id="listTitle" style="display:none;">播放列表</div>
+    <div class="list" id="list"></div>
+
+    <a class="open-link" id="openLink" href="https://www.bilibili.com/" target="_blank" rel="noopener" style="display:none;">在 B 站打开 →</a>
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+
+      /* ============================================================
+         在这里加你自己的视频（可以只写 bvid，标题自动用 BV 号）：
+         { bvid: 'BV1xxxxxxxxx', title: '视频标题' },
+         也可以写 { aid: '170001', title: '...' } 用 av 号。
+         列表为空也不影响使用，粘贴 BV 号就能播。
+         ============================================================ */
+      var VIDEOS = [
+        // { bvid: 'BV1xxxxxxxxx', title: '我的第一个视频' },
+        // { bvid: 'BV1yyyyyyyyy', title: '第二个视频' }
+      ];
+
+      // 列表为空时「试播示例」用的视频（只作演示，填了 VIDEOS 就能删）
+      var DEMO = { bvid: 'BV1GJ411x7h7', title: '示例视频（仅用于验证播放器）' };
+
+      var root = window.BG5FNH_ROOT || '../../../';
+      var player = document.getElementById('player');
+      var emptyBox = document.getElementById('empty');
+      var input = document.getElementById('input');
+      var tip = document.getElementById('tip');
+      var listEl = document.getElementById('list');
+      var listTitle = document.getElementById('listTitle');
+      var openLink = document.getElementById('openLink');
+      var stage = document.getElementById('stage');
+
+      var current = null;
+
+      /* ---------- 嵌入主场景：透明背景 + 返回 ---------- */
+      (function () {
+        var embedded = false;
+        try { embedded = window.parent !== window; } catch (e) { embedded = true; }
+        if (embedded) {
+          document.documentElement.classList.add('embedded');
+          document.body.classList.add('embedded');
+        }
+      })();
+
+      document.getElementById('backBtn').addEventListener('click', function () {
+        try {
+          if (window.parent !== window) {
+            window.parent.postMessage({ type: 'BG5FNH_CLOSE_OVERLAY' }, '*');
+            return;
+          }
+        } catch (e) {}
+        window.location.href = root + 'pc/index.html';
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && window.parent === window) {
+          window.location.href = root + 'pc/index.html';
+        }
+      });
+
+      /* ---------- 解析用户输入 ---------- */
+      function parseTarget(raw) {
+        var s = (raw || '').trim();
+        if (!s) return null;
+
+        var bv = s.match(/BV[0-9A-Za-z]{10}/);
+        if (bv) {
+          var pageMatch = s.match(/[?&]p=(\d+)/);
+          return { bvid: bv[0], page: pageMatch ? parseInt(pageMatch[1], 10) : 1 };
+        }
+
+        var aid = s.match(/(?:^|[^0-9])av(\d+)/i);
+        if (aid) {
+          var pm = s.match(/[?&]p=(\d+)/);
+          return { aid: aid[1], page: pm ? parseInt(pm[1], 10) : 1 };
+        }
+
+        if (/b23\.tv/i.test(s)) return { error: '短链需要先在浏览器里打开，换成 BV 号再粘进来' };
+        return { error: '没认出 BV 号或 av 号，检查一下复制是否完整' };
+      }
+
+      function playerSrc(t) {
+        var q = [];
+        if (t.bvid) q.push('bvid=' + encodeURIComponent(t.bvid));
+        if (t.aid) q.push('aid=' + encodeURIComponent(t.aid));
+        q.push('page=' + (t.page || 1));
+        q.push('isOutside=true');   // 官方嵌入代码的关键参数：告诉播放器自己被第三方站点引用
+        q.push('high_quality=1');
+        q.push('danmaku=0');
+        q.push('autoplay=0');
+        q.push('as_wide=1');
+        return 'https://player.bilibili.com/player.html?' + q.join('&');
+      }
+
+      function showTip(msg, warn) {
+        tip.textContent = msg || '';
+        tip.className = 'tip' + (warn ? ' warn' : '');
+      }
+
+      /* ---------- 播放 ---------- */
+      function play(target, title) {
+        if (!target || target.error) {
+          showTip(target && target.error ? target.error : '没有可播放的内容', true);
+          return false;
+        }
+        current = target;
+        player.src = playerSrc(target);
+        emptyBox.style.display = 'none';
+
+        var id = target.bvid || ('av' + target.aid);
+        var label = title || id;
+        openLink.href = target.bvid
+          ? 'https://www.bilibili.com/video/' + target.bvid + '/'
+          : 'https://www.bilibili.com/video/av' + target.aid + '/';
+        openLink.style.display = 'inline-block';
+
+        try { localStorage.setItem('bg5fnh_bili_last', JSON.stringify({ bvid: target.bvid, aid: target.aid, page: target.page, title: label })); } catch (e) {}
+        if (window.history && window.history.replaceState) {
+          var qs = target.bvid ? ('?bvid=' + target.bvid) : ('?aid=' + target.aid);
+          if (target.page && target.page > 1) qs += '&p=' + target.page;
+          try { window.history.replaceState(null, '', qs); } catch (e) {}
+        }
+
+        showTip('正在播放：' + label);
+        markActive(target);
+        return true;
+      }
+
+      function markActive(target) {
+        var id = target.bvid || ('av' + target.aid);
+        var items = listEl.querySelectorAll('.item');
+        for (var i = 0; i < items.length; i++) {
+          items[i].classList.toggle('active', items[i].getAttribute('data-id') === id);
+        }
+      }
+
+      /* ---------- 列表 ---------- */
+      function renderList() {
+        listEl.innerHTML = '';
+        if (!VIDEOS.length) {
+          listTitle.style.display = 'none';
+          return;
+        }
+        listTitle.style.display = 'block';
+        VIDEOS.forEach(function (v) {
+          var t = v.bvid ? { bvid: v.bvid, page: v.page || 1 }
+                         : (v.aid ? { aid: String(v.aid), page: v.page || 1 } : null);
+          if (!t) return;
+          var id = t.bvid || ('av' + t.aid);
+
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'item';
+          btn.setAttribute('data-id', id);
+          btn.innerHTML = '<span class="dot"></span><span class="txt">' +
+            (v.title || id) + '<span class="code">' + id + (t.page > 1 ? ' · P' + t.page : '') + '</span></span>';
+          btn.addEventListener('click', function () { play(t, v.title); });
+          listEl.appendChild(btn);
+        });
+      }
+
+      /* ---------- 交互 ---------- */
+      document.getElementById('playBtn').addEventListener('click', function () {
+        var t = parseTarget(input.value);
+        if (t && t.error) { showTip(t.error, true); return; }
+        if (!t) { showTip('先粘一个 BV 号或链接进来', true); input.focus(); return; }
+        play(t);
+      });
+
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') document.getElementById('playBtn').click();
+      });
+
+      document.getElementById('demoBtn').addEventListener('click', function () {
+        play(DEMO, DEMO.title);
+      });
+
+      /* ---------- 启动：地址栏优先，其次上次播放 ---------- */
+      function boot() {
+        renderList();
+
+        var q = new URLSearchParams(window.location.search);
+        var qb = q.get('bvid') || q.get('BV');
+        var qa = q.get('aid');
+        var qp = parseInt(q.get('p') || '1', 10) || 1;
+
+        if (qb && /^BV[0-9A-Za-z]{10}$/.test(qb)) {
+          play({ bvid: qb, page: qp });
+          return;
+        }
+        if (qa && /^\d+$/.test(qa)) {
+          play({ aid: qa, page: qp });
+          return;
+        }
+        if (VIDEOS.length) {
+          var first = VIDEOS[0];
+          play(first.bvid ? { bvid: first.bvid, page: first.page || 1 }
+                          : { aid: String(first.aid), page: first.page || 1 }, first.title);
+          return;
+        }
+
+        try {
+          var last = JSON.parse(localStorage.getItem('bg5fnh_bili_last') || 'null');
+          if (last && (last.bvid || last.aid)) {
+            play({ bvid: last.bvid, aid: last.aid, page: last.page || 1 }, last.title);
+            return;
+          }
+        } catch (e) {}
+
+        emptyBox.style.display = 'flex';
+        showTip('把 BV 号贴在下面，或者点「试播一个示例」看看效果');
+      }
+
+      boot();
+    })();
+  </script>
+</body>
+</html>

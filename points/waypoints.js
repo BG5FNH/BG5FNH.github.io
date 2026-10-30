@@ -59,6 +59,7 @@ window.BG5FNH_WAYPOINTS = {
             ]
           },
           { path: '资料分享/硬件资料', name: '硬件资料', pos: [2, 0], url: '资料分享/硬件资料/index.html' },
+          { path: '资料分享/B站视频', name: 'B站视频', pos: [1.3, 1.5], url: '资料分享/B站视频/index.html' },
           { path: '资料分享/模板文档', name: '模板文档', pos: [0, -2], url: '资料分享/模板文档/index.html' },
           { path: '资料分享/无线电资料', name: '无线电资料', pos: [-2, 0], url: '资料分享/无线电资料/index.html' },
           {
