@@ -27,7 +27,7 @@
   }
 
   function goHome() {
-    var home = root + (isMobile() ? 'mobile/index.html' : 'pc/index.html');
+    var home = root + (isMobile() ? 'mobile/index_m.html' : 'pc/index.html');
     window.location.href = home;
   }
 

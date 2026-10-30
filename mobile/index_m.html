@@ -4,6 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>BG5FNH · 手机版</title>
+  <meta name="description" content="BG5FNH（肖和）的个人主页：业余无线电、软件与硬件、编程与资料分享。" />
+  <meta name="theme-color" content="#0b0b0d" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="BG5FNH · 个人网页" />
+  <meta property="og:description" content="业余无线电、软件与硬件、编程与资料分享。" />
+  <meta property="og:url" content="https://bg5fnh.github.io/" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
   <style>
     :root {
       --bg: #0b0b0d;
@@ -127,23 +134,53 @@
       display: block;
     }
 
-      #versionBadge {
-        position: fixed;
-        top: 22px;
-        left: 22px;
-        z-index: 5;
-        padding: 10px 16px;
-        background: rgba(11, 11, 13, 0.45);
-        border: 1px solid rgba(201, 168, 106, 0.35);
-        border-radius: 999px;
-        color: var(--gold);
-        font-size: 14px;
-        letter-spacing: 1px;
-        pointer-events: none;
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        transition: opacity 0.3s ease;
-      }
+    /* 站点标名 */
+    #siteTitle {
+      position: fixed;
+      top: 26px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 4;
+      text-align: center;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+
+    #siteTitle h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: 7px;
+      color: var(--gold);
+      text-shadow: 0 0 18px rgba(201, 168, 106, 0.35);
+    }
+
+    #siteTitle p {
+      margin: 6px 0 0;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: rgba(201, 168, 106, 0.6);
+    }
+
+    /* 版本号只在 ?dev 时显示 */
+    #versionBadge {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      z-index: 5;
+      display: none;
+      padding: 5px 10px;
+      background: rgba(11, 11, 13, 0.45);
+      border: 1px solid rgba(201, 168, 106, 0.3);
+      border-radius: 999px;
+      color: rgba(201, 168, 106, 0.75);
+      font-size: 11px;
+      letter-spacing: 1px;
+      pointer-events: none;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: opacity 0.3s ease;
+    }
 
 
     #hint {
@@ -227,19 +264,22 @@
 <body>
   <div id="stage"></div>
   <div id="overlay"></div>
-  <div id="versionBadge">v1.3.4</div>
-  <button id="backToOverview" aria-label="返回主视线">
+  <div id="siteTitle">
+    <h1>BG5FNH</h1>
+    <p>肖和 · 业余无线电 · 软硬件与编程</p>
+  </div>
+  <div id="versionBadge">v1.4.0</div>
+  <button id="backToOverview" aria-label="返回">
     <svg viewBox="0 0 24 24" width="20" height="20">
       <path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
     </svg>
-    <span id="backLabel">返回主视线</span>
+    <span id="backLabel">返回</span>
   </button>
   <div id="hint">点击金色圆点进入 · 空白处拖动平移 · 双指缩放</div>
   <div id="fallback">
     <div>
-      <p>three.js 尚未就位，无法启动 3D 主场景。</p>
-      <p>请将 <code style="color:#f0e2c4;">three.min.js</code> 放入 <code style="color:#f0e2c4;">pc/js/</code> 文件夹。</p>
-      <p>下载地址：<code style="color:#f0e2c4;">https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/build/three.min.js</code></p>
+      <p>3D 主场景没有启动成功。</p>
+      <p>请确认 <code style="color:#f0e2c4;">pc/js/three.min.js</code> 已就位，或用电脑版入口重新打开。</p>
     </div>
   </div>
   <div id="pageOverlay">
@@ -248,8 +288,8 @@
   </div>
 
   <script>window.BG5FNH_MOBILE_LAYOUT = true;</script>
-  <script src="../pc/js/three.min.js?v=1.3.4"></script>
-  <script src="../points/waypoints.js?v=1.3.4"></script>
-  <script src="../pc/js/main3d.js?v=1.3.4"></script>
+  <script src="../pc/js/three.min.js?v=1.4.0"></script>
+  <script src="../points/waypoints.js?v=1.4.0"></script>
+  <script src="../pc/js/main3d.js?v=1.4.0"></script>
 </body>
 </html>

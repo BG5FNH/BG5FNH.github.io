@@ -11,8 +11,9 @@
   var CFG = window.BG5FNH_WAYPOINTS;
   if (!CFG) return;
   var MOBILE_LAYOUT = window.BG5FNH_MOBILE_LAYOUT === true;
-  var MOBILE_TOP_Y = 5.0;
   var MOBILE_Y_STEP = 2.0;
+  // 按导航点数量把竖线在屏幕里居中（3 个点就是 +2 / 0 / -2，不会全挤在上半屏）
+  var MOBILE_TOP_Y = Math.max(0, (CFG.mainLine.nodes.length - 1) * MOBILE_Y_STEP / 2);
   var MOBILE_LINE_X = -2.0;
   var MOBILE_FOCUS_DIST = 26;
 
@@ -33,6 +34,7 @@
   var pageOverlay = document.getElementById('pageOverlay');
   var pageFrame = document.getElementById('pageFrame');
   var versionBadge = document.getElementById('versionBadge');
+  var siteTitle = document.getElementById('siteTitle');
 
   var scene = new THREE.Scene();
   scene.background = new THREE.Color(BG);
@@ -403,6 +405,7 @@
     mode = 'focus';
     focusMain = mainDef;
     hideHint();
+    hideSiteTitle();
     updateBackButton();
       hideVersionBadge();
     startAnimation(getFocusCamera(mainDef), mainDef, 2.6);
@@ -491,7 +494,9 @@
     focusMain = null;
     updateBackButton();
       showVersionBadge();
+    showSiteTitle();
     showHint(MOBILE_LAYOUT ? '点击金色圆点进入 · 空白处拖动 · 双指缩放' : '点击金色圆点进入 · 空白处拖动平移 · 滚轮缩放');
+    hideHintSoon(5000);
     startAnimation(getOverviewCamera(), null, 2.2);
     anim.fromFocusMain = prevFocus;
   }
@@ -500,6 +505,15 @@
   function showHint(text) { if (hintEl) { hintEl.textContent = text; hintEl.style.opacity = '1'; } }
   function hideVersionBadge() { if (versionBadge) versionBadge.style.opacity = '0'; }
   function showVersionBadge() { if (versionBadge) versionBadge.style.opacity = '1'; }
+  function hideSiteTitle() { if (siteTitle) siteTitle.style.opacity = '0'; }
+  function showSiteTitle() { if (siteTitle) siteTitle.style.opacity = '1'; }
+
+  // 底部提示看两遍就够，几秒后自己淡掉，不要在画画的时候一直挂在那儿
+  var hintTimer = null;
+  function hideHintSoon(ms) {
+    if (hintTimer) clearTimeout(hintTimer);
+    hintTimer = setTimeout(hideHint, ms || 6000);
+  }
   if (backBtn) backBtn.addEventListener('click', backToOverview);
 
   function setSpriteOpacity(sprite, opacity) {
@@ -608,7 +622,7 @@
       if (label) label.textContent = '返回';
     } else if (mode === 'focus') {
       backBtn.style.display = 'inline-flex';
-      if (label) label.textContent = '返回主视线';
+      if (label) label.textContent = '返回';
     } else {
       backBtn.style.display = 'none';
     }
@@ -1494,7 +1508,11 @@
     childNodes.forEach(function (n) { setChildOpacity(n, 0); });
     layoutStarMaps();
     try { sessionStorage.removeItem('bg5fnh_focus'); } catch (e) { }
-      showVersionBadge();
+    // 版本号只给调试用：网址带 ?dev 才显示
+    if (versionBadge && /[?&]dev(\b|=|&|$)/.test(window.location.search)) {
+      versionBadge.style.display = 'block';
+    }
+    hideHintSoon(7000);
     animate();
   }
 
