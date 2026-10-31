@@ -1,4 +1,4 @@
-/* BG5FNH 电脑端 3D 主场景（three.js r128）
+﻿/* BG5FNH 电脑端 3D 主场景（three.js r128）
    交互：
    1. 顶视图：X 轴主线 + 金色导航点
    2. 点击导航点：镜头从左侧慢速旋转/拉近到 YZ 平面树状图
@@ -292,7 +292,7 @@
 
         pointDefs.forEach(function (pointDef) {
           var childPos = pointPosToWorld(pointDef.pos[0], pointDef.pos[1]);
-          var entryColor = pointDef.universe ? hexColor(pointDef.universeColor, 0xe8b4b8) : GOLD;
+          var entryColor = pointDef.universe ? universeAccent(pointDef) : GOLD;
           var childSprite = makeGlowSprite(pointDef.scale || 0.85, entryColor);
           childSprite.position.copy(childPos);
           scene.add(childSprite);
@@ -630,12 +630,15 @@
 
   function makeUniverseEntry(pointDef, mainDef, centerPos, srcNode) {
     var color = hexColor(pointDef.universeColor, 0xe8b4b8);
+    // 双色宇宙：第二个颜色可选，内部光点会按横坐标在两者之间渐变
+    var color2 = pointDef.universeColor2 !== undefined ? hexColor(pointDef.universeColor2, color) : null;
+    var accent = color2 === null ? color : gradientColor(color, color2, 0.5);
     var bg;
     if (pointDef.universeBg) {
       bg = new THREE.Color(pointDef.universeBg);
     } else {
       var hsl = {};
-      bg = new THREE.Color(color);
+      bg = new THREE.Color(accent);
       bg.getHSL(hsl);
       bg.setHSL(hsl.h, Math.min(0.5, hsl.s * 0.6), 0.06);
     }
@@ -643,6 +646,9 @@
       def: pointDef,
       mainDef: mainDef,
       color: color,
+      color2: color2,
+      accent: accent,
+      flashColor: color2 === null ? accent : blendColor(color, color2, 0.5),
       bg: bg,
       centerPos: centerPos.clone(),
       srcNode: srcNode || null,
@@ -653,14 +659,53 @@
     };
   }
 
+  // 两个十六进制颜色按 t 混合（0 = a，1 = b）
+  function blendColor(a, b, t) {
+    var k = clamp01(t);
+    var ar = (a >> 16) & 255, ag = (a >> 8) & 255, ab = a & 255;
+    var br = (b >> 16) & 255, bgc = (b >> 8) & 255, bb = b & 255;
+    return (Math.round(ar + (br - ar) * k) << 16) |
+           (Math.round(ag + (bgc - ag) * k) << 8) |
+           Math.round(ab + (bb - ab) * k);
+  }
+
+  // 入口光点在父星图里的颜色：单色宇宙就是主色，双色宇宙用两者的中间色
+  function universeAccent(def) {
+    var a = hexColor(def.universeColor, 0xe8b4b8);
+    if (def.universeColor2 === undefined) return a;
+    return gradientColor(a, hexColor(def.universeColor2, a), 0.5);
+  }
+
+  // 渐变取色：两端最艳，越靠中间混色越容易发暗，
+  // 所以按「离中间的距离」补一点白，保证中间的标签在黑底上还看得清。
+  function gradientColor(a, b, t) {
+    var k = clamp01(t);
+    var c = blendColor(a, b, k);
+    var lift = 0.26 * (1 - Math.abs(k - 0.5) * 2);
+    return blendColor(c, 0xffffff, lift);
+  }
+
   // 宇宙内部光点：先全部建在中心（scale 0.001 / 透明度 0），等穿膜后往外长
   function buildUniverseNodes(entry) {
     var defs = entry.def.universePoints || [];
     var center = entry.centerPos;
 
+    // 双色宇宙的渐变基准：按横坐标在整个布局里归一化
+    var minH = 0, maxH = 0;
+    defs.forEach(function (d) {
+      minH = Math.min(minH, d.pos[0]);
+      maxH = Math.max(maxH, d.pos[0]);
+    });
+    var hSpan = Math.max(0.001, maxH - minH);
+
     defs.forEach(function (def, index) {
       var basePos = placePoint(center, def.pos[0], def.pos[1]);
-      var c = def.universe ? hexColor(def.universeColor, 0xe8b4b8) : entry.color;
+      var c = entry.color;
+      if (def.universe) {
+        c = hexColor(def.universeColor, 0xe8b4b8);
+      } else if (entry.color2 !== null) {
+        c = gradientColor(entry.color, entry.color2, (def.pos[0] - minH) / hSpan);
+      }
       var sprite = makeGlowSprite(def.scale || 0.8, c);
       sprite.scale.set(0.001, 0.001, 1);
       sprite.position.copy(center);
@@ -683,6 +728,7 @@
         sprite: sprite,
         ui: ui,
         line: null,
+        lineColor: c,
         baseScale: def.scale || 0.8,
         originDist: Math.max(0.001, basePos.distanceTo(center)),
         phase: index * 0.9,
@@ -712,7 +758,7 @@
       n.parentNode = pNode;
       var pPos = pNode ? pNode.basePos : center;
       if (n.basePos.distanceTo(pPos) > 0.001) {
-        var line = makeLine([center.clone(), center.clone()], entry.color, 0);
+        var line = makeLine([center.clone(), center.clone()], n.lineColor, 0);
         line.frustumCulled = false;
         line.renderOrder = 1;
         scene.add(line);
@@ -910,7 +956,7 @@
     uniAnim.fadeOutNodes = parentNodes.filter(function (n) { return n !== node; });
     uniAnim.entry = entry;
 
-    setFlash(entry.color, 0);
+    setFlash(entry.flashColor, 0);
     hideHint();
     updateBackButton();
   }
@@ -1005,7 +1051,7 @@
     uniAnim.active = false;
     uniAnim.fadeInNodes = [];
     uniAnim.fadeOutNodes = [];
-    setFlash(entry.color, 0);
+    setFlash(entry.flashColor, 0);
     camera.fov = 45;
     camera.updateProjectionMatrix();
     scene.background.copy(entry.bg);
@@ -1028,7 +1074,7 @@
     uniAnim.active = false;
     uniAnim.fadeInNodes = [];
     uniAnim.fadeOutNodes = [];
-    setFlash(entry ? entry.color : 0, 0);
+    setFlash(entry ? entry.flashColor : 0, 0);
     if (universeStack.length) {
       var top = topUniverse();
       top.nodes.forEach(function (n) {
@@ -1160,7 +1206,7 @@
       var enterFlash = t < peak
         ? flashCurve(t, diveEnd * 0.66, peak, floodEnd, 0.05)
         : Math.pow(1 - clamp01((t - peak - 0.04) / Math.max(0.001, floodEnd - peak - 0.04)), 2);
-      setFlash(entry.color, enterFlash);
+      setFlash(entry.flashColor, enterFlash);
 
       if (t >= 1) finishUniverseEnter(entry);
       return;
@@ -1218,7 +1264,7 @@
     var exitFlash = t < peak2
       ? flashCurve(t, shrinkEnd * 0.55, peak2, 1, 0.06)
       : Math.pow(1 - clamp01((t - peak2 - 0.05) / Math.max(0.001, 0.62 - peak2)), 1.6);
-    setFlash(entry.color, exitFlash);
+    setFlash(entry.flashColor, exitFlash);
 
     if (t >= 1) finishUniverseExit(entry);
   }

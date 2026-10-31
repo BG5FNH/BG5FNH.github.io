@@ -28,13 +28,27 @@ window.BG5FNH_WAYPOINTS = {
         x: -1.5,
         scale: 1.55,
         points: [
-          { path: '个人介绍', name: '个人简介', pos: [0, 0], url: '个人介绍/index.html' },
+          {
+            // 个人简介是一个内部宇宙：点进去才看到关于我 / 技能一览 / 这个站
+            path: '个人介绍',
+            name: '个人简介',
+            pos: [0, 0],
+            universe: true,
+            universeColor: '#d1495b',      // 红
+            universeColor2: '#3f6fd8',     // 蓝：内部光点按横坐标从红渐变到蓝
+            universeBg: '#0b0a12',         // 深靛底，比自动派生更沉
+            universePoints: [
+              { path: '关于我', name: '关于我', pos: [0, 0], scale: 1.0, url: '个人介绍/个人简介/关于我/index.html' },
+              { path: '技能一览', name: '技能一览', pos: [-1.7, 1.15], scale: 0.85, url: '个人介绍/个人简介/技能一览/index.html' },
+              { path: '这个站', name: '这个站', pos: [1.7, 1.15], scale: 0.85, url: '个人介绍/个人简介/这个站/index.html' }
+            ]
+          },
           { path: '个人介绍/软件学习', name: '软件学习', pos: [0, 1], url: '个人介绍/软件学习/index.html' },
           { path: '个人介绍/硬件开发', name: '硬件开发', pos: [1, 0], url: '个人介绍/硬件开发/index.html' },
           { path: '个人介绍/编程语言', name: '编程语言', pos: [0, -1], url: '个人介绍/编程语言/index.html' },
           { path: '个人介绍/无线电通讯', name: '无线电通讯', pos: [-1, 0], url: '个人介绍/无线电通讯/index.html' },
           { path: '个人介绍/穿越机', name: '穿越机', pos: [-1, 1], url: '个人介绍/穿越机/index.html' },
-          { path: '个人介绍/我的账号', name: '我的账号', pos: [0, -2], url: '个人介绍/我的账号/index.html' }
+          { path: '个人介绍/我的账号', name: '我的账号', pos: [2.4, -1.0], url: '个人介绍/我的账号/index.html' }
         ]
       },
       {
@@ -82,7 +96,6 @@ window.BG5FNH_WAYPOINTS = {
         scale: 1.0,
         points: [
           { path: '留言板', name: '留言板', pos: [0, 0], url: '留言板/index.html' },
-          { path: '留言板/联系方式', name: '联系方式', pos: [0, 1.2], url: '留言板/联系方式/index.html' },
           { path: '留言板/GitHub', name: 'GitHub', pos: [1.2, -0.6], url: '留言板/GitHub/index.html' }
         ]
       }
