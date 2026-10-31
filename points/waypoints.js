@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
    BG5FNH 导航点配置（坐标制）
    ------------------------------------------------------------
    1. mainLine.nodes 是首页主线上的导航点。
@@ -70,6 +70,22 @@ window.BG5FNH_WAYPOINTS = {
         points: [
           { path: '资料分享', name: '资料分享', pos: [0, 0], url: '资料分享/index.html' },
           { path: '资料分享/B站视频', name: 'B站视频', pos: [-1.6, 1.4], url: '资料分享/B站视频/index.html' },
+          {
+            // 资料库：六份整理好的笔记，一个文档一个光点，页面里带页内搜索和目录
+            path: '资料分享/资料库',
+            name: '资料库',
+            pos: [-2.35, 0.15],
+            universe: true,
+            universeColor: '#e0b25c',
+            universePoints: [
+              { path: 'cpu', name: 'CPU 芯片', pos: [0, 1.75], url: '资料分享/资料库/cpu/index.html' },
+              { path: 'gpu', name: 'GPU 显卡', pos: [1.5, 0.9], url: '资料分享/资料库/gpu/index.html' },
+              { path: 'contest', name: '竞赛清单', pos: [1.5, -0.9], url: '资料分享/资料库/contest/index.html' },
+              { path: 'modulation', name: '调制方式', pos: [0, -1.75], url: '资料分享/资料库/modulation/index.html' },
+              { path: 'frequency', name: '频率划分', pos: [-1.5, -0.9], url: '资料分享/资料库/frequency/index.html' },
+              { path: 'antenna', name: '天线类型', pos: [-1.5, 0.9], url: '资料分享/资料库/antenna/index.html' }
+            ]
+          },
           {
             path: '资料分享/软件破解资源分享',
             name: '软件破解资源分享',

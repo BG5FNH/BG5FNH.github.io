@@ -1,0 +1,136 @@
+/* 资料库阅读器：等宽文本 + 页内搜索 + 目录
+   只给「资料分享 → 资料库」下的页面用，不影响其它内容页 */
+
+.lib-tools {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0 12px;
+  margin: -8px 0 6px;
+  background: linear-gradient(180deg, rgba(11, 11, 13, 0.97) 72%, rgba(11, 11, 13, 0));
+}
+
+.lib-tools input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 10px 15px;
+  background: rgba(201, 168, 106, 0.05);
+  border: 1px solid rgba(201, 168, 106, 0.3);
+  border-radius: 999px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  outline: none;
+  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+}
+
+.lib-tools input::placeholder {
+  color: rgba(168, 152, 120, 0.85);
+}
+
+.lib-tools input:focus {
+  border-color: rgba(201, 168, 106, 0.62);
+  background: rgba(201, 168, 106, 0.09);
+  box-shadow: 0 0 0 3px rgba(201, 168, 106, 0.08);
+}
+
+.lib-count {
+  flex: 0 0 auto;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.lib-toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 16px;
+}
+
+.lib-toc a {
+  display: inline-block;
+  padding: 5px 12px;
+  border: 1px solid rgba(201, 168, 106, 0.22);
+  border-radius: 999px;
+  color: var(--gold);
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+}
+
+.lib-toc a:hover {
+  background: rgba(201, 168, 106, 0.1);
+  border-color: rgba(201, 168, 106, 0.5);
+}
+
+.lib-note {
+  margin: 0 0 14px;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.lib-body {
+  font-family: "Cascadia Mono", Consolas, "Sarasa Mono SC", "Noto Sans Mono CJK SC", monospace;
+  font-size: 13px;
+  line-height: 1.85;
+  color: var(--text);
+}
+
+.lib-line {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  padding: 1px 0;
+}
+
+.lib-h {
+  margin: 26px 0 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(201, 168, 106, 0.14);
+  color: var(--gold);
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+}
+
+.lib-h:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.lib-line.hide,
+.lib-h.hide {
+  display: none;
+}
+
+.lib-body mark {
+  background: rgba(201, 168, 106, 0.42);
+  color: #fff6e2;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+@media (max-width: 640px) {
+  .lib-body {
+    font-size: 12px;
+    line-height: 1.8;
+  }
+
+  .lib-tools {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .lib-count {
+    width: 100%;
+  }
+}
