@@ -29,18 +29,29 @@ window.BG5FNH_WAYPOINTS = {
         scale: 1.55,
         points: [
           {
-            // 个人简介是一个内部宇宙：点进去才看到关于我 / 技能一览 / 这个站
+            // 个人简介 = 履历宇宙：一条向上的红线，红线上挂天蓝色的比赛节点
             path: '个人介绍',
             name: '个人简介',
             pos: [0, 0],
             universe: true,
-            universeColor: '#d1495b',      // 红
-            universeColor2: '#3f6fd8',     // 蓝：内部光点按横坐标从红渐变到蓝
-            universeBg: '#0b0a12',         // 深靛底，比自动派生更沉
+            universeColor: '#d1495b',      // 红：主线与入口
+            universeColor2: '#8fd0ef',     // 天蓝：主线的点
+            universeBg: '#0b0a12',         // 深靛底
+            labelAlign: 'right',           // 点在竖线上，文字放点的外侧
             universePoints: [
-              { path: '关于我', name: '关于我', pos: [0, 0], scale: 1.0, url: '个人介绍/个人简介/关于我/index.html' },
-              { path: '技能一览', name: '技能一览', pos: [-1.7, 1.15], scale: 0.85, url: '个人介绍/个人简介/技能一览/index.html' },
-              { path: '这个站', name: '这个站', pos: [1.7, 1.15], scale: 0.85, url: '个人介绍/个人简介/这个站/index.html' }
+              { key: 'about', path: '关于我', name: '关于我', pos: [0, 0], scale: 1.0, url: '个人介绍/个人简介/关于我/index.html' },
+
+              // —— 主线：一条向上的红色线，四个比赛/录取节点是天蓝色 ——
+              { key: 'm1', path: 'm1', parent: 'about', name: '2021 机器人对抗', pos: [0, 0.95], scale: 0.85, color: '#8fd0ef', lineColor: '#d1495b', url: '个人介绍/个人简介/履历/2021-robot/index.html' },
+              { key: 'm2', path: 'm2', parent: 'm1', name: '2024 FLL 机器人', pos: [0, 1.95], scale: 0.85, color: '#8fd0ef', lineColor: '#d1495b', url: '个人介绍/个人简介/履历/2024-fll/index.html' },
+              { key: 'm3', path: 'm3', parent: 'm2', name: '2024 创意智造', pos: [0, 2.95], scale: 0.85, color: '#8fd0ef', lineColor: '#d1495b', url: '个人介绍/个人简介/履历/2024-maker/index.html' },
+              { key: 'm4', path: 'm4', parent: 'm3', name: '2026 录取通知书', pos: [0, 4.2], scale: 0.95, color: '#8fd0ef', lineColor: '#d1495b', url: '个人介绍/个人简介/履历/2026-admission/index.html' },
+
+              // —— 边上带过的零碎：更小的点、更小的字 ——
+              { key: 's1', path: 's1', parent: 'about', name: '这个站', pos: [-1.25, 0.5], scale: 0.5, labelScale: 0.78, color: '#6fa8c8', lineColor: '#8e4a56', url: '个人介绍/个人简介/这个站/index.html' },
+              { key: 's2', path: 's2', parent: 'm1', name: '五好学生', pos: [1.2, 1.3], scale: 0.5, labelScale: 0.78, color: '#6fa8c8', lineColor: '#8e4a56', url: '个人介绍/个人简介/履历/2022-wuhao/index.html' },
+              { key: 's3', path: 's3', parent: 'm2', name: '阳光学子', pos: [-1.2, 2.3], scale: 0.5, labelScale: 0.78, color: '#6fa8c8', lineColor: '#8e4a56', url: '个人介绍/个人简介/履历/2024-sunshine/index.html' },
+              { key: 's4', path: 's4', parent: 'm3', name: '树范文化月', pos: [1.2, 3.3], scale: 0.5, labelScale: 0.78, color: '#6fa8c8', lineColor: '#8e4a56', url: '个人介绍/个人简介/履历/2025-dv/index.html' }
             ]
           },
           { path: '个人介绍/软件学习', name: '软件学习', pos: [0, 1], url: '个人介绍/软件学习/index.html' },

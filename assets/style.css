@@ -263,6 +263,25 @@ body.embedded .page-title {
   transition: background 0.25s ease, box-shadow 0.25s ease;
 }
 
+/* 内容页里的证书 / 单据图 */
+.card img.doc {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 16px 0 6px;
+  border: 1px solid rgba(201, 168, 106, 0.25);
+  border-radius: 10px;
+  background: #0b0b0d;
+}
+
+.card .doc-cap {
+  display: block;
+  margin: 0 0 6px;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+
 .card .btn:hover {
   background: rgba(201, 168, 106, 0.18);
   box-shadow: 0 0 20px rgba(201, 168, 106, 0.25);

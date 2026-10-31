@@ -1,4 +1,4 @@
-﻿/* BG5FNH 电脑端 3D 主场景（three.js r128）
+/* BG5FNH 电脑端 3D 主场景（three.js r128）
    交互：
    1. 顶视图：X 轴主线 + 金色导航点
    2. 点击导航点：镜头从左侧慢速旋转/拉近到 YZ 平面树状图
@@ -701,11 +701,15 @@
     defs.forEach(function (def, index) {
       var basePos = placePoint(center, def.pos[0], def.pos[1]);
       var c = entry.color;
-      if (def.universe) {
+      if (def.color !== undefined) {
+        c = hexColor(def.color, c);          // 单点直接指定颜色
+      } else if (def.universe) {
         c = hexColor(def.universeColor, 0xe8b4b8);
       } else if (entry.color2 !== null) {
         c = gradientColor(entry.color, entry.color2, (def.pos[0] - minH) / hSpan);
       }
+      // 连线可以单独指定颜色：比如红线上挂天蓝色的点
+      var lc = def.lineColor !== undefined ? hexColor(def.lineColor, c) : c;
       var sprite = makeGlowSprite(def.scale || 0.8, c);
       sprite.scale.set(0.001, 0.001, 1);
       sprite.position.copy(center);
@@ -728,7 +732,8 @@
         sprite: sprite,
         ui: ui,
         line: null,
-        lineColor: c,
+        lineColor: lc,
+        labelScale: def.labelScale || 1,
         baseScale: def.scale || 0.8,
         originDist: Math.max(0.001, basePos.distanceTo(center)),
         phase: index * 0.9,
@@ -740,9 +745,10 @@
       ui.label.addEventListener('click', function () { onPointClick(node); });
     });
 
-    function byPath(path) {
+    function byKey(key) {
       for (var i = 0; i < entry.nodes.length; i++) {
-        if (entry.nodes[i].def.path === path) return entry.nodes[i];
+        var d = entry.nodes[i].def;
+        if ((d.key !== undefined ? d.key : d.path) === key) return entry.nodes[i];
       }
       return null;
     }
@@ -753,8 +759,10 @@
 
     var maxD = 0.001;
     entry.nodes.forEach(function (n) {
-      var pp = parentPath(n.def.path);
-      var pNode = pp ? byPath(pp) : null;
+      // 父节点：优先用显式 parent（时间轴这类链式结构靠它连成一条线），
+      // 没写就按 path 的斜杠层级推断
+      var pp = n.def.parent !== undefined ? n.def.parent : parentPath(n.def.path);
+      var pNode = pp ? byKey(pp) : null;
       n.parentNode = pNode;
       var pPos = pNode ? pNode.basePos : center;
       if (n.basePos.distanceTo(pPos) > 0.001) {
@@ -863,15 +871,32 @@
     return Math.max(24, fitDistance(b.h, b.v, b.unit * 0.25) * 1.04);
   }
 
+  // 宇宙机位：按内部光点的包围盒「中心」取景。
+  // 时间轴这类只往一个方向长的布局，如果死盯着入口点看，半边屏幕会是空的。
   function getUniverseViewCamera(entry) {
-    var b = starBounds(entry.def.universePoints);
-    var dist = fitDistance(b.h, b.v, b.unit * 1.2);
-    dist = Math.max(13, Math.min(MOBILE_LAYOUT ? 34 : 32, dist));
+    var pts = entry.def.universePoints || [];
+    var unit = CFG.gridUnit || 3.6;
+    var minH = 0, maxH = 0, minV = 0, maxV = 0;
+    pts.forEach(function (p) {
+      if (!p || !p.pos) return;
+      minH = Math.min(minH, p.pos[0]); maxH = Math.max(maxH, p.pos[0]);
+      minV = Math.min(minV, p.pos[1]); maxV = Math.max(maxV, p.pos[1]);
+    });
+    var midH = (minH + maxH) / 2;
+    var midV = (minV + maxV) / 2;
+    var spanH = (maxH - minH) / 2 * unit;
+    var spanV = (maxV - minV) / 2 * unit;
+    var pad = unit * 1.2;
+    var dist = fitDistance(spanH, spanV, pad);
+    dist = Math.max(13, Math.min(MOBILE_LAYOUT ? 42 : 40, dist));
     var c = entry.centerPos;
     if (MOBILE_LAYOUT) {
-      return { pos: new THREE.Vector3(c.x, c.y + dist, c.z), up: new THREE.Vector3(0, 0, -1), lookAt: c.clone() };
+      // 手机端：pos[1] 落在 -Z，pos[0] 落在 +X
+      var look = new THREE.Vector3(c.x + midH * unit, c.y, c.z - midV * unit);
+      return { pos: new THREE.Vector3(look.x, look.y + dist, look.z), up: new THREE.Vector3(0, 0, -1), lookAt: look };
     }
-    return { pos: new THREE.Vector3(c.x - dist, c.y, c.z), up: new THREE.Vector3(0, 1, 0), lookAt: c.clone() };
+    var lookDesk = new THREE.Vector3(c.x, c.y + midV * unit, c.z + midH * unit);
+    return { pos: new THREE.Vector3(lookDesk.x - dist, lookDesk.y, lookDesk.z), up: new THREE.Vector3(0, 1, 0), lookAt: lookDesk };
   }
 
   function currentLevelNodes() {
@@ -1377,6 +1402,7 @@
         var nodeDist = camera.position.distanceTo(n.pos);
         var worldFont = (n.kind === 'main' ? (n.def.scale && n.def.scale > 1.2 ? 0.9 : 0.7) : 0.55) * (MOBILE_LAYOUT ? 0.45 : 1);
           if (mode === 'focus' || mode === 'universe') worldFont *= 0.8;
+          if (n.labelScale) worldFont *= n.labelScale;   // 宇宙里的「顺带一提」用小字
         var cssFont = worldFont * window.innerHeight / (2 * nodeDist * Math.tan(camera.fov * Math.PI / 360));
         cssFont = Math.max(8, Math.min(40, cssFont));
         ui.label.style.fontSize = cssFont + 'px';
@@ -1394,6 +1420,13 @@
           ui.label.style.top = p.y + 'px';
           ui.label.style.transform = 'translate(0, -50%)';
           ui.label.style.textAlign = 'left';
+        } else if (n.kind === 'point' && n.universeEntry && n.universeEntry.def.labelAlign === 'right') {
+          // 时间轴类宇宙：点在中轴上，文字放到点的外侧，别让竖线穿过字
+          var toRight = !(n.def.pos && n.def.pos[0] < 0);
+          ui.label.style.left = (p.x + (toRight ? 13 : -13)) + 'px';
+          ui.label.style.top = p.y + 'px';
+          ui.label.style.transform = toRight ? 'translate(0, -50%)' : 'translate(-100%, -50%)';
+          ui.label.style.textAlign = toRight ? 'left' : 'right';
         } else {
           ui.label.style.left = p.x + 'px';
           ui.label.style.top = (p.y + 10 + cssFont * 0.55) + 'px';
