@@ -6,13 +6,122 @@
   <title>无线电通讯 - BG5FNH</title>
   <script>window.BG5FNH_ROOT = "../../../";</script>
   <link rel="stylesheet" href="../../../assets/style.css" />
+  <style>
+    /* 本页专用：设备信息表 + 照片网格（只用黑金变量，不动通用样式） */
+    .card .rig-table {
+      display: grid;
+      gap: 10px;
+      margin: 12px 0 6px;
+    }
+
+    .card .rig-row {
+      display: grid;
+      grid-template-columns: 62px 1fr;
+      gap: 14px;
+      align-items: baseline;
+      padding: 11px 15px;
+      border: 1px solid rgba(201, 168, 106, 0.18);
+      border-radius: 10px;
+      background: rgba(201, 168, 106, 0.04);
+    }
+
+    .card .rig-row .k {
+      color: var(--gold);
+      font-size: 13px;
+      letter-spacing: 2px;
+    }
+
+    .card .rig-row .v {
+      font-size: 14px;
+      line-height: 1.75;
+      color: var(--text);
+    }
+
+    .card .shots {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin: 14px 0 6px;
+    }
+
+    .card .shot {
+      display: block;
+      overflow: hidden;
+      border: 1px solid rgba(201, 168, 106, 0.22);
+      border-radius: 12px;
+      background: #0b0b0d;
+      text-decoration: none;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
+    }
+
+    .card .shot:hover {
+      border-color: rgba(201, 168, 106, 0.62);
+      box-shadow: 0 0 26px rgba(201, 168, 106, 0.18);
+      transform: translateY(-2px);
+    }
+
+    .card .shot .ph {
+      display: block;
+      aspect-ratio: 4 / 3;
+      overflow: hidden;
+    }
+
+    .card .shot img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border: 0;
+    }
+
+    .card .shot .cap {
+      display: block;
+      padding: 9px 13px;
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+    }
+
+    .card .shot.wide {
+      grid-column: 1 / -1;
+    }
+
+    .card .shot.wide .ph {
+      aspect-ratio: 16 / 9;
+    }
+
+    @media (max-width: 640px) {
+      .card .shots {
+        grid-template-columns: 1fr;
+      }
+
+      .card .rig-row {
+        grid-template-columns: 52px 1fr;
+        gap: 10px;
+      }
+    }
+  </style>
 </head>
 <body>
   <script>
     window.BG5FNH_PAGE = {
       title: "无线电通讯",
       subtitle: "个人介绍 · 无线电通讯",
-      html: '<h2>业余无线电</h2><p>呼号：<strong>BG5FNH</strong></p><p>持有 B 类操作证书，设备还在慢慢添置。</p><p><a href="https://www.qrz.com/db/BG5FNH" target="_blank" rel="noopener">QRZ 主页</a></p><div class="tags"><span class="tag">B 类操作证</span><span class="tag">业余无线电</span></div>'
+      html: '<h2>呼号</h2><p><strong>BG5FNH</strong> · B 类操作证书 · CQ 24 / ITU 44 · <a href="https://www.qrz.com/db/BG5FNH" target="_blank" rel="noopener">QRZ 主页</a></p>' +
+            '<h2>QTH</h2><p>常住杭州西湖区，在校时在衢州学院。</p>' +
+            '<h2>设备</h2>' +
+            '<div class="rig-table">' +
+              '<div class="rig-row"><span class="k">电台</span><span class="v">森海克斯 8800（SenHaiX 8800）手持台，机内存了「杭州直频」145.580 MHz</span></div>' +
+              '<div class="rig-row"><span class="k">天线</span><span class="v">钻石老鹰 771 双段软鞭，随身机上一直用这根</span></div>' +
+              '<div class="rig-row"><span class="k">寄卡</span><span class="v">邮编 310000，需要地址请微信或邮件问我要</span></div>' +
+            '</div>' +
+            '<h2>照片</h2>' +
+            '<div class="shots">' +
+              '<a class="shot" href="img/rig.jpg" target="_blank" rel="noopener"><span class="ph"><img src="img/rig.jpg" alt="森海克斯 8800 手持台与钻石老鹰 771 天线" loading="lazy" /></span><span class="cap">森海克斯 8800 + 老鹰 771</span></a>' +
+              '<a class="shot" href="img/qsl.jpg" target="_blank" rel="noopener"><span class="ph"><img src="img/qsl.jpg" alt="BG5FNH 的 QSL 卡片正反面" loading="lazy" /></span><span class="cap">QSL 卡片 · 双面</span></a>' +
+              '<a class="shot wide" href="img/qsl-black.jpg" target="_blank" rel="noopener"><span class="ph"><img src="img/qsl-black.jpg" alt="BG5FNH 的黑色 QSL 卡片" loading="lazy" /></span><span class="cap">黑色版 QSL 卡片 · 点图看大图</span></a>' +
+            '</div>' +
+            '<div class="tags"><span class="tag">B 类操作证</span><span class="tag">V/U 手持</span><span class="tag">QSL</span></div>'
     };
   </script>
   <script src="../../../assets/page.js"></script>
