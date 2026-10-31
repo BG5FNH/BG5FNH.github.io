@@ -26,6 +26,7 @@
       letter-spacing: 1px; cursor: pointer; transition: all 0.2s; }
     .ct-chip:hover { border-color: rgba(201,168,106,0.55); color: var(--text); }
     .ct-chip.on { background: var(--gold); border-color: var(--gold); color: #0b0b0d; font-weight: 600; }
+    .ct-chip .ct-n { margin-left: 6px; font-size: 10px; letter-spacing: 0; opacity: 0.72; }
     .ct-chip[data-tier="T0"].on { background: #d1495b; border-color: #d1495b; color: #fff; }
     .ct-chip[data-tier="T1"].on { background: #e0b25c; border-color: #e0b25c; color: #0b0b0d; }
     .ct-chip[data-tier="T2"].on { background: #8fd0ef; border-color: #8fd0ef; color: #0b0b0d; }
@@ -224,6 +225,12 @@
       });
 
       render();
+
+      Array.prototype.forEach.call(chips.querySelectorAll('.ct-chip'), function (c) {
+        var t = c.getAttribute('data-tier');
+        var n = t === 'all' ? DATA.length : DATA.filter(function (x) { return x.tier === t; }).length;
+        c.insertAdjacentHTML('beforeend', '<span class="ct-n">' + n + '</span>');
+      });
     })();
   </script>
   <script src="../../../assets/page.js"></script>
