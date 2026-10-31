@@ -58,6 +58,19 @@
       border: 1px solid rgba(201, 168, 106, 0.25); }
     .tl-cap { display: block; margin-top: 9px; font-size: 12px; color: var(--text-muted); letter-spacing: 0.5px; }
 
+    .tl-shot { margin: 0 0 18px; }
+    .tl-shot:last-child { margin-bottom: 0; }
+    .tl-shot img { display: block; width: 100%; height: auto; border-radius: 10px;
+      border: 1px solid rgba(201, 168, 106, 0.25); background: #000; cursor: zoom-in; }
+    .tl-shot figcaption { margin-top: 9px; font-size: 12px; line-height: 1.7;
+      color: var(--text-muted); letter-spacing: 0.5px; }
+
+    .tl-lightbox { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center;
+      justify-content: center; padding: 24px; background: rgba(6, 6, 8, 0.94); cursor: zoom-out; }
+    .tl-lightbox[hidden] { display: none; }
+    .tl-lightbox img { max-width: 100%; max-height: 100%; border-radius: 8px;
+      border: 1px solid rgba(201, 168, 106, 0.3); }
+
     pre.tl-code { margin: 12px 0 4px; padding: 13px 15px; border-radius: 10px; overflow: auto;
       max-width: 100%; background: #08080a; border: 1px solid rgba(201, 168, 106, 0.22);
       font-size: 12.5px; line-height: 1.7; color: #cfc3a8; }
@@ -96,7 +109,18 @@
 
   <main class="page">
     <h1 class="page-title">妮露の网安工具箱</h1>
-    <p class="page-subtitle">个人介绍 · 编程语言 · v4.68.0</p>
+    <p class="page-subtitle">个人介绍 · 编程语言</p>
+
+    <section class="card">
+      <figure class="tl-shot">
+        <img src="img/ui-main.jpg" alt="妮露の网安工具包主壳与洪水面板" />
+        <figcaption>主壳 + 洪水：左边按题型分 12 类、共 38 项功能，右边是破题画布，节点树就长在这里。</figcaption>
+      </figure>
+      <figure class="tl-shot">
+        <img src="img/ui-packet.jpg" alt="发包工作台与内嵌浏览器" />
+        <figcaption>发包工作台 + 内嵌浏览器：改包重发、抓接口响应、把请求直接丢给浏览器。</figcaption>
+      </figure>
+    </section>
 
     <section class="card">
       <p class="tl-lead">可视化网络安全破题工作台，为浙江省大学生网络与信息安全竞赛打造。</p>
@@ -136,7 +160,7 @@
       <h2>30 秒上手</h2>
       <ol class="tl-steps">
         <li>双击根目录的 <code>妮露の网安工具包.cmd</code></li>
-        <li>日志第一行会打印 <code>引擎 v4.68.0 · 步骤 63 个 · 关键模块 25/25</code>；看不到这行 = 你在跑旧进程，关掉重开</li>
+        <li>日志第一行会打印版本号和「步骤 N 个 · 关键模块 x/x」；看不到这行 = 你在跑旧进程，关掉重开</li>
         <li>左侧点「洪水」→ 粘题目网址 → 点「开始」</li>
         <li>跑完看两个地方：flag 框（有没有 flag）、日志最后的「最接近的几条」</li>
         <li>没出 flag 时，看日志里有没有「→ 需要你操作：…」，有就照那句话做</li>
@@ -272,6 +296,32 @@
     </section>
   </main>
 
+  <div class="tl-lightbox" id="tlLightbox" hidden><img alt="界面放大图" /></div>
+
   <script src="../../../../assets/page.js"></script>
+  <script>
+    (function () {
+      var box = document.getElementById('tlLightbox');
+      if (!box) return;
+      var big = box.querySelector('img');
+      function open(src, alt) {
+        big.src = src;
+        big.alt = alt || '';
+        box.hidden = false;
+      }
+      function close() { box.hidden = true; big.removeAttribute('src'); }
+      Array.prototype.forEach.call(document.querySelectorAll('.tl-shot img'), function (img) {
+        img.addEventListener('click', function () { open(img.getAttribute('src'), img.getAttribute('alt')); });
+      });
+      box.addEventListener('click', close);
+      window.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !box.hidden) {
+          e.stopPropagation();
+          e.preventDefault();
+          close();
+        }
+      }, true);
+    })();
+  </script>
 </body>
 </html>
