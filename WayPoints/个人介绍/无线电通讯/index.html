@@ -90,6 +90,16 @@
       aspect-ratio: 16 / 9;
     }
 
+    /* 竖版单据（电台执照）：完整显示，不裁切 */
+    .card .shot.doc .ph {
+      aspect-ratio: 4 / 5;
+      background: #0b0b0d;
+    }
+
+    .card .shot.doc img {
+      object-fit: contain;
+    }
+
     @media (max-width: 640px) {
       .card .shots {
         grid-template-columns: 1fr;
@@ -121,6 +131,7 @@
               '<a class="shot" href="img/qsl.jpg" target="_blank" rel="noopener"><span class="ph"><img src="img/qsl.jpg" alt="BG5FNH 的 QSL 卡片正反面" loading="lazy" /></span><span class="cap">QSL 卡片 · 双面</span></a>' +
               '<a class="shot wide" href="img/qsl-black.jpg" target="_blank" rel="noopener"><span class="ph"><img src="img/qsl-black.jpg" alt="BG5FNH 的黑色 QSL 卡片正面" loading="lazy" /></span><span class="cap">黑色版 QSL 卡片 · 正面</span></a>' +
               '<a class="shot wide" href="img/qsl-info.jpg" target="_blank" rel="noopener"><span class="ph"><img src="img/qsl-info.jpg" alt="BG5FNH 的黑色 QSL 卡片信息面" loading="lazy" /></span><span class="cap">黑色版 QSL 卡片 · 信息面</span></a>' +
+              '<a class="shot wide doc" href="img/license.jpg" target="_blank" rel="noopener"><span class="ph"><img src="img/license.jpg" alt="BG5FNH 的无线电台执照" loading="lazy" /></span><span class="cap">无线电台执照 · 设备核准代码与天线参数</span></a>' +
             '</div>' +
             '<div class="tags"><span class="tag">B 类操作证</span><span class="tag">V/U 手持</span><span class="tag">QSL</span></div>'
     };
