@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>妮露の网安工具箱 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../../";</script>
+  <link rel="stylesheet" href="../../../../assets/style.css" />
+  <style>
+    .tl-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 18px 0 10px; }
+    .tl-stat { padding: 14px 10px; text-align: center; border: 1px solid rgba(201, 168, 106, 0.22);
+      border-radius: 12px; background: rgba(201, 168, 106, 0.045); }
+    .tl-stat b { display: block; font-size: 26px; line-height: 1.15; color: var(--gold); letter-spacing: 1px; }
+    .tl-stat span { display: block; margin-top: 6px; font-size: 11.5px; color: var(--text-muted); letter-spacing: 0.5px; }
+
+    .tl-lead { font-size: 15.5px; line-height: 1.9; }
+    .tl-note { color: var(--text-muted); font-size: 12.5px; letter-spacing: 0.5px; margin: 10px 0 0; }
+
+    .tl-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0 4px; }
+    .tl-box { padding: 16px 18px; border: 1px solid rgba(201, 168, 106, 0.2); border-radius: 12px;
+      background: rgba(201, 168, 106, 0.03); min-width: 0; }
+    .tl-box h3 { margin: 0 0 8px; font-size: 15px; font-weight: 600; color: var(--gold); letter-spacing: 1px; }
+    .tl-box p { margin: 6px 0; font-size: 13.5px; line-height: 1.75; }
+    .tl-box ol { margin: 6px 0 0; padding-left: 20px; font-size: 13.5px; line-height: 1.8; }
+
+    .tl-steps { list-style: none; counter-reset: s; margin: 14px 0 0; padding: 0; }
+    .tl-steps li { position: relative; padding: 7px 0 7px 38px; font-size: 14px;
+      border-bottom: 1px dashed rgba(201, 168, 106, 0.16); }
+    .tl-steps li:last-child { border-bottom: 0; }
+    .tl-steps li::before { counter-increment: s; content: counter(s); position: absolute; left: 0; top: 7px;
+      width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 50%;
+      border: 1px solid rgba(201, 168, 106, 0.45); color: var(--gold); font-size: 12px; }
+
+    .tl-legend { display: flex; flex-wrap: wrap; gap: 10px 20px; margin: 12px 0 2px; }
+    .tl-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 7px; }
+    .tl-legend span { font-size: 13px; color: var(--text-muted); }
+
+    .tl-bars { margin: 12px 0 2px; }
+    .tl-bar-row { display: grid; grid-template-columns: 132px 1fr 46px; gap: 12px; align-items: center;
+      padding: 5px 0; font-size: 12.5px; color: var(--text-muted); }
+    .tl-bar-row em { font-style: normal; color: var(--text); }
+    .tl-bar-track { height: 6px; border-radius: 999px; background: rgba(201, 168, 106, 0.12); overflow: hidden; }
+    .tl-bar-fill { display: block; height: 100%; border-radius: 999px;
+      background: linear-gradient(90deg, rgba(201, 168, 106, 0.55), var(--gold)); }
+    .tl-bar-val { text-align: right; color: var(--gold); letter-spacing: 0.5px; }
+
+    table.tl-table { width: 100%; border-collapse: collapse; margin: 12px 0 4px; font-size: 13px; }
+    table.tl-table th { padding: 8px 10px; text-align: left; color: var(--gold); font-weight: 600;
+      letter-spacing: 0.5px; border-bottom: 1px solid rgba(201, 168, 106, 0.3); }
+    table.tl-table td { padding: 8px 10px; vertical-align: top; line-height: 1.7;
+      border-bottom: 1px solid rgba(201, 168, 106, 0.1); }
+    table.tl-table tr:last-child td { border-bottom: 0; }
+    table.tl-table td.dim { color: var(--text-muted); font-size: 12px; white-space: nowrap; }
+    table.tl-table td:first-child { white-space: nowrap; }
+    table.tl-table code { white-space: nowrap; }
+
+    .tl-video { display: block; width: 100%; border-radius: 12px; background: #000;
+      border: 1px solid rgba(201, 168, 106, 0.25); }
+    .tl-cap { display: block; margin-top: 9px; font-size: 12px; color: var(--text-muted); letter-spacing: 0.5px; }
+
+    pre.tl-code { margin: 12px 0 4px; padding: 13px 15px; border-radius: 10px; overflow: auto;
+      max-width: 100%; background: #08080a; border: 1px solid rgba(201, 168, 106, 0.22);
+      font-size: 12.5px; line-height: 1.7; color: #cfc3a8; }
+    pre.tl-code code { font-family: Consolas, "Courier New", monospace; color: inherit; }
+
+    .tl-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 2px; }
+    .tl-flow { margin: 12px 0 6px; font-size: 13px; letter-spacing: 0.5px; color: var(--gold); }
+    .tl-flow-list { margin: 0; padding-left: 18px; font-size: 12.5px; line-height: 1.85; color: var(--text-muted); }
+
+    .card code { font-family: Consolas, "Courier New", monospace; font-size: 0.92em; padding: 1px 5px;
+      border-radius: 4px; background: rgba(201, 168, 106, 0.1); color: #e4d3ac; }
+    pre.tl-code code { padding: 0; background: transparent; font-size: 1em; color: inherit; }    .tl-chip { padding: 5px 12px; font-size: 12px; letter-spacing: 0.5px; color: var(--gold);
+      border: 1px solid rgba(201, 168, 106, 0.3); border-radius: 999px; background: rgba(201, 168, 106, 0.05); }
+
+    @media (max-width: 720px) {
+      .tl-cols { grid-template-columns: 1fr; }
+      .tl-stats { grid-template-columns: repeat(2, 1fr); }
+      .tl-bar-row { grid-template-columns: 104px 1fr 40px; font-size: 12px; }
+      table.tl-table { font-size: 12.5px; }
+      table.tl-table td.dim { white-space: normal; }
+      table.tl-cover th:last-child, table.tl-cover td.dim { display: none; }
+      table.tl-minds td:first-child { white-space: normal; }
+      table.tl-minds th:nth-child(2), table.tl-minds td:nth-child(2) { display: none; }
+      table.tl-ledger td:first-child { white-space: normal; }
+    }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">妮露の网安工具箱</h1>
+    <p class="page-subtitle">个人介绍 · 编程语言 · v4.68.0</p>
+
+    <section class="card">
+      <p class="tl-lead">可视化网络安全破题工作台，为浙江省大学生网络与信息安全竞赛打造。</p>
+      <p>纯本地离线、不联网调模型；自带便携 Python 3.11，双击即用，不装环境、不写注册表。</p>
+      <div class="tl-stats">
+        <div class="tl-stat"><b>63</b><span>内置策略</span></div>
+        <div class="tl-stat"><b>41</b><span>知识库规则 / 302 候选</span></div>
+        <div class="tl-stat"><b>21</b><span>专家系统规则</span></div>
+        <div class="tl-stat"><b>136</b><span>基准题</span></div>
+      </div>
+      <p class="tl-note">9 关自检全过才算出货：交付 / 一致性 / 解析层 / 专家系统 / 取证 / 基准 / 全策略 / 界面 / 矩阵。</p>
+    </section>
+
+    <section class="card">
+      <h2>它是什么</h2>
+      <p>一句话：把「拿到一个目标、或拿到一个文件之后要干的一堆事」，做成了一个会自己动的桌面工作台。</p>
+      <p>打开之后是左侧条目 + 右侧一个个贴靠的功能窗口：Web 题、Misc 题、取证题、密码题、流量题各有一组工具。其中最重要的两个是：</p>
+      <div class="tl-cols">
+        <div class="tl-box">
+          <h3>洪水 · 自动化破题引擎</h3>
+          <p>粘一个网址，按 63 条策略 + 41 条知识库规则 + 21 条专家规则跑一遍，边跑边画节点树，最后告诉你 flag，或者「最接近的几条」。</p>
+        </div>
+        <div class="tl-box">
+          <h3>文件模式</h3>
+          <p>拖进压缩包 / pcap / 图片 / 内存镜像，按类型分诊：解压、解密流量、LSB、编码链、内存镜像雕取。</p>
+        </div>
+      </div>
+      <div class="tl-chips">
+        <span class="tl-chip">纯本地，不联网调模型</span>
+        <span class="tl-chip">自带运行时，拷走就能用</span>
+        <span class="tl-chip">每条假设都带理由</span>
+        <span class="tl-chip">结果只落本地 cache/</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>跑一轮给你看</h2>
+      <video class="tl-video" controls muted loop playsinline preload="metadata"
+             poster="img/demo-poster.jpg">
+        <source src="img/demo.mp4" type="video/mp4" />
+        你的浏览器不支持内嵌视频，可查看下方截图说明。
+      </video>
+      <span class="tl-cap">洪水 处理一道题目的实录：左边节点树边跑边长，下面日志逐条给结论，右边给出「最接近的几条」。</span>
+    </section>
+
+    <section class="card">
+      <h2>30 秒上手</h2>
+      <ol class="tl-steps">
+        <li>双击根目录的 <code>妮露の网安工具包.cmd</code></li>
+        <li>日志第一行会打印 <code>引擎 v4.68.0 · 步骤 63 个 · 关键模块 25/25</code>；看不到这行 = 你在跑旧进程，关掉重开</li>
+        <li>左侧点「洪水」→ 粘题目网址 → 点「开始」</li>
+        <li>跑完看两个地方：flag 框（有没有 flag）、日志最后的「最接近的几条」</li>
+        <li>没出 flag 时，看日志里有没有「→ 需要你操作：…」，有就照那句话做</li>
+      </ol>
+    </section>
+
+    <section class="card">
+      <h2>两种工作模式</h2>
+      <div class="tl-cols">
+        <div class="tl-box">
+          <h3>网址模式</h3>
+          <ol>
+            <li>访问目标，抓正文 / 表单 / JS 接口 / 注释 / 长串</li>
+            <li>先按特征给「专家假设」：有登录框？JWT？上传？403？</li>
+            <li>63 条策略按「看起来多有戏」排队跑</li>
+            <li>堆空了还没结果，就问专家系统要下一步</li>
+            <li>结束给结论 + 建议</li>
+          </ol>
+        </div>
+        <div class="tl-box">
+          <h3>文件模式</h3>
+          <p>拖文件进「文件」面板的虚线框，节点树分两条：</p>
+          <p class="tl-flow">载入文件 → 识别文件 → 找 flag</p>
+          <ul class="tl-flow-list">
+            <li>提取到的信息（IP / 邮箱 / URL / MAC / 疑似凭据）</li>
+            <li>系统属性 · 内存镜像（<code>.raw/.mem/.vmem/.dmp</code>）</li>
+            <li>按类型分支（压缩包 / 流量 / 图片 / 文本 / 二进制）</li>
+          </ul>
+          <p>内存镜像那条会直接列出计算机名、IP、系统 build、版本串、网关、DNS、用户目录，每行都带出处。它不替你拼 flag —— 拼接格式不固定，猜错反而误导。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>节点树怎么读</h2>
+      <p>每个方块 = 一次尝试：标题写「干了什么」，下面一行是结论。颜色就是分数。</p>
+      <div class="tl-legend">
+        <span><i style="background:#63c07a"></i>绿 · 通了</span>
+        <span><i style="background:#e0b25c"></i>黄 · 有线索</span>
+        <span><i style="background:#8a8a92"></i>灰 · 不适用 / 跳过</span>
+        <span><i style="background:#d1495b"></i>红 · 死路</span>
+        <span><i style="background:#e08a2b"></i>琥珀 · 暂停等你确认</span>
+        <span><i style="color:var(--gold)">★</i> 真正拿到 flag 的节点</span>
+      </div>
+      <p>暂停时点「继续」= 认可，连同祖先一起变绿并收 flag；点「否决」= 这条变红、flag 作废，引擎继续找。双击任意节点看详情：完整报告、发过的包、证据、可重跑。</p>
+    </section>
+
+    <section class="card">
+      <h2>为什么叫洪水</h2>
+      <p>它不是一个漏洞扫描器，而是一个会排队、会评分、会改变主意的解题调度器：有戏就一路深挖，没戏就挨个铺开。</p>
+      <div class="tl-bars">
+        <div class="tl-bar-row"><em>解出来的新路径</em><span class="tl-bar-track"><span class="tl-bar-fill" style="width:92%"></span></span><span class="tl-bar-val">0.92</span></div>
+        <div class="tl-bar-row"><em>有密钥的解密</em><span class="tl-bar-track"><span class="tl-bar-fill" style="width:90%"></span></span><span class="tl-bar-val">0.90</span></div>
+        <div class="tl-bar-row"><em>普通表单</em><span class="tl-bar-track"><span class="tl-bar-fill" style="width:60%"></span></span><span class="tl-bar-val">0.60</span></div>
+        <div class="tl-bar-row"><em>专家策略</em><span class="tl-bar-track"><span class="tl-bar-fill" style="width:45%"></span></span><span class="tl-bar-val">0.45</span></div>
+      </div>
+      <p class="tl-note">每个待办节点有个 promise（戏份），放进堆里，高的先弹；同分按入堆顺序先进先出；深度每加一层乘 0.97，防止在死胡同里无限钻。硬上限：最多 120 个节点、9 层深、默认预算 240 秒。</p>
+      <table class="tl-table tl-minds">
+        <tr><th>三种「脑子」</th><th>是什么</th><th>举个例子</th></tr>
+        <tr><td>流程策略 · 56 条</td><td>会推理的流程</td><td>先探登录框 → 试弱口令 → 看 Set-Cookie → 拿会话回扫后台</td></tr>
+        <tr><td>知识库 · 41 条</td><td>有依据的清单，挨个试</td><td><code>/flag.txt</code> <code>/f1ag.php</code> <code>/flag/flag.php</code> <code>/admin/</code> <code>/actuator/env</code></td></tr>
+        <tr><td>专家系统 · 21 条</td><td>前向链推理，观察 → 假设</td><td>上传落盘 <code>hash.zip</code> 且不解析 → 试 <code>upload/&lt;hash&gt;.zip/x.php</code></td></tr>
+      </table>
+      <p class="tl-note">专家推理链在节点详情里能看到：事实几条 → 命中哪条规则 → 推出什么 → 为什么。</p>
+    </section>
+
+    <section class="card">
+      <h2>覆盖的题型</h2>
+      <p>每一条能力都有对应基准题，bench 全过才算覆盖。</p>
+      <table class="tl-table tl-cover">
+        <tr><th>类</th><th>里面有什么</th><th>基准题</th></tr>
+        <tr><td>信息泄露</td><td><code>.git</code> 拉取、<code>.svn</code>、<code>.DS_Store</code>、编辑器残留、备份、phpinfo 探针</td><td class="dim">c06 / c86–c88</td></tr>
+        <tr><td>认证</td><td>弱口令、无鉴权改密、JS 登录接口、Cookie 越权、会话固定、JWT <code>alg=none</code></td><td class="dim">c07 / c32 / c95</td></tr>
+        <tr><td>注入</td><td>UNION、布尔 / 时间盲注、报错、堆叠写 shell、NoSQL、WAF 绕过（<code>un/**/ion</code>）</td><td class="dim">c14 / c35 / c100</td></tr>
+        <tr><td>上传</td><td>后缀 × MIME 矩阵、<code>.htaccess</code>、<code>.user.ini</code>、文件名穿越、落盘改名后的 PATH_INFO</td><td class="dim">c94 / c96 / c113–c117</td></tr>
+        <tr><td>包含</td><td><code>php://filter</code>、日志投毒、session 文件、<code>/proc/self/*</code></td><td class="dim">c24 / c30 / c105</td></tr>
+        <tr><td>命令执行</td><td>参数 RCE、无字母数字（通配符 / <code>~</code> 取反）、过滤绕过（<code>${IFS}</code> / 引号 / 通配符）</td><td class="dim">c11 / c99 / c110</td></tr>
+        <tr><td>反序列化</td><td>属性篡改、<code>__wakeup</code> 绕过（CVE-2016-7124）、phar、POP 链</td><td class="dim">c29 / c101</td></tr>
+        <tr><td>服务端请求</td><td>SSRF <code>file://</code> / 内网 / gopher 手写 HTTP、XXE 有回显</td><td class="dim">c20 / c103 / c104 / c109</td></tr>
+        <tr><td>PHP 特性</td><td>弱比较、<code>md5</code> 数组、0e、双重 md5 碰撞、<code>parse_str</code> 覆盖、CRLF 头注入、<code>in_array</code> 弱比较、HPP</td><td class="dim">c97 / c98 / c102 / c107–c112</td></tr>
+        <tr><td>其它</td><td>条件竞争、JS 沙箱逃逸、变量覆盖、数值篡改、前端加密、图片隐写</td><td class="dim">c40 / c61 / c91–c93</td></tr>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>结果落在哪 · 九关自检</h2>
+      <div class="tl-cols">
+        <div class="tl-box">
+          <h3>结果都写在哪</h3>
+          <table class="tl-table tl-ledger">
+            <tr><td><code>cache/runs/</code></td><td>每轮一份日志：每个节点谁跑了、结果、分数、耗时</td></tr>
+            <tr><td><code>cache/solves/</code></td><td>有 flag 的轮次额外存一份解题步骤</td></tr>
+            <tr><td><code>cache/errors/</code></td><td>崩溃堆栈（有的话）</td></tr>
+            <tr><td><code>state/</code></td><td>面板参数与历史记录</td></tr>
+          </table>
+          <p class="tl-note">整个 cache/ 随时可删，不影响使用。</p>
+        </div>
+        <div class="tl-box">
+          <h3>九关自检</h3>
+          <p>双击 <code>文档\跑基准.cmd</code>，依次跑：交付清单、文档与代码一致性、解析层回归（14 条）、专家系统自检（11 条）、取证自检（7 条）、基准 136 道、63 条策略空跑、界面端到端（12 条）、类 × 入口矩阵（20 格）。</p>
+          <p class="tl-note">想过单题：<code>… -m nilu._selftest.bench c114 c118</code>。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>怎么加自己的能力</h2>
+      <p>三条路，都不用大改代码：</p>
+      <ol class="tl-steps">
+        <li>加一条请求规则 —— 写 <code>config/custom_steps.json</code>，重启即生效，启动日志的「步骤 N 个」会从 63 变成 64。</li>
+        <li>加知识库规则 —— 在 <code>nilu/engine/kb.py</code> 的 <code>RAW</code> 表加一行：家族 / 为什么试 / 方法 / URL 模板 / 参数 / 候选值 / 命中判据。</li>
+        <li>加专家规则 —— 在 <code>nilu/engine/expertkb.py</code> 加一个 <code>ES.Rule(...)</code>：<code>when</code> 写要看到哪些事实，<code>then</code> 写推出什么动作，第五个参数是给人看的理由。</li>
+      </ol>
+      <pre class="tl-code"><code>{"steps":[{"key":"up_pi","title":"upload 目录 PATH_INFO","method":"GET",
+  "url":"{{base}}upload/{{arg}}/x.php","param":"c",
+  "payloads":["id","cat /flag"],"match":"uid="}]}</code></pre>
+      <p class="tl-note">每加一条都要过 bench（136 道全过）+ 对应自检，否则只是「看起来能解」。</p>
+    </section>
+
+    <section class="card">
+      <h2>便携性与边界</h2>
+      <p>自带 <code>runtime/py311/python.exe</code>（Python 3.11.17）与全部依赖，不需要装 Python；不写注册表、不装服务、不改系统环境变量；所有路径都相对工具包根目录，拷走就能用。</p>
+      <p class="tl-note">只对有授权的目标使用（比赛实例、自己的靶场、授权测试）。工具本身不联网、不上传任何数据，结果只落本地 cache/。</p>
+    </section>
+  </main>
+
+  <script src="../../../../assets/page.js"></script>
+</body>
+</html>
