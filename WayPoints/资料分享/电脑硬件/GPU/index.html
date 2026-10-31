@@ -1,0 +1,194 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GPU 与显卡 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../../";</script>
+  <link rel="stylesheet" href="../../../../assets/style.css" />
+  <link rel="stylesheet" href="../../../../assets/library.css" />
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+  <main class="page">
+    <h1 class="page-title">GPU 与显卡</h1>
+    <p class="page-subtitle">资料分享 · 电脑硬件 · GPU</p>
+    <section class="card">
+      <p class="lib-note">NVIDIA / AMD / Intel 显卡型号，以及 OpenCL、Vulkan 跑分对照。</p>
+      <div class="lib-body">
+        <div class="lib-line">海外三大巨头</div>
+        <div class="lib-line">· NVIDIA（英伟达）：独立显卡市场的绝对领导者，其GeForce系列是游戏显卡主流，Quadro/RTX系列主导专业视觉，数据中心GPU在AI领域占据统治地位。</div>
+        <div class="lib-line">NVIDIA GPU</div>
+        <div class="lib-line">├─ 1. 消费级 GeForce</div>
+        <div class="lib-line">│  ├─ 50系 Blackwell（2025）</div>
+        <div class="lib-line">型号 OpenCL Vulkan 备注</div>
+        <div class="lib-line">RTX 5090 367,740 / 374,807 / 376,858 359,742 多个来源，浮动正常</div>
+        <div class="lib-line">RTX 5090D 383,317 ~ 375,966 376,915 中国特供版</div>
+        <div class="lib-line">RTX 5090D V2 386,710 —</div>
+        <div class="lib-line">RTX 5080 256,138 / 263,623 / 265,325 / 277,865 261,836 多个收录结果</div>
+        <div class="lib-line">RTX 5070 Ti 229,387 ~ 252,936（常见 241,408） 229,973 ~ 236,850</div>
+        <div class="lib-line">RTX 5070 178,830 ~ 192,532（常见 187,414） 179,685 ~ 188,712</div>
+        <div class="lib-line">RTX 5060 Ti 16GB 146,234 / 155,573 / 156,499 140,147</div>
+        <div class="lib-line">RTX 5060 120,916 / 130,877 —</div>
+        <div class="lib-line">型号 OpenCL Vulkan 备注</div>
+        <div class="lib-line">RTX 5090 Laptop 91,063（节流） / 208,451（满血） — 早期泄露节流严重；满血成绩更接近真实水平</div>
+        <div class="lib-line">RTX 5080 Laptop 190,326 / 216,999 — 比 4090 Laptop 高约 6%</div>
+        <div class="lib-line">RTX 5070 Ti Laptop 166,394 ~ 191,371 144,739</div>
+        <div class="lib-line">RTX 5070 Laptop 130,829 ~ 146,033 130,151</div>
+        <div class="lib-line">RTX 5060 Laptop 102,564 ~ 116,422 96,092（中位数）</div>
+        <div class="lib-line">RTX 5050 Laptop 88,727 78,681（中位数）</div>
+        <div class="lib-line">│  ├─ 40系 Ada Lovelace（2022-2024）</div>
+        <div class="lib-line">型号 Geekbench OpenCL 跑分（参考范围）</div>
+        <div class="lib-line">RTX 4090 约 291,000 – 350,000</div>
+        <div class="lib-line">RTX 4080 SUPER 约 254,000 – 265,000</div>
+        <div class="lib-line">RTX 4080 约 242,000 – 254,000</div>
+        <div class="lib-line">RTX 4070 Ti 约 207,000 – 215,000</div>
+        <div class="lib-line">RTX 4070 SUPER 约 190,000 – 197,000</div>
+        <div class="lib-line">RTX 4070 约 175,000 – 177,000</div>
+        <div class="lib-line">RTX 4060 约 101,000 – 105,000</div>
+        <div class="lib-line">型号 Geekbench OpenCL 跑分（参考范围）</div>
+        <div class="lib-line">RTX 4090 Laptop 约 179,000 – 210,000</div>
+        <div class="lib-line">RTX 4080 Laptop 约 146,000 – 178,000</div>
+        <div class="lib-line">RTX 4070 Laptop 约 102,000 – 119,000</div>
+        <div class="lib-line">RTX 4060 Laptop 约 93,000 – 105,000</div>
+        <div class="lib-line">RTX 4050 Laptop 约 76,000 – 79,000</div>
+        <div class="lib-line">│  ├─ 30系 Ampere（2020-2022）</div>
+        <div class="lib-line">RTX 30系（Ampere架构）的Geekbench跑分整理如下。跑分受驱动、散热和平台影响浮动较大，以下数据为常见参考范围。</div>
+        <div class="lib-line">桌面端</div>
+        <div class="lib-line">RTX 3090：OpenCL 约 195,000 - 211,000</div>
+        <div class="lib-line">RTX 3080 Ti：OpenCL 约 169,000 - 217,000</div>
+        <div class="lib-line">RTX 3080：OpenCL 约 156,000 - 181,000</div>
+        <div class="lib-line">RTX 3070 Ti：OpenCL 约 138,000 - 158,000</div>
+        <div class="lib-line">RTX 3070：OpenCL 约 123,000 - 138,000</div>
+        <div class="lib-line">RTX 3060 Ti：OpenCL 约 109,000 - 123,000</div>
+        <div class="lib-line">RTX 3060：OpenCL 约 83,000 - 106,000</div>
+        <div class="lib-line">RTX 3050：OpenCL 约 55,000 - 72,000</div>
+        <div class="lib-line">移动端</div>
+        <div class="lib-line">RTX 3080 Laptop：OpenCL 约 114,000 - 129,000</div>
+        <div class="lib-line">RTX 3070 Laptop：OpenCL 约 110,000 - 117,000</div>
+        <div class="lib-line">RTX 3060 Laptop：OpenCL 约 87,000 - 98,000</div>
+        <div class="lib-line">RTX 3050 Ti Laptop：OpenCL 约 60,000 - 62,000</div>
+        <div class="lib-line">RTX 3050 Laptop：OpenCL 约 58,000</div>
+        <div class="lib-line">│  ├─ 20系 Turing（2018-2019）</div>
+        <div class="lib-line">RTX 20系（Turing架构）的Geekbench跑分整理如下。跑分受驱动、散热和平台影响浮动较大，以下数据为常见参考范围。</div>
+        <div class="lib-line">桌面端</div>
+        <div class="lib-line">RTX 2080 Ti：OpenCL 约 129,000 - 145,000</div>
+        <div class="lib-line">RTX 2080 SUPER：OpenCL 约 110,000 - 122,000</div>
+        <div class="lib-line">RTX 2080：OpenCL 约 99,000 - 117,000</div>
+        <div class="lib-line">RTX 2070 SUPER：OpenCL 约 104,000 - 110,000</div>
+        <div class="lib-line">RTX 2070：OpenCL 约 88,000 - 96,000</div>
+        <div class="lib-line">RTX 2060 SUPER：OpenCL 约 88,000 - 95,000</div>
+        <div class="lib-line">RTX 2060：OpenCL 约 70,000 - 79,000</div>
+        <div class="lib-line">移动端</div>
+        <div class="lib-line">RTX 2080 SUPER Laptop：OpenCL 约 77,000 - 103,000</div>
+        <div class="lib-line">RTX 2080 Laptop：OpenCL 约 113,000</div>
+        <div class="lib-line">RTX 2070 SUPER Laptop：OpenCL 约 91,000</div>
+        <div class="lib-line">RTX 2070 Laptop：OpenCL 约 85,000 - 100,000</div>
+        <div class="lib-line">RTX 2060 SUPER Laptop：OpenCL 约 73,000</div>
+        <div class="lib-line">RTX 2060 Laptop：OpenCL 约 74,000 - 76,000</div>
+        <div class="lib-line">说明：部分移动端型号（如 RTX 2080 Laptop）的跑分样本较少，数据波动可能较大。如果你有特定的型号想了解更精确的分数，可以告诉我。</div>
+        <div class="lib-line">│  ├─ 16系 Turing（2019）</div>
+        <div class="lib-line">GeForce 16系（Turing架构）的Geekbench跑分整理如下。跑分受驱动、散热和平台影响浮动较大，以下数据为常见参考范围。</div>
+        <div class="lib-line">桌面端</div>
+        <div class="lib-line">GTX 1660 Ti：OpenCL 约 53,622 - 65,938</div>
+        <div class="lib-line">GTX 1660 SUPER：OpenCL 约 60,110 - 63,361</div>
+        <div class="lib-line">GTX 1660：OpenCL 约 55,712 - 59,944</div>
+        <div class="lib-line">GTX 1650 SUPER：OpenCL 约 53,834 - 55,188</div>
+        <div class="lib-line">GTX 1650：OpenCL 约 32,157 - 40,177</div>
+        <div class="lib-line">移动端</div>
+        <div class="lib-line">GTX 1660 Ti Laptop：OpenCL 约 24,949 - 67,604</div>
+        <div class="lib-line">GTX 1650 Laptop：OpenCL 约 15,927 - 40,642</div>
+        <div class="lib-line">说明：部分移动端型号（如 GTX 1660 Ti Laptop、GTX 1650 Laptop）的跑分样本较少且浮动极大，数据受笔记本散热和功耗释放影响非常明显。如果你有特定的型号想了解更精确的分数，可以告诉我。</div>
+        <div class="lib-line">│  ├─ 10系 Pascal（2016-2017）</div>
+        <div class="lib-line">GeForce 10系（Pascal架构）的Geekbench跑分整理如下。跑分受驱动、散热和平台影响浮动较大，以下数据为常见参考范围。</div>
+        <div class="lib-line">桌面端</div>
+        <div class="lib-line">GTX 1080 Ti：OpenCL 约 49,915 - 65,111</div>
+        <div class="lib-line">GTX 1080：OpenCL 约 48,608 - 54,128</div>
+        <div class="lib-line">GTX 1070 Ti：OpenCL 约 50,259 - 56,961</div>
+        <div class="lib-line">GTX 1070：OpenCL 约 44,561 - 53,939</div>
+        <div class="lib-line">GTX 1060：OpenCL 约 28,704 - 32,356</div>
+        <div class="lib-line">GTX 1050 Ti：OpenCL 约 20,419 - 21,867</div>
+        <div class="lib-line">GTX 1050：OpenCL 约 17,885 - 18,418</div>
+        <div class="lib-line">GT 1030：OpenCL 约 7,561 - 9,934</div>
+        <div class="lib-line">移动端</div>
+        <div class="lib-line">GTX 1080 Laptop：OpenCL 约 55,372 - 55,548</div>
+        <div class="lib-line">GTX 1070 Laptop：OpenCL 约 39,778 - 47,476</div>
+        <div class="lib-line">GTX 1060 Laptop：OpenCL 约 31,098</div>
+        <div class="lib-line">GTX 1050 Ti Laptop：OpenCL 约 20,732 - 20,791</div>
+        <div class="lib-line">GTX 1050 Laptop：OpenCL 约 12,593 - 18,418</div>
+        <div class="lib-line">MX150：OpenCL 约 9,577 - 10,175</div>
+        <div class="lib-line">说明：部分移动端型号（如 GTX 1060 Laptop）的跑分样本较少，数据波动可能较大。如果你有特定的型号想了解更精确的分数，可以告诉我。</div>
+        <div class="lib-line">│  ├─ 9系 Maxwell（2014-2015）</div>
+        <div class="lib-line">GeForce 9系（Maxwell架构）的Geekbench跑分整理如下。跑分受驱动、散热和平台影响浮动较大，以下数据为常见参考范围。</div>
+        <div class="lib-line">桌面端</div>
+        <div class="lib-line">GTX 980 Ti：OpenCL 约 37,964 - 43,854（Geekbench 6）</div>
+        <div class="lib-line">GTX 980：OpenCL 约 32,043 - 34,611（Geekbench 6）</div>
+        <div class="lib-line">GTX 970：OpenCL 约 26,734 - 29,298（Geekbench 6）</div>
+        <div class="lib-line">GTX 960：OpenCL 约 17,964 - 21,049（Geekbench 6）</div>
+        <div class="lib-line">GTX 950：OpenCL 约 16,141 - 17,023（Geekbench 6）</div>
+        <div class="lib-line">移动端</div>
+        <div class="lib-line">GTX 980M：OpenCL 约 23,785（Geekbench 5） / 24,516（Geekbench 6）</div>
+        <div class="lib-line">GTX 970M：OpenCL 约 19,131 - 20,012（Geekbench 5） / 19,440（Geekbench 6）</div>
+        <div class="lib-line">GTX 960M：OpenCL 约 12,257（Geekbench 5） / 11,578（Geekbench 6）</div>
+        <div class="lib-line">GTX 950M：OpenCL 约 9,677 - 10,541（Geekbench 5）</div>
+        <div class="lib-line">GTX 940M：OpenCL 约 6,193 - 6,244（Geekbench 5）</div>
+        <div class="lib-line">说明：9系桌面端数据以 Geekbench 6 为主，移动端则混合了 Geekbench 5 和 6 的结果，跨版本分数不宜直接对比。部分移动端型号（如 GTX 940M）跑分样本较少，数据波动可能较大。如果你有特定的型号想了解更精确的分数，可以告诉我。</div>
+        <div class="lib-line">│  ├─ 7系 Kepler（2012-2014）</div>
+        <div class="lib-line">│  ├─ 6系 Fermi（2010-2011）</div>
+        <div class="lib-line">│  ├─ 5系 Fermi（2010）</div>
+        <div class="lib-line">│  ├─ 4系 Tesla（2009）</div>
+        <div class="lib-line">│  ├─ 3系 Tesla（2008）</div>
+        <div class="lib-line">│  ├─ 2系 Tesla（2007）</div>
+        <div class="lib-line">│  ├─ 8系（2006-2007）</div>
+        <div class="lib-line">│  ├─ 7系（2005-2006）</div>
+        <div class="lib-line">│  ├─ 6系（2004-2005）</div>
+        <div class="lib-line">│  ├─ 5系（2003-2004）</div>
+        <div class="lib-line">│  ├─ 4系（2002-2003）</div>
+        <div class="lib-line">│  ├─ 3系（2001-2002）</div>
+        <div class="lib-line">│  ├─ 2系（2000-2001）</div>
+        <div class="lib-line">│  └─ GeForce 256（1999）</div>
+        <div class="lib-line">│</div>
+        <div class="lib-line">├─ 2. 专业工作站</div>
+        <div class="lib-line">│  ├─ RTX Ada Generation</div>
+        <div class="lib-line">│  ├─ RTX A 系列</div>
+        <div class="lib-line">│  ├─ Quadro RTX</div>
+        <div class="lib-line">│  ├─ Quadro P / V / K / M / FX</div>
+        <div class="lib-line">│  └─ ...</div>
+        <div class="lib-line">│</div>
+        <div class="lib-line">├─ 3. 数据中心 / AI</div>
+        <div class="lib-line">│  ├─ Blackwell：B200 / GB200</div>
+        <div class="lib-line">│  ├─ Hopper：H100 / H200</div>
+        <div class="lib-line">│  ├─ Ampere：A100 / A800 / A40 / A30 / A10</div>
+        <div class="lib-line">│  ├─ Volta / Turing：V100 / T4</div>
+        <div class="lib-line">│  └─ Pascal：P100 / P40 / P4</div>
+        <div class="lib-line">│</div>
+        <div class="lib-line">└─ 4. 移动 / 嵌入式 / SoC</div>
+        <div class="lib-line">   ├─ Tegra / Jetson</div>
+        <div class="lib-line">   ├─ Nintendo Switch 定制</div>
+        <div class="lib-line">   └─ ...</div>
+        <div class="lib-line">· AMD（超威半导体）：唯一在CPU和GPU领域都能与Intel、NVIDIA全面竞争的厂商。Radeon系列显卡是NVIDIA的主要对手，同时也为PlayStation、Xbox等游戏主机提供定制芯片。</div>
+        <div class="lib-line">· Intel（英特尔）：长期占据集成显卡（核显）市场最大份额，近年凭借Arc系列重返独立显卡市场。</div>
+        <div class="lib-line">其他重要设计商</div>
+        <div class="lib-line">· Apple（苹果）：自研M系列芯片集成强大的GPU，用于Mac产品线。</div>
+        <div class="lib-line">· Qualcomm（高通）：其Adreno GPU集成在骁龙X系列处理器中，用于Windows on ARM笔记本电脑。</div>
+        <div class="lib-line">· Imagination Technologies：英国公司，本身不卖显卡，而是将GPU知识产权（IP）授权给其他芯片公司。</div>
+        <div class="lib-line">🇨🇳 国产GPU厂商（加速追赶中）</div>
+        <div class="lib-line">在信创和AI算力需求推动下，一批国产GPU企业正在崛起。</div>
+        <div class="lib-line">· 景嘉微 (Jingjiawei)：较早实现国产GPU量产，在特定领域有应用。</div>
+        <div class="lib-line">· 摩尔线程 (Moore Threads)：号称国内唯一实现全功能GPU量产的厂商，覆盖图形渲染和AI计算。</div>
+        <div class="lib-line">· 壁仞科技 (Biren)、沐曦 (MetaX)、燧原科技 (Enflame)：并称“国产GPU四小龙”，主要聚焦AI算力市场。</div>
+        <div class="lib-line">· 海光信息 (Hygon)：其DCU（深度计算单元）在通用计算领域有应用。</div>
+        <div class="lib-line">· 华为海思：其昇腾系列是AI算力芯片的重要力量。</div>
+      </div>
+    </section>
+  </main>
+  <script src="../../../../assets/page.js"></script>
+  <script src="../../../../assets/library.js"></script>
+</body>
+</html>

@@ -1,18 +1,21 @@
-/* ============================================================
+﻿/* ============================================================
    BG5FNH 导航点配置（坐标制）
    ------------------------------------------------------------
    1. mainLine.nodes 是首页主线上的导航点。
    2. 每个导航点里的 points 是它的星图光点。
    3. 光点坐标 pos: [横, 纵]，星图中心为 [0,0]。
-      - 向右一单位：[1,0]
-      - 向左一单位：[-1,0]
-      - 向上一单位：[0,1]
-      - 向下一单位：[0,-1]
-   4. 父子关系由 path 的文件夹嵌套自动决定：
-      path: '资料分享/软件破解资源分享' 的父光点就是 path 为 '资料分享' 的光点。
-      找不到父光点时，连线自动接到导航点中心。
-   5. url 相对于 WayPoints/ 目录。宇宙光点不用 url（点击直接进宇宙）。
-   6. 目前主线只有三个导航点，所有光点都有真实内容，没有占位页。
+      - 向右一单位：[1,0]    - 向左一单位：[-1,0]
+      - 向上一单位：[0,1]    - 向下一单位：[0,-1]
+   4. 父子关系由 path 的斜杠层级自动决定；也可以直接写 key + parent
+      （宇宙内部的链式结构、分支都靠 parent 指定）。
+      找不到父节点时，连线自动接到中心。
+   5. url 相对于 WayPoints/ 目录。宇宙光点不写 url（点击直接进宇宙）。
+   6. 结构约定：
+      个人介绍 → 个人简介（红蓝时间轴宇宙）/ 软件学习 / 硬件开发 / 编程语言 /
+                 无线电通讯 / 穿越机 / 我的账号
+      资料分享 → 无线电（宇宙：天线 / 频率查询 / 调制方式）/ 电脑硬件（宇宙：CPU / GPU）/
+                 竞赛 / 软件（宇宙：剪映 / SolidWorks）/ B站视频
+      留言板   → 留言板 / GitHub
    ============================================================ */
 window.BG5FNH_WAYPOINTS = {
   gridUnit: 3.6,
@@ -69,53 +72,69 @@ window.BG5FNH_WAYPOINTS = {
         scale: 1.0,
         points: [
           { path: '资料分享', name: '资料分享', pos: [0, 0], url: '资料分享/index.html' },
-          { path: '资料分享/B站视频', name: 'B站视频', pos: [-1.6, 1.4], url: '资料分享/B站视频/index.html' },
+
           {
-            // 资料库：六份整理好的笔记，一个文档一个光点，页面里带页内搜索和目录
-            path: '资料分享/资料库',
-            name: '资料库',
-            pos: [-2.35, 0.15],
-            universe: true,
-            universeColor: '#e0b25c',
-            universePoints: [
-              { path: 'cpu', name: 'CPU 芯片', pos: [0, 1.75], url: '资料分享/资料库/cpu/index.html' },
-              { path: 'gpu', name: 'GPU 显卡', pos: [1.5, 0.9], url: '资料分享/资料库/gpu/index.html' },
-              { path: 'contest', name: '竞赛清单', pos: [1.5, -0.9], url: '资料分享/资料库/contest/index.html' },
-              { path: 'modulation', name: '调制方式', pos: [0, -1.75], url: '资料分享/资料库/modulation/index.html' },
-              { path: 'frequency', name: '频率划分', pos: [-1.5, -0.9], url: '资料分享/资料库/frequency/index.html' },
-              { path: 'antenna', name: '天线类型', pos: [-1.5, 0.9], url: '资料分享/资料库/antenna/index.html' }
-            ]
-          },
-          {
-            path: '资料分享/软件破解资源分享',
-            name: '软件破解资源分享',
-            pos: [1.6, 1.4],
-            universe: true,
-            universeColor: '#e8b4b8',
-            universePoints: [
-              { path: '剪映破解版', name: '剪映破解版', pos: [0, 0], url: '资料分享/软件资源/软件破解资源分享/剪映破解版/index.html' },
-              { path: '剪映破解版/PC端', name: 'PC 端', pos: [2.4, 0], url: '资料分享/软件资源/软件破解资源分享/剪映破解版/PC端/index.html' },
-              // 一款软件一个光点
-              { path: 'SolidWorks2022', name: 'SolidWorks 2022', pos: [-2.4, 0], url: '资料分享/软件资源/软件破解资源分享/SolidWorks2022/index.html' }
-            ]
-          },
-          {
-            path: '资料分享/无线电天线资料',
-            name: '无线电天线资料',
-            pos: [0, -2.2],
+            // 无线电是这一片的中心：天线 / 频率查询 / 调制方式 都从它放射出去
+            path: '资料分享/无线电',
+            name: '无线电',
+            pos: [0, 1.8],
             universe: true,
             universeColor: '#a8e8b4',
             universePoints: [
-              { path: '八木天线', name: '八木天线', pos: [0, 0], url: '资料分享/无线电资料/无线电天线资料/八木天线/index.html' },
-              { path: '垂直极化天线', name: '垂直极化天线', pos: [1.2, 0.8], url: '资料分享/无线电资料/无线电天线资料/垂直极化天线/index.html' },
-              { path: '偶极天线', name: '偶极天线', pos: [0, 1.5], url: '资料分享/无线电资料/无线电天线资料/偶极天线/index.html' },
-              { path: '环形天线', name: '环形天线', pos: [-1.2, 0.8], url: '资料分享/无线电资料/无线电天线资料/环形天线/index.html' },
-              { path: '抛物面天线', name: '抛物面天线', pos: [0, -1.5], url: '资料分享/无线电资料/无线电天线资料/抛物面天线/index.html' },
-              { path: '对数周期天线', name: '对数周期天线', pos: [1.6, -0.8], url: '资料分享/无线电资料/无线电天线资料/对数周期天线/index.html' },
-              { path: '螺旋天线', name: '螺旋天线', pos: [-1.6, -0.8], url: '资料分享/无线电资料/无线电天线资料/螺旋天线/index.html' },
-              { path: '鞭状天线', name: '鞭状天线', pos: [0.9, -1.5], url: '资料分享/无线电资料/无线电天线资料/鞭状天线/index.html' }
+              { key: 'radio', path: 'radio', name: '无线电', pos: [0, 0], scale: 1.0, url: '资料分享/无线电/index.html' },
+
+              {
+                // 天线本身又是一个宇宙：总览（18 种速查）+ 8 种常用天线的单独说明
+                key: 'ant', path: 'ant', name: '天线', pos: [0, 1.95], scale: 0.95,
+                universe: true, universeColor: '#cfe8a8',
+                universePoints: [
+                  { key: 'ant-hub', path: 'ant-hub', name: '天线速查', pos: [0, -1.15], scale: 0.95, url: '资料分享/无线电/天线/index.html' },
+                  { path: '八木天线', name: '八木天线', pos: [2.05, 0.85], scale: 0.8, url: '资料分享/无线电/天线/八木天线/index.html' },
+                  { path: '垂直极化天线', name: '垂直极化天线', pos: [0.85, 2.05], scale: 0.8, url: '资料分享/无线电/天线/垂直极化天线/index.html' },
+                  { path: '偶极天线', name: '偶极天线', pos: [-0.85, 2.05], scale: 0.8, url: '资料分享/无线电/天线/偶极天线/index.html' },
+                  { path: '环形天线', name: '环形天线', pos: [-2.05, 0.85], scale: 0.8, url: '资料分享/无线电/天线/环形天线/index.html' },
+                  { path: '抛物面天线', name: '抛物面天线', pos: [-2.05, -0.85], scale: 0.8, url: '资料分享/无线电/天线/抛物面天线/index.html' },
+                  { path: '对数周期天线', name: '对数周期天线', pos: [-0.85, -2.05], scale: 0.8, url: '资料分享/无线电/天线/对数周期天线/index.html' },
+                  { path: '螺旋天线', name: '螺旋天线', pos: [0.85, -2.05], scale: 0.8, url: '资料分享/无线电/天线/螺旋天线/index.html' },
+                  { path: '鞭状天线', name: '鞭状天线', pos: [2.05, -0.85], scale: 0.8, url: '资料分享/无线电/天线/鞭状天线/index.html' }
+                ]
+              },
+
+              { key: 'freq', path: 'freq', name: '频率查询', pos: [-1.8, -1.0], scale: 0.85, url: '资料分享/无线电/频率查询/index.html' },
+              { key: 'mod', path: 'mod', name: '调制方式', pos: [1.8, -1.0], scale: 0.85, url: '资料分享/无线电/调制方式/index.html' }
             ]
-          }
+          },
+
+          {
+            path: '资料分享/电脑硬件',
+            name: '电脑硬件',
+            pos: [1.85, 0.75],
+            universe: true,
+            universeColor: '#8fd0ef',
+            universePoints: [
+              { key: 'hw', path: 'hw', name: '电脑硬件', pos: [0, 0], scale: 1.0, url: '资料分享/电脑硬件/index.html' },
+              { path: 'cpu', name: 'CPU 芯片', pos: [-1.6, -1.05], scale: 0.85, url: '资料分享/电脑硬件/CPU/index.html' },
+              { path: 'gpu', name: 'GPU 显卡', pos: [1.6, -1.05], scale: 0.85, url: '资料分享/电脑硬件/GPU/index.html' }
+            ]
+          },
+
+          { path: '资料分享/竞赛', name: '竞赛', pos: [-1.85, 0.75], url: '资料分享/竞赛/index.html' },
+
+          {
+            path: '资料分享/软件',
+            name: '软件',
+            pos: [1.85, -1.1],
+            universe: true,
+            universeColor: '#e8b4b8',
+            universePoints: [
+              { key: 'sw', path: 'sw', name: '软件', pos: [0, 0], scale: 1.0, url: '资料分享/软件/index.html' },
+              { key: 'jy', path: 'jy', name: '剪映破解版', pos: [-1.6, -1.05], scale: 0.85, url: '资料分享/软件/剪映破解版/index.html' },
+              { key: 'jypc', path: 'jypc', parent: 'jy', name: 'PC 端', pos: [-1.6, -2.15], scale: 0.7, labelScale: 0.85, url: '资料分享/软件/剪映破解版/PC端/index.html' },
+              { path: 'solidworks', name: 'SolidWorks 2022', pos: [1.6, -1.05], scale: 0.85, url: '资料分享/软件/SolidWorks2022/index.html' }
+            ]
+          },
+
+          { path: '资料分享/B站视频', name: 'B站视频', pos: [-1.85, -1.1], url: '资料分享/B站视频/index.html' }
         ]
       },
       {
