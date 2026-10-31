@@ -55,8 +55,10 @@
     .ct-name { flex: 1 1 auto; font-size: 14px; color: var(--text); line-height: 1.6; }
     .ct-meta { flex: 0 1 auto; min-width: 0; max-width: 46%; font-size: 11px; color: var(--text-muted);
       letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .ct-caret { flex: 0 0 auto; color: var(--text-muted); font-size: 11px; transition: transform 0.2s; }
-    .ct.open .ct-caret { transform: rotate(180deg); }
+    .ct-caret { flex: 0 0 auto; width: 6px; height: 6px; margin: 0 4px 3px 0;
+      border-right: 1.5px solid rgba(201,168,106,0.8); border-bottom: 1.5px solid rgba(201,168,106,0.8);
+      transform: translateY(-2px) rotate(45deg); transition: transform 0.22s; }
+    .ct.open .ct-caret { transform: translateY(1px) rotate(-135deg); }
 
     .ct-body { display: none; padding: 2px 14px 12px; }
     .ct.open .ct-body { display: block; }
@@ -150,7 +152,7 @@
             '<span class="ct-badge">' + it.tier + '</span>' +
             '<span class="ct-name">' + esc(it.name) + '</span>' +
             (meta ? '<span class="ct-meta">' + esc(meta) + '</span>' : '') +
-            (plain ? '' : '<span class="ct-caret">▾</span>') +
+            (plain ? '' : '<span class="ct-caret" aria-hidden="true"></span>') +
           '</button>' +
           '<div class="ct-body">' + rows + '</div>' +
         '</article>';
