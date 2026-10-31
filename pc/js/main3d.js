@@ -1,4 +1,4 @@
-/* BG5FNH 电脑端 3D 主场景（three.js r128）
+﻿/* BG5FNH 电脑端 3D 主场景（three.js r128）
    交互：
    1. 顶视图：X 轴主线 + 金色导航点
    2. 点击导航点：镜头从左侧慢速旋转/拉近到 YZ 平面树状图
@@ -888,7 +888,7 @@
     var spanV = (maxV - minV) / 2 * unit;
     var pad = unit * 1.2;
     var dist = fitDistance(spanH, spanV, pad);
-    dist = Math.max(13, Math.min(MOBILE_LAYOUT ? 42 : 40, dist));
+    dist = Math.max(20, Math.min(MOBILE_LAYOUT ? 42 : 40, dist));
     var c = entry.centerPos;
     if (MOBILE_LAYOUT) {
       // 手机端：pos[1] 落在 -Z，pos[0] 落在 +X
