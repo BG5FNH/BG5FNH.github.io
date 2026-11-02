@@ -1,0 +1,127 @@
+/* BG5FNH 跑分榜组件样式（CPU / GPU 资料页共用）
+   结构由 assets/rank.js 生成 */
+.rk-tools {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  padding: 10px 0 12px;
+  margin: -8px 0 4px;
+  background: linear-gradient(180deg, rgba(11, 11, 13, 0.97) 78%, rgba(11, 11, 13, 0));
+}
+
+.rk-search {
+  width: 100%;
+  padding: 11px 16px;
+  background: rgba(201, 168, 106, 0.05);
+  border: 1px solid rgba(201, 168, 106, 0.3);
+  border-radius: 999px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  outline: none;
+}
+
+.rk-search::placeholder { color: rgba(168, 152, 120, 0.85); }
+.rk-search:focus { border-color: rgba(201, 168, 106, 0.62); box-shadow: 0 0 0 3px rgba(201, 168, 106, 0.08); }
+
+.rk-facet { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+.rk-facet-label { font-size: 11.5px; letter-spacing: 1px; color: var(--text-muted); margin-right: 2px; }
+
+.rk-chip {
+  padding: 5px 12px;
+  border: 1px solid rgba(201, 168, 106, 0.28);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.rk-chip:hover { border-color: rgba(201, 168, 106, 0.55); color: var(--text); }
+.rk-chip.on { background: var(--gold); border-color: var(--gold); color: #0b0b0d; font-weight: 600; }
+.rk-chip .rk-n { margin-left: 6px; font-size: 10px; letter-spacing: 0; opacity: 0.7; }
+
+.rk-metrics { display: inline-flex; border: 1px solid rgba(201, 168, 106, 0.28); border-radius: 999px; overflow: hidden; }
+.rk-metric {
+  padding: 5px 14px;
+  background: transparent;
+  border: 0;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.rk-metric.on { background: rgba(201, 168, 106, 0.9); color: #0b0b0d; font-weight: 600; }
+
+.rk-count { margin: 10px 0 2px; font-size: 12px; color: var(--text-muted); letter-spacing: 0.5px; }
+
+.rk-lead { margin: 0 0 12px; font-size: 14px; line-height: 1.85; }
+.rk-legend { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0 0 6px; }
+.rk-legend span { font-size: 11.5px; color: var(--text-muted); letter-spacing: 0.5px; }
+.rk-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+
+.rk-list { margin-top: 8px; }
+
+.rk-sec { margin: 18px 0 8px; padding-left: 10px; border-left: 3px solid var(--rk-color, var(--gold)); }
+.rk-sec h3 { margin: 0; font-size: 14px; color: var(--gold); letter-spacing: 1px; font-weight: 600; }
+.rk-sec p { margin: 4px 0 0; font-size: 11.5px; color: var(--text-muted); letter-spacing: 0.5px; }
+
+.rk-row {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 132px 74px;
+  gap: 12px;
+  align-items: center;
+  padding: 9px 12px;
+  margin-bottom: 6px;
+  border: 1px solid rgba(201, 168, 106, 0.14);
+  border-left: 3px solid var(--rk-color, rgba(201, 168, 106, 0.4));
+  border-radius: 9px;
+  background: rgba(201, 168, 106, 0.03);
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s;
+}
+
+.rk-row:hover { background: rgba(201, 168, 106, 0.07); }
+.rk-row.open { background: rgba(201, 168, 106, 0.08); }
+
+.rk-rank { font-size: 11px; color: var(--text-muted); text-align: right; letter-spacing: 0.5px; }
+
+.rk-main { min-width: 0; }
+.rk-name { font-size: 13.5px; color: var(--text); line-height: 1.5; }
+.rk-sub { margin-top: 3px; font-size: 11px; color: var(--text-muted); letter-spacing: 0.4px; }
+.rk-sub b { color: var(--rk-color, var(--gold)); font-weight: 600; }
+
+.rk-bar { height: 6px; border-radius: 999px; background: rgba(201, 168, 106, 0.12); overflow: hidden; }
+.rk-bar i { display: block; height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, rgba(201, 168, 106, 0.45), var(--rk-color, var(--gold))); }
+
+.rk-val { text-align: right; font-size: 13px; color: var(--gold); letter-spacing: 0.5px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.rk-note { display: none; grid-column: 2 / -1; margin-top: 2px; padding-top: 8px;
+  border-top: 1px dashed rgba(201, 168, 106, 0.16);
+  font-size: 12px; line-height: 1.7; color: var(--text-muted); }
+.rk-row.open .rk-note { display: block; }
+
+.rk-row.no-note { cursor: default; }
+.rk-empty { padding: 24px 0; text-align: center; font-size: 13px; color: var(--text-muted); }
+
+@media (max-width: 720px) {
+  .rk-tools { position: static; padding: 4px 0 8px; margin: 0; background: none; }
+  .rk-facet { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
+  .rk-facet::-webkit-scrollbar { display: none; }
+  .rk-facet-label { flex: 0 0 auto; }
+  .rk-chip, .rk-metrics { flex: 0 0 auto; }
+  .rk-row { grid-template-columns: 26px minmax(0, 1fr) 64px; gap: 9px; padding: 8px 10px; }
+  .rk-bar { display: none; }
+  .rk-rank { font-size: 10px; }
+  .rk-name { font-size: 12.5px; }
+  .rk-val { font-size: 12px; }
+  .rk-note { grid-column: 2 / -1; }
+}
