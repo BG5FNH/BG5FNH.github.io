@@ -1,4 +1,4 @@
-﻿/* BG5FNH 电脑端 3D 主场景（three.js r128）
+/* BG5FNH 电脑端 3D 主场景（three.js r128）
    交互：
    1. 顶视图：X 轴主线 + 金色导航点
    2. 点击导航点：镜头从左侧慢速旋转/拉近到 YZ 平面树状图
@@ -1563,6 +1563,7 @@
 
   // ---------------- 渲染循环 ----------------
   var clock = new THREE.Clock();
+  var firstFramePainted = false;
   function animate() {
     requestAnimationFrame(animate);
     var dt = clock.getDelta();
@@ -1572,6 +1573,11 @@
     updateSelectedGlow(dt);
     updateUI();
     renderer.render(scene, camera);
+    // 首帧真正画完之后，才收起加载页（这里之后光点才该出现）
+    if (!firstFramePainted) {
+      firstFramePainted = true;
+      if (typeof window.__bg5fnhReady === 'function') window.__bg5fnhReady();
+    }
   }
 
   window.addEventListener('resize', function () {

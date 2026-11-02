@@ -265,16 +265,179 @@
       opacity: 1;
       transform: scale(1);
     }
+
+    /* ===== 加载中的黑金 LOADING：就绪后像水墨一样晕开，再放出光点 ===== */
+    #stage {
+      opacity: 0;
+      transition: opacity 1.1s ease 0.45s;
+    }
+
+    body.ready #stage { opacity: 1; }
+
+    /* 光点、连线、标签、底部提示都比"墨"晚一点浮出来，避免和 LOADING 抢视线 */
+    #overlay {
+      opacity: 0;
+      transition: opacity 0.9s ease 0.75s;
+    }
+
+    body.ready #overlay { opacity: 1; }
+
+    body:not(.ready) #siteTitle { opacity: 0 !important; }
+    body.ready #siteTitle { transition-delay: 0.85s; }
+
+    body:not(.ready) #hint { opacity: 0; }
+    body.ready #hint { transition-delay: 1.1s; }
+
+    #loading {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 26px;
+      overflow: hidden;
+    }
+
+    /* 黑底单独一层：晕开时先化掉它，后面的光点才透出来 */
+    .ld-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 46%, #12100f 0%, #0b0b0d 58%);
+      transition: opacity 1.15s ease 0.2s;
+    }
+
+    #loading.out .ld-bg { opacity: 0; }
+
+    #loading.out { pointer-events: none; }
+
+    .ld-ink {
+      position: absolute;
+      width: 46vmax;
+      height: 46vmax;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(201, 168, 106, 0.3) 0%, rgba(201, 168, 106, 0.1) 38%, rgba(201, 168, 106, 0) 68%);
+      filter: blur(30px);
+      transform: scale(0.5);
+      opacity: 0.5;
+      transition: transform 1.9s cubic-bezier(0.16, 0.8, 0.3, 1), opacity 1.6s ease;
+    }
+
+    #loading.out .ld-ink { transform: scale(2.6); opacity: 0; }
+
+    /* 墨晕：字的残影往外洇开，再化掉 —— 这一层才是"水墨"的主体 */
+    .ld-ghost {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) scale(1);
+      font-family: "Times New Roman", Georgia, "Songti SC", serif;
+      font-size: clamp(30px, 6.2vw, 58px);
+      font-weight: 500;
+      letter-spacing: 0.34em;
+      color: rgba(214, 180, 120, 0.95);
+      filter: blur(8px);
+      opacity: 0;
+      pointer-events: none;
+      will-change: transform, opacity, filter;
+    }
+
+    #loading.out .ld-ghost { animation: inkBleedOut 2.6s cubic-bezier(0.25, 0.7, 0.2, 1) forwards; }
+
+    @keyframes inkBleedOut {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(1); filter: blur(8px); }
+      22% { opacity: 0.62; transform: translate(-50%, -50%) scale(1.1); filter: blur(12px); }
+      55% { opacity: 0.5; transform: translate(-50%, -50%) scale(1.32); filter: blur(20px); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(1.78); filter: blur(34px); }
+    }
+
+    .ld-word {
+      position: relative;
+      display: flex;
+      font-family: "Times New Roman", Georgia, "Songti SC", serif;
+      font-size: clamp(30px, 6.2vw, 58px);
+      font-weight: 500;
+      letter-spacing: 0.34em;
+      margin-right: -0.34em;
+      background: linear-gradient(180deg, #f5e9cd 0%, #d8b579 42%, #9c8049 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      filter: url(#inkBleed) drop-shadow(0 0 20px rgba(201, 168, 106, 0.32));
+      transition: letter-spacing 1.5s ease, opacity 1.5s ease 0.2s;
+    }
+
+    .ld-word span {
+      display: inline-block;
+      animation: ldIn 1s ease both;
+      animation-delay: calc(var(--d) * 70ms);
+    }
+
+    @keyframes ldIn {
+      from { opacity: 0; filter: blur(10px); }
+      to { opacity: 1; filter: blur(0); }
+    }
+
+    /* 收尾：墨已经化开，字只负责轻轻往外涨一点、淡掉 */
+    #loading.out .ld-word { letter-spacing: 0.6em; opacity: 0; }
+
+    .ld-bar {
+      position: relative;
+      width: 168px;
+      height: 1px;
+      background: rgba(201, 168, 106, 0.18);
+      overflow: hidden;
+    }
+
+    .ld-bar i {
+      position: absolute;
+      top: 0;
+      left: -40%;
+      width: 40%;
+      height: 100%;
+      background: linear-gradient(90deg, rgba(201, 168, 106, 0) 0%, #c9a86a 50%, rgba(201, 168, 106, 0) 100%);
+      animation: ldSweep 1.7s ease-in-out infinite;
+    }
+
+    #loading.out .ld-bar { opacity: 0; transition: opacity 0.4s ease; }
+
+    @keyframes ldSweep {
+      0% { left: -40%; }
+      100% { left: 100%; }
+    }
+
+    @media (max-width: 640px) {
+      .ld-word { letter-spacing: 0.26em; margin-right: -0.26em; }
+      .ld-bar { width: 132px; }
+    }
   </style>
 </head>
 <body>
+  <!-- 墨化滤镜：噪声位移让笔画边缘毛糙，再用 alpha 阈值把墨"吃掉" -->
+  <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+    <filter id="inkBleed" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB">
+      <feTurbulence id="inkNoise" type="fractalNoise" baseFrequency="0.012 0.028" numOctaves="2" seed="11" result="noise" />
+      <feDisplacementMap id="inkDisp" in="SourceGraphic" in2="noise" scale="2.4" xChannelSelector="R" yChannelSelector="G" result="warp" />
+      <feGaussianBlur id="inkBlur" in="warp" stdDeviation="0.35" />
+    </filter>
+  </svg>
+  <div id="loading" role="status" aria-label="正在加载">
+    <div class="ld-bg" aria-hidden="true"></div>
+    <div class="ld-ink" aria-hidden="true"></div>
+    <div class="ld-ghost" aria-hidden="true">LOADING</div>
+    <div class="ld-word" aria-hidden="true">
+      <span style="--d:5">L</span><span style="--d:3">O</span><span style="--d:1">A</span><span style="--d:0">D</span><span style="--d:1">I</span><span style="--d:3">N</span><span style="--d:5">G</span>
+    </div>
+    <div class="ld-bar" aria-hidden="true"><i></i></div>
+  </div>
   <div id="stage"></div>
   <div id="overlay"></div>
   <div id="siteTitle">
     <h1>BG5FNH</h1>
     <p>肖和 · 业余无线电 · 软硬件与编程</p>
   </div>
-  <div id="versionBadge">v1.12.0</div>
+  <div id="versionBadge">v1.13.0</div>
   <button id="backToOverview" aria-label="返回">
     <svg viewBox="0 0 24 24" width="20" height="20">
       <path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
@@ -293,8 +456,59 @@
     <iframe id="pageFrame" title="内容页面" src="about:blank" allow="geolocation; microphone; camera; fullscreen; clipboard-write; autoplay" allowfullscreen></iframe>
   </div>
 
-  <script src="js/three.min.js?v=1.12.0"></script>
-  <script src="../points/waypoints.js?v=1.12.0"></script>
-  <script src="js/main3d.js?v=1.12.0"></script>
+  <script>
+    (function () {
+      var el = document.getElementById('loading');
+      if (!el) return;
+      var out = false;
+      var t0 = Date.now();
+
+      // 墨化：噪声位移把笔画边缘推毛，模糊让墨往四周洇开；淡出交给 CSS
+      function inkSpread(ms) {
+        var disp = document.getElementById('inkDisp');
+        var blur = document.getElementById('inkBlur');
+        var noise = document.getElementById('inkNoise');
+        if (!disp || !blur) return;
+        var start = performance.now();
+        function frame(now) {
+          var p = Math.min(1, (now - start) / ms);
+          var e = 1 - Math.pow(1 - p, 2.6);              // 先快后慢，像墨入水
+          disp.setAttribute('scale', (2.4 + 16 * e).toFixed(2));
+          blur.setAttribute('stdDeviation', (0.35 + 5.6 * e).toFixed(2));
+          if (noise) noise.setAttribute('baseFrequency',
+            (0.012 + 0.014 * e).toFixed(4) + ' ' + (0.028 + 0.022 * e).toFixed(4));
+          if (p < 1) requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+      }
+
+      function dissolve() {
+        if (out) return;
+        out = true;
+        // 网快时也别一眨眼就闪过去，至少让这行字露个面
+        var wait = Math.max(0, 700 - (Date.now() - t0));
+        window.setTimeout(function () {
+          document.body.classList.add('ready');   // 光点淡入
+          el.classList.add('out');                // 黑底、光晕开始化
+          inkSpread(1200);                        // 字像墨一样晕开
+          window.setTimeout(function () { el.style.display = 'none'; }, 2800);
+        }, wait);
+      }
+      window.__bg5fnhReady = dissolve;
+      window.__bg5fnhFail = function () {
+        var f = document.getElementById('fallback');
+        if (f) f.style.display = 'flex';
+        dissolve();
+      };
+      // 兜底：真卡死了也不能一直转（脚本没下完不算卡死，给到 40 秒）
+      window.setTimeout(function () {
+        if (typeof window.THREE === 'undefined') window.__bg5fnhFail();
+        else dissolve();
+      }, 40000);
+    })();
+  </script>
+  <script src="js/three.min.js?v=1.13.0" onerror="window.__bg5fnhFail && window.__bg5fnhFail()"></script>
+  <script src="../points/waypoints.js?v=1.13.0"></script>
+  <script src="js/main3d.js?v=1.13.0"></script>
 </body>
 </html>

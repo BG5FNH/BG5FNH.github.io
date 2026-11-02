@@ -11,27 +11,98 @@
   <meta property="og:description" content="业余无线电、软件与硬件、编程与资料分享。" />
   <meta property="og:url" content="https://bg5fnh.github.io/" />
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; background: #0b0b0d; }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 24px;
+      overflow: hidden;
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      background: radial-gradient(circle at 50% 46%, #12100f 0%, #0b0b0d 58%);
+    }
+
+    .ld-word {
+      display: flex;
+      font-family: "Times New Roman", Georgia, "Songti SC", serif;
+      font-size: clamp(28px, 7vw, 52px);
+      font-weight: 500;
+      letter-spacing: 0.34em;
+      margin-right: -0.34em;
+      background: linear-gradient(180deg, #f5e9cd 0%, #d8b579 42%, #9c8049 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 0 20px rgba(201, 168, 106, 0.32));
+    }
+
+    .ld-word span {
+      display: inline-block;
+      animation: ldIn 1s ease both;
+      animation-delay: calc(var(--d) * 70ms);
+    }
+
+    @keyframes ldIn {
+      from { opacity: 0; filter: blur(10px); }
+      to { opacity: 1; filter: blur(0); }
+    }
+
+    .ld-bar {
+      position: relative;
+      width: 160px;
+      height: 1px;
+      background: rgba(201, 168, 106, 0.18);
+      overflow: hidden;
+    }
+
+    .ld-bar i {
+      position: absolute;
+      top: 0;
+      left: -40%;
+      width: 40%;
+      height: 100%;
+      background: linear-gradient(90deg, rgba(201, 168, 106, 0) 0%, #c9a86a 50%, rgba(201, 168, 106, 0) 100%);
+      animation: ldSweep 1.7s ease-in-out infinite;
+    }
+
+    @keyframes ldSweep {
+      0% { left: -40%; }
+      100% { left: 100%; }
+    }
+
+    .ld-fallback {
+      max-width: 300px;
+      color: rgba(201, 168, 106, 0.8);
+      font-size: 13px;
+      line-height: 2;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+
+    .ld-fallback a { color: #c9a86a; }
+  </style>
   <script>
     (function () {
       var ua = navigator.userAgent || navigator.vendor || window.opera || '';
       var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone|Mobile/i.test(ua)
         || (window.innerWidth <= 1024 && (navigator.maxTouchPoints > 0 || 'ontouchstart' in window));
-      var target = isMobile ? 'mobile/index_m.html?v=1.12.0' : 'pc/index.html?v=1.12.0';
+      var target = isMobile ? 'mobile/index_m.html?v=1.13.0' : 'pc/index.html?v=1.13.0';
       window.location.replace(target);
     })();
   </script>
 </head>
-<body style="margin:0;background:#0b0b0d;color:#c9a86a;font-family:'Microsoft YaHei','PingFang SC',sans-serif;">
-  <div style="display:flex;height:100vh;align-items:center;justify-content:center;flex-direction:column;gap:18px;text-align:center;">
-    <p style="letter-spacing:6px;font-size:20px;margin:0;">BG5FNH</p>
-    <p style="font-size:13px;letter-spacing:2px;color:rgba(201,168,106,0.7);margin:0;">正在进入站点…</p>
-    <noscript>
-      <p style="font-size:13px;line-height:2;">
-        浏览器禁用了 JavaScript，请手动选择：
-        <a href="pc/index.html" style="color:#c9a86a;">电脑版</a> ·
-        <a href="mobile/index_m.html" style="color:#c9a86a;">手机版</a>
-      </p>
-    </noscript>
+<body>
+  <div class="ld-word" aria-label="loading" role="status">
+    <span style="--d:5">L</span><span style="--d:3">O</span><span style="--d:1">A</span><span style="--d:0">D</span><span style="--d:1">I</span><span style="--d:3">N</span><span style="--d:5">G</span>
   </div>
+  <div class="ld-bar" aria-hidden="true"><i></i></div>
+  <noscript>
+    <p class="ld-fallback">
+      浏览器禁用了 JavaScript，请手动选择：<br />
+      <a href="pc/index.html">电脑版</a> · <a href="mobile/index_m.html">手机版</a>
+    </p>
+  </noscript>
 </body>
 </html>
