@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>读得懂代码：PHP / Python / JS 的最小语法对照 · 从零学网安</title><link rel="stylesheet" href="assets/style.css"><style>.top .btn.bk{color:#e7b98a;border-color:rgba(231,185,138,.55);margin-right:6px;text-decoration:none}.top .btn.bk:hover{color:#fff;border-color:#ff8b6b}</style></head><body><div class="top"><a class="btn bk" href="#" id="bg5fnhBack" title="回到网站">← 返回</a><div class="brand">从零学网安 <small>从 Linux 与网站运行原理，到用妮露工具箱做出一道题</small></div><div class="grow"></div><input id="q" type="search" placeholder="搜：SQL 注入 / session / 端口 …"><a class="btn" href="index.html">目录</a><div id="hits"></div></div><div class="wrap"><aside class='side'><h4>章节</h4><a href='ch00.html'>00　学习地图：这门课到底在教你什么</a><a href='ch01.html'>01　一次访问的全过程（从按下回车到看见页面）</a><a href='ch02.html'>02　Linux 最小必要：文件、权限、进程、命令</a><a href='ch03.html'>03　网站是怎么跑起来的（Nginx 与后端的分工）</a><a class='on' href='ch04.html'>04　读得懂代码：PHP / Python / JS 的最小语法对照</a><a href='ch05.html'>05　输入从哪来：参数、头、Cookie、文件、JSON</a><a href='ch06.html'>06　数据库与 SQL 注入：数据变成语法的瞬间</a><a href='ch07.html'>07　认证与会话：我是谁，以及我怎么证明</a><a href='ch08.html'>08　文件类漏洞：读取、包含、上传、穿越</a><a href='ch09.html'>09　执行类与借刀类：命令、模板、反序列化、SSRF、XXE</a><a href='ch10.html'>10　信息收集：把「一个网址」变成「一张清单」</a><a href='ch11.html'>11　用妮露工具箱实战：面板、洪水、信息显示</a><a href='ch12.html'>12　十二道渐进练习：从「看页面」到「打完整链」</a><a href='ch13.html'>13　进阶：代理层、协议层与「看不见的」漏洞</a><a href='ch14.html'>14　附录：工具箱全表（面板 · 策略 · 判据）</a><h4>附录</h4><a href='glossary.html'>术语总表</a><h4>本页</h4><a href='#s1'>先建立正确的期待</a><a href='#s2'>三语言最小对照表</a><a href='#s3'>PHP 里必须认识的十行</a><a href='#s4'>类与魔术方法：反序列化的钥匙</a><a href='#s5'>过滤为什么常常挡不住</a><a href='#s6'>本章小结</a></aside><main>
+<h1>第 04 章　读得懂代码：PHP / Python / JS 的最小语法对照</h1><p class='lead'>你不需要会写项目，但要能在 30 秒内看出「这个参数流到了哪」。这一章只讲读漏洞代码要用的语法：变量、数组、函数、包含、类。</p>
+<div class="goals"><h4>本章你会得到</h4>
+<ul>
+<li>三份"最小语法表"：<a class='gl' data-k='30' href='glossary.html#t-30' title='点一下看解释（Esc 关闭）'>变量</a>、<a class='gl' data-k='31' href='glossary.html#t-31' title='点一下看解释（Esc 关闭）'>数组</a>、<a class='gl' data-k='32' href='glossary.html#t-32' title='点一下看解释（Esc 关闭）'>函数</a>、类、<a class='gl' data-k='48' href='glossary.html#t-48' title='点一下看解释（Esc 关闭）'>文件包含</a>，PHP/Python/JS 对照</li>
+<li>能读懂"这段代码危不危险"的五个判断点</li>
+<li>认识 PHP 的<a class='gl' data-k='34' href='glossary.html#t-34' title='点一下看解释（Esc 关闭）'>魔术方法</a>，知道<a class='gl' data-k='36' href='glossary.html#t-36' title='点一下看解释（Esc 关闭）'>反序列化</a>为什么能一路走到命令执行</li>
+</ul></div>
+
+<figure><svg viewBox="0 0 940 250" xmlns="http://www.w3.org/2000/svg" role="img"><text x="470.0" y="26.0" fill="#ffd9a8" font-size="14.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="middle" opacity="1.00">读一段陌生代码，按这个顺序看</text><rect x="24.0" y="54.0" width="170.0" height="90.0" rx="10" fill="#23322b" stroke="#4fa87a" stroke-width="1.4" opacity="1.00"/><text x="109.0" y="89.8" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">① 入口</text><text x="109.0" y="106.2" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">哪个文件接收请求 index.ph</text><text x="109.0" y="120.8" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">p / app.py</text><rect x="210.0" y="54.0" width="170.0" height="90.0" rx="10" fill="#3a2a1f" stroke="#e0a03a" stroke-width="1.4" opacity="1.00"/><text x="295.0" y="89.8" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">② 参数</text><text x="295.0" y="106.2" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">谁读了 $_GET / $_POST / </text><text x="295.0" y="120.8" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">args</text><rect x="396.0" y="54.0" width="170.0" height="90.0" rx="10" fill="#3a2020" stroke="#d8504f" stroke-width="1.4" opacity="1.00"/><text x="481.0" y="89.8" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">③ 流向</text><text x="481.0" y="106.2" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">参数进了哪个<a class='gl' data-k='32' href='glossary.html#t-32' title='点一下看解释（Esc 关闭）'>函数</a> SQL / in</text><text x="481.0" y="120.8" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">clude / eval</text><rect x="582.0" y="54.0" width="170.0" height="90.0" rx="10" fill="#243040" stroke="#4f86c6" stroke-width="1.4" opacity="1.00"/><text x="667.0" y="97.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">④ 过滤</text><text x="667.0" y="113.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">有没有过滤、在哪一步生效</text><rect x="768.0" y="54.0" width="170.0" height="90.0" rx="10" fill="#2d2438" stroke="#9a6bb5" stroke-width="1.4" opacity="1.00"/><text x="853.0" y="97.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">⑤ 出口</text><text x="853.0" y="113.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">结果怎么回显、能不能带出来</text><text x="470.0" y="176.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">顺序不能反：先找入口再找出口，中间的过滤只是「要看一眼」的关卡</text><rect x="24.0" y="194.0" width="900.0" height="44.0" rx="10" fill="#1b1514" stroke="#3a2a2a" stroke-width="1.4" opacity="1.00"/><text x="38.0" y="220.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">练法：随便找一段 20 行的 PHP，用这五步写一遍注释 —— 三次之后读代码会明显变快。</text></svg><figcaption>图 4-1　代码阅读五步</figcaption></figure>
+
+<h2 id='s1'>先建立正确的期待</h2>
+
+<p>CTF 里的代码通常只有 20~60 行。你要做的不是"看懂每行在干什么"，而是回答五个问题：</p>
+
+<ol>
+<li>哪个文件在处理我的请求？（入口）</li>
+<li>它读了哪些外部输入？（<code>$_GET</code> / <code>$_POST</code> / cookie / header / 上传文件）</li>
+<li>这些输入进了哪些危险函数？（SQL、include、eval、system、unserialize）</li>
+<li>中间有没有过滤？过滤的是"字符"还是"语义"？</li>
+<li>结果怎么回到我眼前？（回显 / 写文件 / 跳转 / 报错）</li>
+</ol>
+
+<div class="why"><span class="t">为什么要先学"危险函数清单"</span>
+<p>因为它是<b><a class='gl' data-k='40' href='glossary.html#t-40' title='点一下看解释（Esc 关闭）'>漏洞</a>的锚点</b>。一段 50 行的代码，只要扫到 <code>include($_GET[...])</code>，
+你就知道这题八成是<a class='gl' data-k='48' href='glossary.html#t-48' title='点一下看解释（Esc 关闭）'>文件包含</a>，剩下的只是绕过。清单比语法重要得多。</p></div>
+
+<h2 id='s2'>三语言最小对照表</h2>
+
+<table>
+<tr><th>概念</th><th>PHP</th><th>Python（Flask）</th><th>JS（Express）</th></tr>
+<tr><td><a class='gl' data-k='30' href='glossary.html#t-30' title='点一下看解释（Esc 关闭）'>变量</a></td><td><code>$a = 1;</code></td><td><code>a = 1</code></td><td><code>let a = 1;</code></td></tr>
+<tr><td>字符串拼接</td><td><code>$s = "hi " . $name;</code></td><td><code>s = "hi " + name</code>（或 f-string）</td>
+    <td><code>`hi ${name}`</code></td></tr>
+<tr><td><a class='gl' data-k='31' href='glossary.html#t-31' title='点一下看解释（Esc 关闭）'>数组</a> / 字典</td><td><code>$a = ["x" =&gt; 1];</code></td><td><code>a = {"x": 1}</code></td>
+    <td><code>let a = {x: 1};</code></td></tr>
+<tr><td>取请求参数</td><td><code>$_GET['id']</code>、<code>$_POST['id']</code></td>
+    <td><code>request.args.get('id')</code></td><td><code>req.query.id</code></td></tr>
+<tr><td>引入另一个文件</td><td><code>include</code> / <code>require</code></td>
+    <td><code>import</code> / <code>from x import y</code></td><td><code>require('./x')</code></td></tr>
+<tr><td>调系统命令</td><td><code>system()</code>、<code>exec()</code>、<code>shell_exec()</code>、反引号</td>
+    <td><code>os.system()</code>、<code>subprocess.run()</code></td><td><code>child_process.exec()</code></td></tr>
+<tr><td>执行代码字符串</td><td><code>eval()</code>、<code>assert()</code>、<code>create_function</code></td>
+    <td><code>eval()</code>、<code>exec()</code></td><td><code>eval()</code>、<code>new Function()</code></td></tr>
+<tr><td>模板</td><td>Twig / Smarty</td><td>Jinja2</td><td>EJS / Pug</td></tr>
+</table>
+
+<div class="tip"><span class="t">读代码时唯一要背的英文单词表</span>
+<p><code>include</code>（包含）、<code>eval</code>（执行字符串）、<code>system</code>（跑命令）、
+<code>query</code>（查库）、<code>unserialize</code>（还原对象）、<code>readfile</code>（读文件）、
+<code>file_put_contents</code>（写文件）、<code>header</code>（改响应头）、
+<code>preg_match</code>（<a class='gl' data-k='38' href='glossary.html#t-38' title='点一下看解释（Esc 关闭）'>正则</a>过滤）。看到这九个，停下来想三秒。</p></div>
+
+<h2 id='s3'>PHP 里必须认识的十行</h2>
+
+<pre class="term"><code>&lt;?php
+$id = $_GET['id'];                 // ① 取参数
+if (!preg_match('/^[0-9]+$/', $id)) {   // ② 过滤：只允许数字
+    die('bad');
+}
+$sql = "SELECT * FROM news WHERE id = " . $id;   // ③ 拼进 SQL
+$row = mysqli_query($conn, $sql);                 // ④ 执行
+echo $row['title'];                               // ⑤ 输出
+
+include($_GET['page']);            // ⑥ 包含（可控路径）
+file_put_contents($f, $data);      // ⑦ 写文件
+system('ping -c1 ' . $host);       // ⑧ 跑命令
+unserialize(base64_decode($c));    // ⑨ 还原对象（危险）
+eval($code);                       // ⑩ 直接执行代码
+</code></pre>
+
+<div class="why"><span class="t">为什么 PHP 特别多这类洞</span>
+<p>历史原因：它天生为"模板里嵌代码"设计，<code>include</code> 一个变量路径、<code>eval</code>
+一段字符串都很自然；早期也没有成熟的<a class='gl' data-k='45' href='glossary.html#t-45' title='点一下看解释（Esc 关闭）'>参数化查询</a>习惯。结果就是
+<b>危险函数离用户输入特别近</b>。</p>
+<p>这不代表别的语言安全。Python 的 <code>eval</code>/<code>pickle</code>、
+Node 的 <code>eval</code>/<code>child_process</code>、Java 的 <code>Runtime.exec</code>
+是同一个病，只是入口长相不同。</p></div>
+
+<h2 id='s4'>类与魔术方法：反序列化的钥匙</h2>
+
+<pre class="term"><code>class User {
+    public $name = 'guest';
+    public $isAdmin = false;
+
+    public function __wakeup() {          // 反序列化时会自动调用
+        if ($this->isAdmin) {
+            // 给自己发管理员权限
+        }
+    }
+    public function __destruct() {        // 对象销毁时自动调用
+        // 常用于"删临时文件""写日志"
+    }
+}</code></pre>
+
+<div class="why"><span class="t">为什么要专门记 __wakeup / __destruct</span>
+<p>因为<a class='gl' data-k='59' href='glossary.html#t-59' title='点一下看解释（Esc 关闭）'>反序列化漏洞</a>的利用链（<a class='gl' data-k='37' href='glossary.html#t-37' title='点一下看解释（Esc 关闭）'>POP 链</a>）就是靠这些<b>自动被调用的方法</b>串起来的：
+你控制对象的属性 → 服务器还原对象 → 自动调用 <code>__destruct</code> →
+它内部又调了别的对象的方法 → 一路走到"读文件/执行命令"。</p>
+<p>第 9 章会用一个完整例子走一遍。现在只要记住：<b>看到 unserialize + 可控输入 = 高危</b>。</p></div>
+
+<h2 id='s5'>过滤为什么常常挡不住</h2>
+
+<table>
+<tr><th>过滤写法</th><th>看起来在防什么</th><th>为什么会被绕</th></tr>
+<tr><td><code>str_replace('select', '', $s)</code></td><td>去掉 select</td>
+    <td>只替换一次："selselectect" 去掉中间的又拼回来了（<code>SELselectECT</code> 同理）</td></tr>
+<tr><td><code>preg_match('/union/')</code></td><td>拦 union</td><td>大小写、注释、换行、编码都能变</td></tr>
+<tr><td>只查后缀 <code>.php</code></td><td>不让传 php</td><td><code>.php5</code>、<code>.phtml</code>、<code>.pHp</code>、双后缀</td></tr>
+<tr><td>黑名单关键字</td><td>拦危险词</td><td>换个等价函数（<code>system</code>→<code>passthru</code>/反引号）</td></tr>
+</table>
+
+<div class="warn"><span class="t">结论：过滤"字符"永远可以被绕，"过滤语义"才有效</span>
+<p><a class='gl' data-k='45' href='glossary.html#t-45' title='点一下看解释（Esc 关闭）'>参数化查询</a>、白名单、禁用外部实体 —— 这些是"语义级"防御，绕不过；
+而 <code>str_replace</code> 这类字符级过滤，只是提高了一点成本。</p></div>
+
+<h2 id='s6'>本章小结</h2>
+
+<table>
+<tr><th>能力</th><th>标准</th></tr>
+<tr><td>定位入口</td><td>能在 10 秒内找到读取外部输入的那几行</td></tr>
+<tr><td>识别危险函数</td><td>九个关键词一扫就知道有没有戏</td></tr>
+<tr><td>判断过滤强度</td><td>能说出"这是字符级还是语义级"</td></tr>
+<tr><td>理解<a class='gl' data-k='34' href='glossary.html#t-34' title='点一下看解释（Esc 关闭）'>魔术方法</a></td><td>知道为什么<a class='gl' data-k='36' href='glossary.html#t-36' title='点一下看解释（Esc 关闭）'>反序列化</a>能自动触发代码</td></tr>
+</table>
+
+<div class='pager'><a class='l' href='ch03.html'>← 03　网站是怎么跑起来的（Nginx 与后端的分工）</a><a class='r' href='ch05.html'>05　输入从哪来：参数、头、Cookie、文件、JSON →</a></div></main></div><script src="assets/terms.js"></script><script src="assets/site.js"></script><script>
+(function () {
+  var b = document.getElementById("bg5fnhBack");
+  if (!b) return;
+  b.addEventListener("click", function (e) {
+    e.preventDefault();
+    try {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: "BG5FNH_CLOSE_OVERLAY" }, "*");
+        return;
+      }
+    } catch (err) {}
+    var m = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+    window.location.href = "../../../../../" + (m ? "mobile/index_m.html" : "pc/index.html");
+  });
+})();
+</script>
+</body></html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>输入从哪来：参数、头、Cookie、文件、JSON · 从零学网安</title><link rel="stylesheet" href="assets/style.css"><style>.top .btn.bk{color:#e7b98a;border-color:rgba(231,185,138,.55);margin-right:6px;text-decoration:none}.top .btn.bk:hover{color:#fff;border-color:#ff8b6b}</style></head><body><div class="top"><a class="btn bk" href="#" id="bg5fnhBack" title="回到网站">← 返回</a><div class="brand">从零学网安 <small>从 Linux 与网站运行原理，到用妮露工具箱做出一道题</small></div><div class="grow"></div><input id="q" type="search" placeholder="搜：SQL 注入 / session / 端口 …"><a class="btn" href="index.html">目录</a><div id="hits"></div></div><div class="wrap"><aside class='side'><h4>章节</h4><a href='ch00.html'>00　学习地图：这门课到底在教你什么</a><a href='ch01.html'>01　一次访问的全过程（从按下回车到看见页面）</a><a href='ch02.html'>02　Linux 最小必要：文件、权限、进程、命令</a><a href='ch03.html'>03　网站是怎么跑起来的（Nginx 与后端的分工）</a><a href='ch04.html'>04　读得懂代码：PHP / Python / JS 的最小语法对照</a><a class='on' href='ch05.html'>05　输入从哪来：参数、头、Cookie、文件、JSON</a><a href='ch06.html'>06　数据库与 SQL 注入：数据变成语法的瞬间</a><a href='ch07.html'>07　认证与会话：我是谁，以及我怎么证明</a><a href='ch08.html'>08　文件类漏洞：读取、包含、上传、穿越</a><a href='ch09.html'>09　执行类与借刀类：命令、模板、反序列化、SSRF、XXE</a><a href='ch10.html'>10　信息收集：把「一个网址」变成「一张清单」</a><a href='ch11.html'>11　用妮露工具箱实战：面板、洪水、信息显示</a><a href='ch12.html'>12　十二道渐进练习：从「看页面」到「打完整链」</a><a href='ch13.html'>13　进阶：代理层、协议层与「看不见的」漏洞</a><a href='ch14.html'>14　附录：工具箱全表（面板 · 策略 · 判据）</a><h4>附录</h4><a href='glossary.html'>术语总表</a><h4>本页</h4><a href='#s1'>什么叫&quot;外部输入&quot;</a><a href='#s2'>四段模型：把题塞进去</a><a href='#s3'>判断&quot;参数到底有没有进代码&quot;：反射点</a><a href='#s4'>编码：为什么 payload 常常要&quot;变形&quot;</a><a href='#s5'>一个完整的&quot;输入分析&quot;示例</a><a href='#s6'>本章小结</a></aside><main>
+<h1>第 05 章　输入从哪来：参数、头、Cookie、文件、JSON</h1><p class='lead'>所有 Web 漏洞都发生在「外部输入」上。这一章把输入的每个入口列清楚，并给出「输入 → 处理 → 存储 → 输出」这个万能分析模型。</p>
+<div class="goals"><h4>本章你会得到</h4>
+<ul>
+<li>七类外部输入的清单，以及每类对应的常见<a class='gl' data-k='40' href='glossary.html#t-40' title='点一下看解释（Esc 关闭）'>漏洞</a></li>
+<li>一个四段模型（输入/处理/存储/输出），能把任何一道题塞进去分析</li>
+<li>学会用「反射点」判断参数到底有没有进代码</li>
+</ul></div>
+
+<h2 id='s1'>什么叫"外部输入"</h2>
+
+<p>凡是<b>客户端能决定的值</b>，都是外部输入。它们的共同点：<b>服务器必须假设它们可能是恶意的</b>。</p>
+
+<table>
+<tr><th>入口</th><th>长什么样</th><th>为什么危险</th><th>典型<a class='gl' data-k='40' href='glossary.html#t-40' title='点一下看解释（Esc 关闭）'>漏洞</a></th></tr>
+<tr><td>查询串</td><td><code>/a?id=1&amp;name=x</code></td><td>最容易被拼进 SQL/文件路径</td><td>SQLi、LFI、<a class='gl' data-k='60' href='glossary.html#t-60' title='点一下看解释（Esc 关闭）'>IDOR</a></td></tr>
+<tr><td>请求体</td><td>表单 / JSON / XML / 二进制</td><td>结构复杂，解析器各有怪癖</td><td>注入、<a class='gl' data-k='58' href='glossary.html#t-58' title='点一下看解释（Esc 关闭）'>XXE</a>、<a class='gl' data-k='36' href='glossary.html#t-36' title='点一下看解释（Esc 关闭）'>反序列化</a></td></tr>
+<tr><td>路径</td><td><code>/a/b/../../c</code></td><td>服务器要按路径找文件</td><td><a class='gl' data-k='49' href='glossary.html#t-49' title='点一下看解释（Esc 关闭）'>路径穿越</a>、解析差异</td></tr>
+<tr><td><a class='gl' data-k='8' href='glossary.html#t-8' title='点一下看解释（Esc 关闭）'>请求头</a></td><td><code>Host</code>、<code>X-Forwarded-For</code>、<code>User-Agent</code></td>
+    <td>很多代码默认"头是可信的"</td><td>Host 投毒、IP 伪造、<a class='gl' data-k='20' href='glossary.html#t-20' title='点一下看解释（Esc 关闭）'>日志</a>投毒</td></tr>
+<tr><td><a class='gl' data-k='10' href='glossary.html#t-10' title='点一下看解释（Esc 关闭）'><a class='gl' data-k='10' href='glossary.html#t-10' title='点一下看解释（Esc 关闭）'>Cookie</a></a></td><td><code>PHPSESSID=…</code>、自定义字段</td><td>由客户端保管，可改</td><td>会话伪造、<a class='gl' data-k='36' href='glossary.html#t-36' title='点一下看解释（Esc 关闭）'>反序列化</a></td></tr>
+<tr><td>上传文件</td><td>multipart 里的 filename + 内容</td><td>落到磁盘上就成了文件</td><td><a class='gl' data-k='53' href='glossary.html#t-53' title='点一下看解释（Esc 关闭）'>webshell</a>、竞争</td></tr>
+<tr><td>服务端自己取的</td><td>你给个 URL，它去请求</td><td>服务器有内网权限</td><td><a class='gl' data-k='57' href='glossary.html#t-57' title='点一下看解释（Esc 关闭）'>SSRF</a></td></tr>
+</table>
+
+<div class="why"><span class="t">为什么"头"也算输入，很多人会漏</span>
+<p>因为浏览器正常不会乱改头，但攻击者<b>不用浏览器</b>。curl 一行就能把头改成任何值。
+代码里 <code>$_SERVER['HTTP_HOST']</code>、<code>$_SERVER['HTTP_X_FORWARDED_FOR']</code>
+全是用户可控的 —— 如果程序拿它拼密码重置链接、拼 SQL、做权限判断，就出事。</p></div>
+
+<figure><svg viewBox="0 0 960 330" xmlns="http://www.w3.org/2000/svg" role="img"><rect x="30.0" y="70.0" width="200.0" height="92.0" rx="10" fill="#23322b" stroke="#4fa87a" stroke-width="1.4" opacity="1.00"/><text x="130.0" y="106.8" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">① 输入</text><text x="130.0" y="123.2" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">GET/POST/Cookie/ Header/文件/</text><text x="130.0" y="137.8" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">JSON</text><g><line x1="232.0" y1="116.0" x2="257.0" y2="116.0" stroke="#6b5550" stroke-width="1.8"/><polygon points="264.0,116.0 257.9,119.5 257.9,112.5" fill="#6b5550"/></g><rect x="266.0" y="70.0" width="200.0" height="92.0" rx="10" fill="#3a2a1f" stroke="#e0a03a" stroke-width="1.4" opacity="1.00"/><text x="366.0" y="114.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">② 处理</text><text x="366.0" y="130.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">拼接/解码/校验/ 查库/调命令</text><g><line x1="468.0" y1="116.0" x2="493.0" y2="116.0" stroke="#6b5550" stroke-width="1.8"/><polygon points="500.0,116.0 493.9,119.5 493.9,112.5" fill="#6b5550"/></g><rect x="502.0" y="70.0" width="200.0" height="92.0" rx="10" fill="#243040" stroke="#4f86c6" stroke-width="1.4" opacity="1.00"/><text x="602.0" y="114.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">③ 存储</text><text x="602.0" y="130.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">数据库/文件/ session/缓存</text><g><line x1="704.0" y1="116.0" x2="729.0" y2="116.0" stroke="#6b5550" stroke-width="1.8"/><polygon points="736.0,116.0 729.9,119.5 729.9,112.5" fill="#6b5550"/></g><rect x="738.0" y="70.0" width="200.0" height="92.0" rx="10" fill="#2d2438" stroke="#9a6bb5" stroke-width="1.4" opacity="1.00"/><text x="838.0" y="114.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">④ 输出</text><text x="838.0" y="130.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">HTML/JSON/ 跳转/下载</text><text x="480.0" y="36.0" fill="#ffd9a8" font-size="15.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="middle" opacity="1.00">所有 Web 漏洞都能塞进这条流水线</text><line x1="56.0" y1="166.0" x2="56.0" y2="196.0" stroke="#5a3a3e" stroke-width="1.0" stroke-dasharray="4 4"/><rect x="-49.9" y="196.0" width="211.8" height="20.0" rx="10" fill="#2a1f1e" stroke="#5a3a3e" stroke-width="1.4" opacity="1.00"/><text x="56.0" y="210.0" fill="#ffce7a" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00"><a class='gl' data-k='44' href='glossary.html#t-44' title='点一下看解释（Esc 关闭）'>SQL 注入</a> / <a class='gl' data-k='55' href='glossary.html#t-55' title='点一下看解释（Esc 关闭）'>命令注入</a> / <a class='gl' data-k='56' href='glossary.html#t-56' title='点一下看解释（Esc 关闭）'>SSTI</a> / XSS</text><line x1="130.0" y1="166.0" x2="130.0" y2="196.0" stroke="#5a3a3e" stroke-width="1.0" stroke-dasharray="4 4"/><rect x="13.5" y="196.0" width="233.0" height="20.0" rx="10" fill="#2a1f1e" stroke="#5a3a3e" stroke-width="1.4" opacity="1.00"/><text x="130.0" y="210.0" fill="#ffce7a" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00"><a class='gl' data-k='48' href='glossary.html#t-48' title='点一下看解释（Esc 关闭）'>文件包含</a> / 上传 / <a class='gl' data-k='49' href='glossary.html#t-49' title='点一下看解释（Esc 关闭）'>路径穿越</a> / 反序列化</text><line x1="276.0" y1="166.0" x2="276.0" y2="196.0" stroke="#5a3a3e" stroke-width="1.0" stroke-dasharray="4 4"/><rect x="198.6" y="196.0" width="154.8" height="20.0" rx="10" fill="#2a1f1e" stroke="#5a3a3e" stroke-width="1.4" opacity="1.00"/><text x="276.0" y="210.0" fill="#ffce7a" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00"><a class='gl' data-k='57' href='glossary.html#t-57' title='点一下看解释（Esc 关闭）'>SSRF</a>（服务器替你去请求）</text><line x1="420.0" y1="166.0" x2="420.0" y2="196.0" stroke="#5a3a3e" stroke-width="1.0" stroke-dasharray="4 4"/><rect x="331.1" y="196.0" width="177.8" height="20.0" rx="10" fill="#2a1f1e" stroke="#5a3a3e" stroke-width="1.4" opacity="1.00"/><text x="420.0" y="210.0" fill="#ffce7a" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00"><a class='gl' data-k='60' href='glossary.html#t-60' title='点一下看解释（Esc 关闭）'>越权</a>（换个 id 就看完别人的）</text><line x1="560.0" y1="166.0" x2="560.0" y2="196.0" stroke="#5a3a3e" stroke-width="1.0" stroke-dasharray="4 4"/><rect x="477.6" y="196.0" width="164.9" height="20.0" rx="10" fill="#2a1f1e" stroke="#5a3a3e" stroke-width="1.4" opacity="1.00"/><text x="560.0" y="210.0" fill="#ffce7a" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00"><a class='gl' data-k='66' href='glossary.html#t-66' title='点一下看解释（Esc 关闭）'>信息泄露</a>（报错/备份/源码）</text><line x1="700.0" y1="166.0" x2="700.0" y2="196.0" stroke="#5a3a3e" stroke-width="1.0" stroke-dasharray="4 4"/><rect x="617.6" y="196.0" width="164.9" height="20.0" rx="10" fill="#2a1f1e" stroke="#5a3a3e" stroke-width="1.4" opacity="1.00"/><text x="700.0" y="210.0" fill="#ffce7a" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">逻辑漏洞（价格/次数/顺序）</text><rect x="30.0" y="240.0" width="902.0" height="66.0" rx="10" fill="#1b1514" stroke="#3a2a2a" stroke-width="1.4" opacity="1.00"/><text x="44.0" y="264.0" fill="#ffce7a" font-size="13.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="start" opacity="1.00">学习方法：</text><text x="122.0" y="264.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">看到任何一道题，先问「用户输入从哪个口进来」→「它在第几段被当成代码/路径/身份」→「能不能改成我要的」。</text><text x="122.0" y="286.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">这三问比背 payload 有用 —— payload 会因为过滤变化，数据流不会。</text></svg><figcaption>图 4-1　输入 → 处理 → 存储 → 输出：漏洞的位置</figcaption></figure>
+
+<h2 id='s2'>四段模型：把题塞进去</h2>
+
+<div class="tip"><span class="t">用法（每道题都做一遍，30 秒）</span>
+<ol>
+<li><b>输入</b>：我能控制的字符串，从哪个口进去？</li>
+<li><b>处理</b>：它被拼进了什么？（SQL / 路径 / 命令 / 模板 / 反序列化 / 头）</li>
+<li><b>存储</b>：有没有落地？（数据库 / 文件 / session / 缓存）</li>
+<li><b>输出</b>：结果怎么回来？（页面 / 报错 / 跳转 / 时间差 / 外带）</li>
+</ol>
+<p>这四格里任何一格"看起来没问题"，都可以再问一次"真的吗"。
+比如输出没有回显 → 走<a class='gl' data-k='46' href='glossary.html#t-46' title='点一下看解释（Esc 关闭）'>盲注</a>/时间<a class='gl' data-k='46' href='glossary.html#t-46' title='点一下看解释（Esc 关闭）'>盲注</a>/外带（第 6 章）。</p></div>
+
+<h2 id='s3'>判断"参数到底有没有进代码"：反射点</h2>
+
+<p>新手常犯的错：把 payload 发过去，看到页面里出现了自己的字符串，就以为"注入成功"。
+其实那可能只是<b>服务器把你输入原样显示出来</b>（反射）。</p>
+
+<div class="warn"><span class="t">反射 ≠ 执行</span>
+<p>判断方法：发一个<b>不可能被执行</b>的怪串，比如 <code>zzq7test</code>：</p>
+<ul>
+<li>页面出现 <code>zzq7test</code> 原样 → 这是反射，说明"输入被显示"，但不代表进了 SQL/命令；</li>
+<li>发 <code>'</code>（单引号）出现 SQL 报错 → 这是真的进了 SQL；</li>
+<li>发 <code>../../etc/passwd</code> 页面内容变了 → 真的进了文件路径；</li>
+<li>发 <code>;id</code> 回显里出现 <code>uid=33(www-data)</code> → 真的进了命令。</li>
+</ul>
+<p>工具里：洪水会先探一次反射（<code>zqrefl9</code>），参数会回显时把 payload 从响应里剔掉再比较 ——
+就是为了不被自己的回显骗。（这功能是踩了真实题目之后加的，见开发文档 §206。）</p></div>
+
+<h2 id='s4'>编码：为什么 payload 常常要"变形"</h2>
+
+<p>输入在到达危险<a class='gl' data-k='32' href='glossary.html#t-32' title='点一下看解释（Esc 关闭）'>函数</a>之前，可能被多层解码：URL 解码 → 表单解码 → 应用自己再 urldecode → 模板转义。
+<b>每一层都是一次"变形机会"，也是一次"绕过机会"</b>。</p>
+
+<table>
+<tr><th>场景</th><th>写法</th><th>为什么有效</th></tr>
+<tr><td>过滤只看原始串</td><td><code>%27</code> 代替 <code>'</code></td><td>过滤没解码，后端解码后才成为引号</td></tr>
+<tr><td>过滤只看小写</td><td><code>SeLeCt</code></td><td>SQL 关键字不分大小写</td></tr>
+<tr><td>过滤只查一次</td><td><code>selselectect</code></td><td>替换掉中间那个又拼回来了</td></tr>
+<tr><td>二次解码</td><td><code>%2527</code></td><td>第一层解码成 <code>%27</code>，第二层才是 <code>'</code></td></tr>
+<tr><td>路径过滤只查 <code>../</code></td><td><code>....//</code> 或 <code>..%2f</code></td><td>替换后仍然拼出 <code>../</code></td></tr>
+</table>
+
+<h2 id='s5'>一个完整的"输入分析"示例</h2>
+
+<pre class="term"><code>GET /show.php?file=news/1.txt HTTP/1.1
+Host: demo.local
+
+// 服务端（猜测）
+$f = $_GET['file'];                 // 输入
+include('./pages/' . $f);           // 处理：拼进包含路径
+// 输出：被包含文件的内容</code></pre>
+
+<p>按四段模型：输入是 <code>file</code>；处理是"拼进 include 的路径"；没有存储；输出是文件内容。
+那么可以试的方向就明确了：路径穿越（<code>../../</code>）、<a class='gl' data-k='51' href='glossary.html#t-51' title='点一下看解释（Esc 关闭）'>伪协议</a>（<code>php://filter</code>）、
+包含可控文件（<a class='gl' data-k='20' href='glossary.html#t-20' title='点一下看解释（Esc 关闭）'>日志</a>/session/上传）。<b>完全不需要背 payload，方向是分析出来的。</b></p>
+
+<div class="tool"><span class="t">工具箱里对应什么</span>
+<p>「洪水」首探会把页面里的表单字段、URL 参数、可疑长串都列出来；
+「参数名盲试」在页面没暴露参数名时按常见名撞；
+「发包工作台」用来手改头/体/方法，验证你猜的入口。</p></div>
+
+<h2 id='s6'>本章小结</h2>
+
+<table>
+<tr><th>要点</th><th>一句话</th></tr>
+<tr><td>七类入口</td><td>查询串/体/路径/头/Cookie/文件/服务端取回</td></tr>
+<tr><td>四段模型</td><td>输入→处理→存储→输出，任何题都能塞进去</td></tr>
+<tr><td>反射 ≠ 执行</td><td>用怪串+报错区分"被显示"和"被解析"</td></tr>
+<tr><td>编码是绕过手段</td><td>数清有几层解码，就知道该编几次</td></tr>
+</table>
+
+<div class='pager'><a class='l' href='ch04.html'>← 04　读得懂代码：PHP / Python / JS 的最小语法对照</a><a class='r' href='ch06.html'>06　数据库与 SQL 注入：数据变成语法的瞬间 →</a></div></main></div><script src="assets/terms.js"></script><script src="assets/site.js"></script><script>
+(function () {
+  var b = document.getElementById("bg5fnhBack");
+  if (!b) return;
+  b.addEventListener("click", function (e) {
+    e.preventDefault();
+    try {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: "BG5FNH_CLOSE_OVERLAY" }, "*");
+        return;
+      }
+    } catch (err) {}
+    var m = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+    window.location.href = "../../../../../" + (m ? "mobile/index_m.html" : "pc/index.html");
+  });
+})();
+</script>
+</body></html>

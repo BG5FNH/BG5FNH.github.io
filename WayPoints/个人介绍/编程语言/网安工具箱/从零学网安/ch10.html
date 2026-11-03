@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>信息收集：把「一个网址」变成「一张清单」 · 从零学网安</title><link rel="stylesheet" href="assets/style.css"><style>.top .btn.bk{color:#e7b98a;border-color:rgba(231,185,138,.55);margin-right:6px;text-decoration:none}.top .btn.bk:hover{color:#fff;border-color:#ff8b6b}</style></head><body><div class="top"><a class="btn bk" href="#" id="bg5fnhBack" title="回到网站">← 返回</a><div class="brand">从零学网安 <small>从 Linux 与网站运行原理，到用妮露工具箱做出一道题</small></div><div class="grow"></div><input id="q" type="search" placeholder="搜：SQL 注入 / session / 端口 …"><a class="btn" href="index.html">目录</a><div id="hits"></div></div><div class="wrap"><aside class='side'><h4>章节</h4><a href='ch00.html'>00　学习地图：这门课到底在教你什么</a><a href='ch01.html'>01　一次访问的全过程（从按下回车到看见页面）</a><a href='ch02.html'>02　Linux 最小必要：文件、权限、进程、命令</a><a href='ch03.html'>03　网站是怎么跑起来的（Nginx 与后端的分工）</a><a href='ch04.html'>04　读得懂代码：PHP / Python / JS 的最小语法对照</a><a href='ch05.html'>05　输入从哪来：参数、头、Cookie、文件、JSON</a><a href='ch06.html'>06　数据库与 SQL 注入：数据变成语法的瞬间</a><a href='ch07.html'>07　认证与会话：我是谁，以及我怎么证明</a><a href='ch08.html'>08　文件类漏洞：读取、包含、上传、穿越</a><a href='ch09.html'>09　执行类与借刀类：命令、模板、反序列化、SSRF、XXE</a><a class='on' href='ch10.html'>10　信息收集：把「一个网址」变成「一张清单」</a><a href='ch11.html'>11　用妮露工具箱实战：面板、洪水、信息显示</a><a href='ch12.html'>12　十二道渐进练习：从「看页面」到「打完整链」</a><a href='ch13.html'>13　进阶：代理层、协议层与「看不见的」漏洞</a><a href='ch14.html'>14　附录：工具箱全表（面板 · 策略 · 判据）</a><h4>附录</h4><a href='glossary.html'>术语总表</a><h4>本页</h4><a href='#s1'>第 0 步：先看&quot;它想让你干什么&quot;</a><a href='#s2'>第 1 步：技术栈指纹（它是什么写的）</a><a href='#s3'>第 2 步：找&quot;本来不该公开&quot;的文件</a><a href='#s4'>第 3 步：目录与接口枚举</a><a href='#s5'>第 4 步：参数与输入点</a><a href='#s6'>本章小结</a></aside><main>
+<h1>第 10 章　信息收集：把「一个网址」变成「一张清单」</h1><p class='lead'>真实比赛里，第一步永远不是打 payload，而是搞清楚对面是什么。这一章给出按顺序做的四步，以及每一步在找什么。</p>
+<div class="goals"><h4>本章你会得到</h4>
+<ul>
+<li>四步信息收集流程，以及每一步"看什么信号"</li>
+<li>常见泄露文件清单（为什么它们会存在）</li>
+<li><a class='gl' data-k='67' href='glossary.html#t-67' title='点一下看解释（Esc 关闭）'>指纹</a>识别：从响应头和报错看出技术栈</li>
+</ul></div>
+
+<figure><svg viewBox="0 0 960 300" xmlns="http://www.w3.org/2000/svg" role="img"><text x="480.0" y="28.0" fill="#ffd9a8" font-size="14.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="middle" opacity="1.00">信息收集：从「一个域名」到「一张可打的清单」</text><rect x="30.0" y="56.0" width="210.0" height="88.0" rx="10" fill="#23322b" stroke="#4fa87a" stroke-width="1.4" opacity="1.00"/><text x="135.0" y="98.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">被动</text><text x="135.0" y="114.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">子域/<a class='gl' data-k='6' href='glossary.html#t-6' title='点一下看解释（Esc 关闭）'>证书</a>透明 / 搜索引擎/代码托管</text><g><line x1="240.0" y1="100.0" x2="256.0" y2="100.0" stroke="#6b5550" stroke-width="1.8"/><polygon points="263.0,100.0 256.9,103.5 256.9,96.5" fill="#6b5550"/></g><rect x="265.0" y="56.0" width="210.0" height="88.0" rx="10" fill="#243040" stroke="#4f86c6" stroke-width="1.4" opacity="1.00"/><text x="370.0" y="90.8" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">主动·轻</text><text x="370.0" y="107.2" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00"><a class='gl' data-k='2' href='glossary.html#t-2' title='点一下看解释（Esc 关闭）'>DNS</a> 解析/<a class='gl' data-k='1' href='glossary.html#t-1' title='点一下看解释（Esc 关闭）'>端口</a> / <a class='gl' data-k='67' href='glossary.html#t-67' title='点一下看解释（Esc 关闭）'>指纹</a>（Server/框</text><text x="370.0" y="121.8" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">架版本）</text><g><line x1="475.0" y1="100.0" x2="491.0" y2="100.0" stroke="#6b5550" stroke-width="1.8"/><polygon points="498.0,100.0 491.9,103.5 491.9,96.5" fill="#6b5550"/></g><rect x="500.0" y="56.0" width="210.0" height="88.0" rx="10" fill="#3a2a1f" stroke="#e0a03a" stroke-width="1.4" opacity="1.00"/><text x="605.0" y="90.8" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">主动·重</text><text x="605.0" y="107.2" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00"><a class='gl' data-k='68' href='glossary.html#t-68' title='点一下看解释（Esc 关闭）'>目录爆破</a>/参数盲测 / 源码泄露/备份</text><text x="605.0" y="121.8" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">文件</text><g><line x1="710.0" y1="100.0" x2="726.0" y2="100.0" stroke="#6b5550" stroke-width="1.8"/><polygon points="733.0,100.0 726.9,103.5 726.9,96.5" fill="#6b5550"/></g><rect x="735.0" y="56.0" width="210.0" height="88.0" rx="10" fill="#2d2438" stroke="#9a6bb5" stroke-width="1.4" opacity="1.00"/><text x="840.0" y="98.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">成图</text><text x="840.0" y="114.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">入口清单 + 技术栈 / + 已泄露信息</text><rect x="30.0" y="168.0" width="900.0" height="114.0" rx="10" fill="#1b1514" stroke="#3a2a2a" stroke-width="1.4" opacity="1.00"/><text x="44.0" y="192.0" fill="#ffce7a" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="start" opacity="1.00">为什么先做信息收集：</text><text x="208.0" y="192.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00"><a class='gl' data-k='40' href='glossary.html#t-40' title='点一下看解释（Esc 关闭）'>漏洞</a>不是凭空出现的，它长在「具体版本的具体功能」上。知道是 nginx 1.20 + PHP 7.3 + ThinkPHP 5.0.23，</text><text x="208.0" y="216.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">你才知道该验证哪几个洞 —— 而不是把所有 payload 都打一遍（既慢又容易触发 <a class='gl' data-k='65' href='glossary.html#t-65' title='点一下看解释（Esc 关闭）'>WAF</a>）。</text><text x="208.0" y="240.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">工具里对应：「子域枚举 / <a class='gl' data-k='68' href='glossary.html#t-68' title='点一下看解释（Esc 关闭）'>目录爆破</a> / 敏感文件探针 / 站点爬取 / <a class='gl' data-k='1' href='glossary.html#t-1' title='点一下看解释（Esc 关闭）'>端口</a>扫描」五个面板，</text><text x="208.0" y="264.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">以及「洪水」里 kb_paths / kb_files / api_docs / src_leak 这些策略。</text></svg><figcaption>图 11-1　信息收集的四个阶段</figcaption></figure>
+
+<h2 id='s1'>第 0 步：先看"它想让你干什么"</h2>
+
+<p>打开首页，记三件事：<b>有没有登录框、有没有输入框、有没有<a class='gl' data-k='52' href='glossary.html#t-52' title='点一下看解释（Esc 关闭）'>文件上传</a></b>。
+这三样直接决定你该走哪条线：</p>
+
+<table>
+<tr><th>看到</th><th>大概率是</th><th>先试什么</th></tr>
+<tr><td>登录框</td><td>弱口令 / 登录注入 / 认证绕过</td><td><code>admin/admin</code>、<code>admin' -- -</code></td></tr>
+<tr><td>搜索/查询参数</td><td><a class='gl' data-k='44' href='glossary.html#t-44' title='点一下看解释（Esc 关闭）'>SQL 注入</a> / <a class='gl' data-k='56' href='glossary.html#t-56' title='点一下看解释（Esc 关闭）'>SSTI</a> / <a class='gl' data-k='55' href='glossary.html#t-55' title='点一下看解释（Esc 关闭）'>命令注入</a></td><td>引号、<code>{{7*7}}</code>、<code>;id</code></td></tr>
+<tr><td><a class='gl' data-k='52' href='glossary.html#t-52' title='点一下看解释（Esc 关闭）'>文件上传</a></td><td>上传绕过 / 竞争 / 包含配合</td><td>先传个 txt 看落点</td></tr>
+<tr><td>"读取文件"输入框</td><td><a class='gl' data-k='50' href='glossary.html#t-50' title='点一下看解释（Esc 关闭）'>任意文件读取</a> / 包含</td><td><code>/etc/passwd</code>、<code>../</code></td></tr>
+<tr><td>只显示 id 的页面</td><td><a class='gl' data-k='60' href='glossary.html#t-60' title='点一下看解释（Esc 关闭）'>越权</a> / <a class='gl' data-k='46' href='glossary.html#t-46' title='点一下看解释（Esc 关闭）'>盲注</a></td><td>改 id、<code>and 1=1</code></td></tr>
+</table>
+
+<div class="why"><span class="t">为什么这一步就能省掉一半时间</span>
+<p>因为每类功能能出的洞是有限的。反过来，如果你不管三七二十一把所有 payload 都打一遍，
+不但慢，而且容易触发 <a class='gl' data-k='65' href='glossary.html#t-65' title='点一下看解释（Esc 关闭）'>WAF</a> 把 IP 封了 —— 比赛里这就等于提前结束。</p></div>
+
+<h2 id='s2'>第 1 步：技术栈指纹（它是什么写的）</h2>
+
+<table>
+<tr><th>信号</th><th>说明</th><th>怎么利用</th></tr>
+<tr><td><code>Server: nginx/1.20.1</code></td><td>服务器软件与版本</td><td>查该版本已知<a class='gl' data-k='40' href='glossary.html#t-40' title='点一下看解释（Esc 关闭）'>漏洞</a> / 解析特性</td></tr>
+<tr><td><code>X-Powered-By: PHP/7.3.29</code></td><td>后端语言</td><td>决定 payload 语法与可用<a class='gl' data-k='32' href='glossary.html#t-32' title='点一下看解释（Esc 关闭）'>函数</a></td></tr>
+<tr><td><a class='gl' data-k='10' href='glossary.html#t-10' title='点一下看解释（Esc 关闭）'><a class='gl' data-k='10' href='glossary.html#t-10' title='点一下看解释（Esc 关闭）'>Cookie</a></a> 名字</td><td><code>PHPSESSID</code>=PHP、<code>JSESSIONID</code>=Java、<code>connect.sid</code>=Node</td><td>直接知道后端</td></tr>
+<tr><td>报错页样式</td><td>ThinkPHP / Spring / Laravel 各有特征</td><td>查框架已知 RCE</td></tr>
+<tr><td>URL 后缀</td><td><code>.php</code> / <code>.jsp</code> / <code>.do</code> / 无后缀</td><td>猜路由与入口</td></tr>
+</table>
+
+<pre class="term"><code>curl -I http://TARGET/           # 只看响应头，最快
+curl -s http://TARGET/robots.txt # 作者常在这里留路径
+curl -s http://TARGET/.git/HEAD  # 顺手试一下源码泄露</code></pre>
+
+<h2 id='s3'>第 2 步：找"本来不该公开"的文件</h2>
+
+<table>
+<tr><th>文件</th><th>为什么它会存在</th><th>泄露什么</th></tr>
+<tr><td><code>.git/</code></td><td>开发时 git 初始化过，部署时忘了删</td><td>全部源码与历史提交（可能含密码）</td></tr>
+<tr><td><code>.svn/</code>、<code>.DS_Store</code></td><td>版本控制/ macOS 打包残留</td><td>文件清单（知道有哪些隐藏文件）</td></tr>
+<tr><td><code>www.zip</code>、<code>backup.tar.gz</code>、<code>index.php.bak</code></td><td>运维备份习惯</td><td>源码</td></tr>
+<tr><td><code>.env</code></td><td>存数据库密码/密钥</td><td>数据库口令、<a class='gl' data-k='12' href='glossary.html#t-12' title='点一下看解释（Esc 关闭）'>JWT</a> 密钥</td></tr>
+<tr><td><code>phpinfo.php</code></td><td>调试用</td><td><a class='gl' data-k='14' href='glossary.html#t-14' title='点一下看解释（Esc 关闭）'>绝对路径</a>、扩展、disable_functions</td></tr>
+<tr><td><code>/actuator/env</code>、<code>/swagger-ui.html</code></td><td>Spring 自带监控/文档</td><td>配置、接口清单</td></tr>
+</table>
+
+<div class="why"><span class="t">为什么这些文件这么常见</span>
+<p>因为它们都<b>服务于开发/运维的方便</b>：git 方便回滚、备份方便恢复、phpinfo 方便排查。
+方便和安全天生冲突 —— 上线时忘了关，就成了我们的入口。这也是"每个词都要问它解决了什么问题"的意义。</p></div>
+
+<h2 id='s4'>第 3 步：目录与接口枚举</h2>
+
+<p>页面只暴露了 10% 的接口。剩下的靠"猜常见名字"：</p>
+
+<pre class="term"><code># 常见后台/调试路径
+/admin  /login  /api  /debug  /test  /console  /manager  /actuator
+
+# 用工具扫（自带字典）
+# 工具箱 →「目录爆破」面板，或洪水里的 dir_brute 策略</code></pre>
+
+<div class="tip"><span class="t">枚举时注意"软 404"</span>
+<p>很多站点访问不存在的路径也返回 200（带你回首页）。判断标准不是<a class='gl' data-k='9' href='glossary.html#t-9' title='点一下看解释（Esc 关闭）'>状态码</a>，而是
+<b>响应长度/内容是否和"肯定不存在"的随机路径一致</b>。工具里会先请求一个随机路径做基线。</p></div>
+
+<h2 id='s5'>第 4 步：参数与输入点</h2>
+
+<p>把页面里所有"能传东西"的地方列出来：URL 参数、表单字段、隐藏字段、Cookie 名、自定义头。
+这一步的产出是<b>待测清单</b>，不是结论。</p>
+
+<pre class="term"><code>GET /search?q=x&amp;page=1
+POST /login  username, password, csrf_token
+Cookie: PHPSESSID=...; role=user
+Header: X-Requested-With: XMLHttpRequest</code></pre>
+
+<div class="tool"><span class="t">工具箱里对应什么</span>
+<p>「洪水」首探会自动抓表单/参数/长串，并给出"专家假设"（比如"参数名像 URL → 可能是 <a class='gl' data-k='57' href='glossary.html#t-57' title='点一下看解释（Esc 关闭）'>SSRF</a>"）；
+「子域枚举」「目录爆破」「敏感文件探针」「站点爬取」「端口扫描」是五个专项面板；
+策略侧有 <code>kb_paths</code>（flag/后台路径清单）、<code>kb_files</code>（泄露清单）、
+<code>api_docs</code>、<code>src_leak</code>、<code>crawl</code>。</p></div>
+
+<h2 id='s6'>本章小结</h2>
+
+<table>
+<tr><th>步骤</th><th>产出</th></tr>
+<tr><td>看功能</td><td>这题大概考什么</td></tr>
+<tr><td>指纹</td><td>什么语言/框架/版本</td></tr>
+<tr><td>找泄露</td><td>源码、配置、密钥、接口清单</td></tr>
+<tr><td>枚举</td><td>隐藏路径与参数清单</td></tr>
+</table>
+
+<p class="small">有了清单，再回到第 5~9 章，按"输入进了什么"去验证。这就是完整的准备流程。</p>
+
+<div class='pager'><a class='l' href='ch09.html'>← 09　执行类与借刀类：命令、模板、反序列化、SSRF、XXE</a><a class='r' href='ch11.html'>11　用妮露工具箱实战：面板、洪水、信息显示 →</a></div></main></div><script src="assets/terms.js"></script><script src="assets/site.js"></script><script>
+(function () {
+  var b = document.getElementById("bg5fnhBack");
+  if (!b) return;
+  b.addEventListener("click", function (e) {
+    e.preventDefault();
+    try {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: "BG5FNH_CLOSE_OVERLAY" }, "*");
+        return;
+      }
+    } catch (err) {}
+    var m = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+    window.location.href = "../../../../../" + (m ? "mobile/index_m.html" : "pc/index.html");
+  });
+})();
+</script>
+</body></html>

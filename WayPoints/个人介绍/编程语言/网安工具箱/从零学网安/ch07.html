@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>认证与会话：我是谁，以及我怎么证明 · 从零学网安</title><link rel="stylesheet" href="assets/style.css"><style>.top .btn.bk{color:#e7b98a;border-color:rgba(231,185,138,.55);margin-right:6px;text-decoration:none}.top .btn.bk:hover{color:#fff;border-color:#ff8b6b}</style></head><body><div class="top"><a class="btn bk" href="#" id="bg5fnhBack" title="回到网站">← 返回</a><div class="brand">从零学网安 <small>从 Linux 与网站运行原理，到用妮露工具箱做出一道题</small></div><div class="grow"></div><input id="q" type="search" placeholder="搜：SQL 注入 / session / 端口 …"><a class="btn" href="index.html">目录</a><div id="hits"></div></div><div class="wrap"><aside class='side'><h4>章节</h4><a href='ch00.html'>00　学习地图：这门课到底在教你什么</a><a href='ch01.html'>01　一次访问的全过程（从按下回车到看见页面）</a><a href='ch02.html'>02　Linux 最小必要：文件、权限、进程、命令</a><a href='ch03.html'>03　网站是怎么跑起来的（Nginx 与后端的分工）</a><a href='ch04.html'>04　读得懂代码：PHP / Python / JS 的最小语法对照</a><a href='ch05.html'>05　输入从哪来：参数、头、Cookie、文件、JSON</a><a href='ch06.html'>06　数据库与 SQL 注入：数据变成语法的瞬间</a><a class='on' href='ch07.html'>07　认证与会话：我是谁，以及我怎么证明</a><a href='ch08.html'>08　文件类漏洞：读取、包含、上传、穿越</a><a href='ch09.html'>09　执行类与借刀类：命令、模板、反序列化、SSRF、XXE</a><a href='ch10.html'>10　信息收集：把「一个网址」变成「一张清单」</a><a href='ch11.html'>11　用妮露工具箱实战：面板、洪水、信息显示</a><a href='ch12.html'>12　十二道渐进练习：从「看页面」到「打完整链」</a><a href='ch13.html'>13　进阶：代理层、协议层与「看不见的」漏洞</a><a href='ch14.html'>14　附录：工具箱全表（面板 · 策略 · 判据）</a><h4>附录</h4><a href='glossary.html'>术语总表</a><h4>本页</h4><a href='#s1'>密码为什么要&quot;哈希&quot;存，而不是加密存</a><a href='#s2'>Cookie vs Session vs JWT</a><a href='#s3'>四类认证问题</a><a href='#s4'>验证码、二次验证为什么也常被绕过</a><a href='#s5'>本章小结</a></aside><main>
+<h1>第 07 章　认证与会话：我是谁，以及我怎么证明</h1><p class='lead'>密码怎么存、登录之后服务器怎么记得你、凭证为什么能被伪造 —— 这一类题占了入门的第二大块。</p>
+<div class="goals"><h4>本章你会得到</h4>
+<ul>
+<li><a class='gl' data-k='62' href='glossary.html#t-62' title='点一下看解释（Esc 关闭）'>哈希</a> vs 加密的区别（决定你能不能用"解密"的思路）</li>
+<li><a class='gl' data-k='10' href='glossary.html#t-10' title='点一下看解释（Esc 关闭）'><a class='gl' data-k='10' href='glossary.html#t-10' title='点一下看解释（Esc 关闭）'>Cookie</a></a> / <a class='gl' data-k='11' href='glossary.html#t-11' title='点一下看解释（Esc 关闭）'><a class='gl' data-k='11' href='glossary.html#t-11' title='点一下看解释（Esc 关闭）'>Session</a></a> / <a class='gl' data-k='12' href='glossary.html#t-12' title='点一下看解释（Esc 关闭）'>JWT</a> 三种凭证的强弱与<a class='gl' data-k='41' href='glossary.html#t-41' title='点一下看解释（Esc 关闭）'>攻击面</a></li>
+<li>四类认证绕过：弱口令、注入登录、令牌伪造、<a class='gl' data-k='60' href='glossary.html#t-60' title='点一下看解释（Esc 关闭）'>越权</a></li>
+</ul></div>
+
+<h2 id='s1'>密码为什么要"哈希"存，而不是加密存</h2>
+
+<table>
+<tr><th></th><th>加密（encrypt）</th><th><a class='gl' data-k='62' href='glossary.html#t-62' title='点一下看解释（Esc 关闭）'>哈希</a>（hash）</th></tr>
+<tr><td>能不能回推</td><td>能（有密钥就能解开）</td><td><b>不能</b>（只能正向算）</td></tr>
+<tr><td>用途</td><td>传输、存储需要还原的数据</td><td>只需要"核对是否一致"的东西（密码）</td></tr>
+<tr><td>例子</td><td>AES、RSA</td><td>MD5、SHA-256、bcrypt</td></tr>
+</table>
+
+<div class="why"><span class="t">为什么密码必须单向</span>
+<p>因为网站<b>永远不需要知道你的密码原文</b>，只需要判断"你这次输的"和"上次设置的"是不是同一个。
+单向哈希能做到这点，而且数据库泄露时攻击者拿不到原文。</p>
+<p>但哈希也不是万能的：<b>弱口令可以被字典撞出来</b>（彩虹表）。
+所以现代做法是"<a class='gl' data-k='63' href='glossary.html#t-63' title='点一下看解释（Esc 关闭）'>加盐</a> + 慢哈希"（bcrypt/argon2），让每次计算都很贵。</p></div>
+
+<figure><svg viewBox="0 0 960 300" xmlns="http://www.w3.org/2000/svg" role="img"><text x="480.0" y="28.0" fill="#ffd9a8" font-size="14.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="middle" opacity="1.00">Cookie / Session / <a class='gl' data-k='12' href='glossary.html#t-12' title='点一下看解释（Esc 关闭）'>JWT</a>：三种「记住你是谁」的办法</text><rect x="30.0" y="56.0" width="290.0" height="96.0" rx="10" fill="#23322b" stroke="#4fa87a" stroke-width="1.4" opacity="1.00"/><text x="175.0" y="94.8" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">Cookie（客户端存）</text><text x="175.0" y="111.2" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">浏览器存一段 key=value / 服务器每次都收到 / </text><text x="175.0" y="125.8" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">可改、可伪造</text><rect x="340.0" y="56.0" width="290.0" height="96.0" rx="10" fill="#3a2a1f" stroke="#e0a03a" stroke-width="1.4" opacity="1.00"/><text x="485.0" y="94.8" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">Session（服务端存）</text><text x="485.0" y="111.2" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">服务器存一份，只给一个 id / id 被偷 = 身份被偷</text><text x="485.0" y="125.8" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00"> / 适合单机</text><rect x="650.0" y="56.0" width="290.0" height="96.0" rx="10" fill="#2d2438" stroke="#9a6bb5" stroke-width="1.4" opacity="1.00"/><text x="795.0" y="94.8" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">JWT（自带签名）</text><text x="795.0" y="111.2" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">三段 base64 + 签名 / 服务器不存，只验签 / 签</text><text x="795.0" y="125.8" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">名算法/密钥一错就伪造</text><rect x="30.0" y="172.0" width="900.0" height="110.0" rx="10" fill="#1b1514" stroke="#3a2a2a" stroke-width="1.4" opacity="1.00"/><text x="44.0" y="196.0" fill="#ffce7a" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="start" opacity="1.00">为什么有这三个东西：</text><text x="196.0" y="196.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00"><a class='gl' data-k='7' href='glossary.html#t-7' title='点一下看解释（Esc 关闭）'>HTTP</a> 本身是<a class='gl' data-k='29' href='glossary.html#t-29' title='点一下看解释（Esc 关闭）'>无状态</a>的 —— 关掉页面服务器就忘了你是谁。于是要在每次请求里带一个「我是谁」的凭证。</text><text x="196.0" y="220.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">Cookie 是快递盒（浏览器拿着）；Session 是存根（服务器拿着）；JWT 是盖章的介绍信（服务器只验章，不留底）。</text><text x="196.0" y="244.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">凡是「凭证由客户端保管」的地方，就有伪造/篡改/重放的空间 —— 这是认证类题的全部来源。</text><text x="44.0" y="268.0" fill="#7d6f6d" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">对应章节：第 7 章（认证） / 第 10 章（信息收集）</text></svg><figcaption>图 10-1　身份凭证的三种存法</figcaption></figure>
+
+<h2 id='s2'>Cookie vs Session vs JWT</h2>
+
+<table>
+<tr><th></th><th>Cookie</th><th>Session</th><th>JWT</th></tr>
+<tr><td>存在哪</td><td>浏览器</td><td>服务器（只把 id 给浏览器）</td><td>浏览器（自带签名）</td></tr>
+<tr><td>服务器要不要存</td><td>不用</td><td>要（内存/Redis/文件）</td><td>不用（<a class='gl' data-k='29' href='glossary.html#t-29' title='点一下看解释（Esc 关闭）'>无状态</a>）</td></tr>
+<tr><td>怎么能伪造</td><td>直接改值（如果没签名）</td><td>偷/猜 session id</td><td>改 payload + 伪造签名</td></tr>
+<tr><td>典型题</td><td><code>role=admin</code> 直接改</td><td>session 固定、session <a class='gl' data-k='48' href='glossary.html#t-48' title='点一下看解释（Esc 关闭）'>文件包含</a></td><td>alg=none、弱密钥、kid 注入</td></tr>
+</table>
+
+<div class="tip"><span class="t">看到 Cookie 先做三件事</span>
+<ol>
+<li>改一个值，看页面反应（<code>role=user</code> → <code>role=admin</code>）</li>
+<li>看它像不像 base64 / JSON / JWT（三段用 <code>.</code> 分隔就是 JWT）</li>
+<li>看有没有 <code>HttpOnly</code>（有的话 JS 偷不到，但服务端仍然可能被骗）</li>
+</ol></div>
+
+<h2 id='s3'>四类认证问题</h2>
+
+<h3>① 弱口令 / 默认口令</h3>
+<p>不是"<a class='gl' data-k='40' href='glossary.html#t-40' title='点一下看解释（Esc 关闭）'>漏洞</a>"，是<b>运维习惯</b>。但比赛里常见：<code>admin/admin</code>、<code>admin/123456</code>、
+<code>test/test</code>。工具里 <code>login_cookie</code> 就是先试弱口令再改 Cookie。</p>
+
+<h3>② 登录框 SQL 注入</h3>
+<pre class="term"><code>// 代码
+$sql = "SELECT * FROM users WHERE name='$u' AND pass='$p'";
+// 输入 u=admin' -- -    p=任意
+// 变成：SELECT ... WHERE name='admin' -- -' AND pass='...'
+// 结果：只要知道用户名就能登录</code></pre>
+
+<h3>③ 令牌伪造（JWT 三种典型）</h3>
+<table>
+<tr><th>问题</th><th>怎么发现的</th><th>怎么打</th></tr>
+<tr><td><code>alg: none</code></td><td>解出 header 看到算法</td><td>把 alg 改 none，去掉签名段</td></tr>
+<tr><td>弱密钥（HS256）</td><td>签名是 HMAC，密钥可能是 <code>secret</code></td><td>用字典离线爆破密钥，再自签</td></tr>
+<tr><td><code>kid</code> 可控</td><td>header 里有 kid 字段</td><td>kid <a class='gl' data-k='49' href='glossary.html#t-49' title='点一下看解释（Esc 关闭）'>路径穿越</a>读文件 / kid 拼进 SQL 取密钥</td></tr>
+</table>
+
+<h3>④ 越权（IDOR）</h3>
+<p>登录了，但能看到<b>别人的</b>数据。典型：<code>/api/user/1</code> 改成 <code>/api/user/2</code>。
+它属于"授权"问题，不是"认证"问题 —— 你确实是合法用户，只是不该看这条。</p>
+
+<div class="why"><span class="t">为什么<a class='gl' data-k='60' href='glossary.html#t-60' title='点一下看解释（Esc 关闭）'>越权</a>特别常见</span>
+<p>因为程序员通常只写"有没有登录"（认证），忘了写"这条数据是不是你的"（授权）。
+而"换一个 id"是零成本攻击：不需要任何工具，改个数字就行。所以工具里专门有 <code>id_scan</code>。</p></div>
+
+<h2 id='s4'>验证码、二次验证为什么也常被绕过</h2>
+
+<table>
+<tr><th>实现方式</th><th>破法</th><th>本质</th></tr>
+<tr><td><a class='gl' data-k='64' href='glossary.html#t-64' title='点一下看解释（Esc 关闭）'>验证码</a>明文写在页面/JS 里</td><td>直接抄</td><td>形同虚设</td></tr>
+<tr><td><a class='gl' data-k='64' href='glossary.html#t-64' title='点一下看解释（Esc 关闭）'>验证码</a>校验后不销毁</td><td>同一枚反复用</td><td>状态没更新</td></tr>
+<tr><td>不填就跳过校验</td><td>省略字段</td><td>判断写成 <code>if code and code != want</code></td></tr>
+<tr><td>二次验证（短信码）</td><td>跳步 / 硬编码后门 / 不绑账号</td><td>状态机缺一步</td></tr>
+</table>
+
+<div class="tool"><span class="t">工具箱里对应什么</span>
+<p><code>login_cookie</code>（弱口令+Cookie 越权）、<code>login_inject</code>（登录框注入）、
+<code>jwt_forge</code>/<code>jwt_confuse</code>/<code>jwt_kid</code>/<code>jwt_jku</code>（令牌伪造四件套）、
+<code>captcha_login</code>（验证码）、<code>otp_bypass</code>（二次验证）、<code>id_scan</code>（越权遍历）。
+「JWT / Token 分析」面板可以解出 header/payload、改完再签。</p></div>
+
+<h2 id='s5'>本章小结</h2>
+
+<table>
+<tr><th>要点</th><th>一句话</th></tr>
+<tr><td>哈希不可逆</td><td>别想着"解密"密码，只能猜/撞</td></tr>
+<tr><td>凭证由客户端保管就有风险</td><td>Cookie 可改、JWT 可伪造、session id 可偷</td></tr>
+<tr><td>认证 ≠ 授权</td><td>登录成功不代表能看别人的数据</td></tr>
+<tr><td>验证码看实现</td><td>三种常见松法：明文、可复用、不填就过</td></tr>
+</table>
+
+<div class='pager'><a class='l' href='ch06.html'>← 06　数据库与 SQL 注入：数据变成语法的瞬间</a><a class='r' href='ch08.html'>08　文件类漏洞：读取、包含、上传、穿越 →</a></div></main></div><script src="assets/terms.js"></script><script src="assets/site.js"></script><script>
+(function () {
+  var b = document.getElementById("bg5fnhBack");
+  if (!b) return;
+  b.addEventListener("click", function (e) {
+    e.preventDefault();
+    try {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: "BG5FNH_CLOSE_OVERLAY" }, "*");
+        return;
+      }
+    } catch (err) {}
+    var m = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+    window.location.href = "../../../../../" + (m ? "mobile/index_m.html" : "pc/index.html");
+  });
+})();
+</script>
+</body></html>

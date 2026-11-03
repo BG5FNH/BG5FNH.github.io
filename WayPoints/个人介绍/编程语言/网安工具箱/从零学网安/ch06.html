@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>数据库与 SQL 注入：数据变成语法的瞬间 · 从零学网安</title><link rel="stylesheet" href="assets/style.css"><style>.top .btn.bk{color:#e7b98a;border-color:rgba(231,185,138,.55);margin-right:6px;text-decoration:none}.top .btn.bk:hover{color:#fff;border-color:#ff8b6b}</style></head><body><div class="top"><a class="btn bk" href="#" id="bg5fnhBack" title="回到网站">← 返回</a><div class="brand">从零学网安 <small>从 Linux 与网站运行原理，到用妮露工具箱做出一道题</small></div><div class="grow"></div><input id="q" type="search" placeholder="搜：SQL 注入 / session / 端口 …"><a class="btn" href="index.html">目录</a><div id="hits"></div></div><div class="wrap"><aside class='side'><h4>章节</h4><a href='ch00.html'>00　学习地图：这门课到底在教你什么</a><a href='ch01.html'>01　一次访问的全过程（从按下回车到看见页面）</a><a href='ch02.html'>02　Linux 最小必要：文件、权限、进程、命令</a><a href='ch03.html'>03　网站是怎么跑起来的（Nginx 与后端的分工）</a><a href='ch04.html'>04　读得懂代码：PHP / Python / JS 的最小语法对照</a><a href='ch05.html'>05　输入从哪来：参数、头、Cookie、文件、JSON</a><a class='on' href='ch06.html'>06　数据库与 SQL 注入：数据变成语法的瞬间</a><a href='ch07.html'>07　认证与会话：我是谁，以及我怎么证明</a><a href='ch08.html'>08　文件类漏洞：读取、包含、上传、穿越</a><a href='ch09.html'>09　执行类与借刀类：命令、模板、反序列化、SSRF、XXE</a><a href='ch10.html'>10　信息收集：把「一个网址」变成「一张清单」</a><a href='ch11.html'>11　用妮露工具箱实战：面板、洪水、信息显示</a><a href='ch12.html'>12　十二道渐进练习：从「看页面」到「打完整链」</a><a href='ch13.html'>13　进阶：代理层、协议层与「看不见的」漏洞</a><a href='ch14.html'>14　附录：工具箱全表（面板 · 策略 · 判据）</a><h4>附录</h4><a href='glossary.html'>术语总表</a><h4>本页</h4><a href='#s1'>数据库在解决什么问题</a><a href='#s2'>漏洞的根：字符串拼接</a><a href='#s3'>四种形态：按&quot;服务器怎么回答你&quot;分类</a><a href='#s4'>联合注入的最小流程（题型 90% 是它）</a><a href='#s5'>盲注：没有回显时怎么&quot;读&quot;数据</a><a href='#s6'>常见过滤与绕法（只需记住四类）</a><a href='#s7'>本章小结</a></aside><main>
+<h1>第 06 章　数据库与 SQL 注入：数据变成语法的瞬间</h1><p class='lead'>先花十分钟学会读一张表，再理解「拼接」为什么必然出事，最后按回显形态分成四种注入打法。</p>
+<div class="goals"><h4>本章你会得到</h4>
+<ul>
+<li>数据库最小概念：表、行、列、主键、查询</li>
+<li>看懂一条 SELECT，并能说出它"被拼接"时哪里会断</li>
+<li>四种注入形态（联合/报错/布尔盲/时间盲）的判断方法与对应 payload 形态</li>
+<li>知道为什么"没回显"也能注入</li>
+</ul></div>
+
+<h2 id='s1'>数据库在解决什么问题</h2>
+
+<p>网站要存"用户、文章、订单"。用文本文件存会立刻崩溃：多人同时写、查一条要遍历整个文件、改一半断电就坏。
+数据库解决的就是这三件事：<b>并发、查询、事务（要么全成要么全不成）</b>。</p>
+
+<table>
+<tr><th>概念</th><th>比喻</th><th>一句话</th></tr>
+<tr><td>表（table）</td><td>一张 Excel</td><td>同一类东西放一起：users / news / orders</td></tr>
+<tr><td>行（row）</td><td>Excel 的一行</td><td>一条记录：某个用户</td></tr>
+<tr><td>列（column）</td><td>Excel 的一列</td><td>一个字段：username / password / is_admin</td></tr>
+<tr><td>主键（primary key）</td><td>身份证号</td><td>唯一标识一行，通常叫 id</td></tr>
+<tr><td>查询（query）</td><td>筛选取数</td><td><code>SELECT 列 FROM 表 WHERE 条件</code></td></tr>
+</table>
+
+<pre class="term"><code>SELECT id, username FROM users WHERE username = 'admin';
+  └─①─┘ └──②───┘ └─③─┘ └────④──────────┘
+  取什么列        从哪张表   条件（行筛选）</code></pre>
+
+<h2 id='s2'>漏洞的根：字符串拼接</h2>
+
+<figure><svg viewBox="0 0 960 300" xmlns="http://www.w3.org/2000/svg" role="img"><text x="480.0" y="30.0" fill="#ffd9a8" font-size="15.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="middle" opacity="1.00">同一个查询，两种写法的区别</text><rect x="24.0" y="52.0" width="440.0" height="96.0" rx="10" fill="#1b1514" stroke="#3a2a2a" stroke-width="1.4" opacity="1.00"/><text x="244.0" y="74.0" fill="#9fd8b4" font-size="13.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="middle" opacity="1.00">写法 A：参数化（安全）</text><text x="40.0" y="100.0" fill="#9fd8b4" font-size="12.5" font-family="Consolas, Cascadia Mono, Menlo, monospace" font-weight="400" text-anchor="start" opacity="1.00">SELECT * FROM users</text><text x="40.0" y="120.0" fill="#9fd8b4" font-size="12.5" font-family="Consolas, Cascadia Mono, Menlo, monospace" font-weight="400" text-anchor="start" opacity="1.00">  WHERE name = ?</text><text x="300.0" y="120.0" fill="#7d6f6d" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">← 值永远是值</text><rect x="496.0" y="52.0" width="440.0" height="96.0" rx="10" fill="#1b1514" stroke="#3a2a2a" stroke-width="1.4" opacity="1.00"/><text x="716.0" y="74.0" fill="#ff9a8f" font-size="13.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="middle" opacity="1.00">写法 B：字符串拼接（危险）</text><text x="512.0" y="100.0" fill="#ffd9a8" font-size="12.5" font-family="Consolas, Cascadia Mono, Menlo, monospace" font-weight="400" text-anchor="start" opacity="1.00">"SELECT * FROM users WHERE name = '"</text><text x="512.0" y="120.0" fill="#ffd9a8" font-size="12.5" font-family="Consolas, Cascadia Mono, Menlo, monospace" font-weight="400" text-anchor="start" opacity="1.00">           + $name + "'"</text><text x="760.0" y="100.0" fill="#7d6f6d" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">← 值被当成了 SQL 语法</text><rect x="24.0" y="172.0" width="912.0" height="100.0" rx="10" fill="#241b19" stroke="#5a3a3e" stroke-width="1.4" opacity="1.00"/><text x="40.0" y="196.0" fill="#ffe9cf" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="start" opacity="1.00">输入：</text><text x="84.0" y="196.0" fill="#ff9a8f" font-size="12.5" font-family="Consolas, Cascadia Mono, Menlo, monospace" font-weight="400" text-anchor="start" opacity="1.00">admin' -- </text><text x="210.0" y="196.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">拼出来变成：</text><text x="300.0" y="196.0" fill="#ff9a8f" font-size="12.5" font-family="Consolas, Cascadia Mono, Menlo, monospace" font-weight="400" text-anchor="start" opacity="1.00">SELECT * FROM users WHERE name = 'admin' -- '</text><text x="40.0" y="226.0" fill="#ffe9cf" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="start" opacity="1.00">结果：</text><text x="84.0" y="226.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">-- 把后面的引号注释掉了 → 条件只剩 name='admin' → 不需要密码就通过</text><text x="40.0" y="252.0" fill="#ffe9cf" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="start" opacity="1.00">本质：</text><text x="84.0" y="252.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">用户的字符串跨过了「数据」的边界，变成了「代码」的一部分（同一条原理适用于<a class='gl' data-k='55' href='glossary.html#t-55' title='点一下看解释（Esc 关闭）'>命令注入</a>、<a class='gl' data-k='56' href='glossary.html#t-56' title='点一下看解释（Esc 关闭）'>SSTI</a>、XSS）</text></svg><figcaption>图 5-1　<a class='gl' data-k='44' href='glossary.html#t-44' title='点一下看解释（Esc 关闭）'>SQL 注入</a>：值越过边界变成语法</figcaption></figure>
+
+<div class="why"><span class="t">为什么这个洞几十年都杀不完</span>
+<p>因为"拼字符串"是最符合直觉的写法：你要查什么，就把条件写进句子。
+<b>SQL 是一门语言，而语言里"引号内的内容"是数据、"引号外"才是语法</b>。
+只要用户输入能带一个引号进来，他就能提前结束"数据区"，把自己后面的内容变成语法。</p>
+<p><a class='gl' data-k='45' href='glossary.html#t-45' title='点一下看解释（Esc 关闭）'>参数化查询</a>（prepared statement）之所以治本，是因为它<b>先把语法结构定死</b>，
+再把用户值当"纯数据"塞进去 —— 用户写什么都不会改变句式。</p></div>
+
+<h2 id='s3'>四种形态：按"服务器怎么回答你"分类</h2>
+
+<table>
+<tr><th>形态</th><th>服务器会告诉你什么</th><th>你怎么取数据</th><th>判断方法</th></tr>
+<tr><td><a class='gl' data-k='47' href='glossary.html#t-47' title='点一下看解释（Esc 关闭）'>联合注入</a><br><span class="small">UNION</span></td><td>把查询结果直接显示在页面上</td>
+    <td>用 <code>UNION SELECT</code> 把想要的数据"并"到结果里</td>
+    <td>先试 <code>'</code> 看报错；再用 <code>order by N</code> 探列数</td></tr>
+<tr><td>报错注入</td><td>只回显数据库报错</td>
+    <td>把数据塞进报错信息（<code>updatexml</code>/<code>extractvalue</code>/<code>floor</code>）</td>
+    <td>页面出现 SQL 报错关键字</td></tr>
+<tr><td>布尔<a class='gl' data-k='46' href='glossary.html#t-46' title='点一下看解释（Esc 关闭）'>盲注</a></td><td>只回"有结果/没结果"两种页面</td>
+    <td>一个字一个字问"第 1 个字符是不是 'f'"</td>
+    <td><code>and 1=1</code> 与 <code>and 1=2</code> 页面不同</td></tr>
+<tr><td>时间<a class='gl' data-k='46' href='glossary.html#t-46' title='点一下看解释（Esc 关闭）'>盲注</a></td><td>连"有没有结果"都看不出来</td>
+    <td>用 <code>sleep(3)</code> 让响应变慢，用时间当信号</td>
+    <td><code>and sleep(3)</code> 响应变慢约 3 秒</td></tr>
+</table>
+
+<div class="tip"><span class="t">先判断形态，再选 payload（顺序反了就白打）</span>
+<ol>
+<li>发 <code>id=1'</code>：看到数据库报错吗？→ 有报错，试报错注入或联合</li>
+<li>发 <code>and 1=1</code> / <code>and 1=2</code>：两次页面长度差得多吗？→ 布尔盲</li>
+<li>发 <code>and sleep(3)</code>：明显慢了吗？→ 时间盲</li>
+<li>三步都不动 → 可能没注入，或者被 <a class='gl' data-k='65' href='glossary.html#t-65' title='点一下看解释（Esc 关闭）'>WAF</a> 挡了（看第 5 章的编码绕过）</li>
+</ol></div>
+
+<h2 id='s4'>联合注入的最小流程（题型 90% 是它）</h2>
+
+<pre class="term"><code>① 探列数：  ?id=1 order by 3 -- -      → 报错说明列数 < 3
+            ?id=1 order by 2 -- -      → 正常，说明 2 列
+② 找回显位：?id=1 and 1=2 union select 1,2 -- -
+            → 页面上出现 "2" 的位置就是第 2 列会回显
+③ 取数据：  ?id=1 and 1=2 union select 1,database() -- -
+            ?id=1 and 1=2 union select 1,group_concat(table_name)
+                 from information_schema.tables where table_schema=database() -- -
+④ 取列名 → 取字段 → 拿到 flag</code></pre>
+
+<div class="why"><span class="t">为什么要 <code>and 1=2</code>，为什么结尾要 <code>-- -</code></span>
+<p><code>and 1=2</code> 让原来的查询查不到东西，页面就只剩你 union 出来的那行 —— 否则你自己的数据会被原结果淹没。</p>
+<p><code>-- -</code> 是注释：把原句剩下的部分（比如 <code>' LIMIT 1</code>）注释掉，否则语法会断。
+MySQL 里注释也可写成 <code>#</code>，但 <code>--</code> 后面必须跟空格（所以常见写法是 <code>-- -</code> 或 <code>--+</code>）。</p></div>
+
+<h2 id='s5'>盲注：没有回显时怎么"读"数据</h2>
+
+<p>假设只能判断真假，可以把数据变成"是非题"：</p>
+
+<pre class="term"><code>?id=1 and substr((select flag from flag),1,1)='f'   → 页面正常 = 猜对
+?id=1 and ascii(substr((select flag from flag),1,1))>100   → 二分法加速
+?id=1 and if(substr((select flag from flag),1,1)='f',sleep(3),0)  → 时间盲</code></pre>
+
+<div class="warn"><span class="t">盲注的现实代价</span>
+<p>一个字符要问 1~7 次，flag 长 30 字符就要两百多个请求。<b>所以工具会做"二分 + 并发 + 提前停止"</b>，
+手打的话建议直接用工具里的 <code>sqli_blind</code> 策略或「<a class='gl' data-k='44' href='glossary.html#t-44' title='点一下看解释（Esc 关闭）'>SQL 注入</a>台」面板。
+这也是"为什么要有工具箱"的最好例子：把机械劳动交给程序。</p></div>
+
+<h2 id='s6'>常见过滤与绕法（只需记住四类）</h2>
+
+<table>
+<tr><th>过滤</th><th>绕法</th><th>为什么有效</th></tr>
+<tr><td>空格被拦</td><td><code>/**/</code>、<code>%09</code>、<code>()</code></td><td>SQL 里注释和制表符都算空白</td></tr>
+<tr><td>关键字被拦</td><td>大小写、双写、注释插入 <code>sel/**/ect</code></td><td>词法分析会去掉注释</td></tr>
+<tr><td>引号被拦</td><td>用十六进制 <code>0x61646d696e</code>、<code>char()</code></td><td>不需要引号也能表示字符串</td></tr>
+<tr><td>逗号被拦</td><td><code>substr(x from 1 for 1)</code>、<code>limit 1 offset 1</code></td><td>SQL 有等价语法</td></tr>
+</table>
+
+<div class="tool"><span class="t">工具箱里对应什么</span>
+<p>「SQL 注入台」面板：填 URL 和参数，自动探列数/回显位、拖库。
+「洪水」里 <code>sqli_union</code>（联合）、<code>sqli_blind</code>（盲注）、
+<code>sql_error</code>（报错）、<code>sqli_stack</code>（堆叠）、<code>sqli_waf</code>（绕 <a class='gl' data-k='65' href='glossary.html#t-65' title='点一下看解释（Esc 关闭）'>WAF</a>）、
+<code>login_inject</code>（登录框）、<code>second_order</code>（二次注入）。
+它们共用一条<a class='gl' data-k='69' href='glossary.html#t-69' title='点一下看解释（Esc 关闭）'>判据</a>：<b>只认数据库里取出来的那个 flag</b>，页面 200 不算。</p></div>
+
+<h2 id='s7'>本章小结</h2>
+
+<table>
+<tr><th>要点</th><th>一句话</th></tr>
+<tr><td>表/行/列/主键</td><td>数据库就是把 Excel 做成了能并发查询的东西</td></tr>
+<tr><td>拼接 = 洞</td><td>用户输入越过引号边界，变成语法</td></tr>
+<tr><td>四形态</td><td>联合 / 报错 / 布尔 / 时间，按"服务器告诉你什么"分</td></tr>
+<tr><td>先判断再打</td><td>形态决定 payload，不是反过来</td></tr>
+<tr><td>盲注靠工具</td><td>机械劳动交给程序，人负责判断
+</table>
+
+<div class='pager'><a class='l' href='ch05.html'>← 05　输入从哪来：参数、头、Cookie、文件、JSON</a><a class='r' href='ch07.html'>07　认证与会话：我是谁，以及我怎么证明 →</a></div></main></div><script src="assets/terms.js"></script><script src="assets/site.js"></script><script>
+(function () {
+  var b = document.getElementById("bg5fnhBack");
+  if (!b) return;
+  b.addEventListener("click", function (e) {
+    e.preventDefault();
+    try {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: "BG5FNH_CLOSE_OVERLAY" }, "*");
+        return;
+      }
+    } catch (err) {}
+    var m = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+    window.location.href = "../../../../../" + (m ? "mobile/index_m.html" : "pc/index.html");
+  });
+})();
+</script>
+</body></html>

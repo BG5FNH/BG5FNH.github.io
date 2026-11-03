@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>十二道渐进练习：从「看页面」到「打完整链」 · 从零学网安</title><link rel="stylesheet" href="assets/style.css"><style>.top .btn.bk{color:#e7b98a;border-color:rgba(231,185,138,.55);margin-right:6px;text-decoration:none}.top .btn.bk:hover{color:#fff;border-color:#ff8b6b}</style></head><body><div class="top"><a class="btn bk" href="#" id="bg5fnhBack" title="回到网站">← 返回</a><div class="brand">从零学网安 <small>从 Linux 与网站运行原理，到用妮露工具箱做出一道题</small></div><div class="grow"></div><input id="q" type="search" placeholder="搜：SQL 注入 / session / 端口 …"><a class="btn" href="index.html">目录</a><div id="hits"></div></div><div class="wrap"><aside class='side'><h4>章节</h4><a href='ch00.html'>00　学习地图：这门课到底在教你什么</a><a href='ch01.html'>01　一次访问的全过程（从按下回车到看见页面）</a><a href='ch02.html'>02　Linux 最小必要：文件、权限、进程、命令</a><a href='ch03.html'>03　网站是怎么跑起来的（Nginx 与后端的分工）</a><a href='ch04.html'>04　读得懂代码：PHP / Python / JS 的最小语法对照</a><a href='ch05.html'>05　输入从哪来：参数、头、Cookie、文件、JSON</a><a href='ch06.html'>06　数据库与 SQL 注入：数据变成语法的瞬间</a><a href='ch07.html'>07　认证与会话：我是谁，以及我怎么证明</a><a href='ch08.html'>08　文件类漏洞：读取、包含、上传、穿越</a><a href='ch09.html'>09　执行类与借刀类：命令、模板、反序列化、SSRF、XXE</a><a href='ch10.html'>10　信息收集：把「一个网址」变成「一张清单」</a><a href='ch11.html'>11　用妮露工具箱实战：面板、洪水、信息显示</a><a class='on' href='ch12.html'>12　十二道渐进练习：从「看页面」到「打完整链」</a><a href='ch13.html'>13　进阶：代理层、协议层与「看不见的」漏洞</a><a href='ch14.html'>14　附录：工具箱全表（面板 · 策略 · 判据）</a><h4>附录</h4><a href='glossary.html'>术语总表</a><h4>本页</h4><a href='#s1'>先启动靶场</a><a href='#s2'>第 1 题：flag 就在正文里</a><a href='#s3'>第 2 题：注释与前端 JS 里的线索</a><a href='#s4'>第 3 题：robots.txt 与目录枚举</a><a href='#s5'>第 4 题：任意文件读取</a><a href='#s6'>第 5 题：文件包含（读源码）</a><a href='#s7'>第 6 题：UNION 注入</a><a href='#s8'>第 7 题：登录框 SQL 注入 / 弱口令</a><a href='#s9'>第 8 题：JWT 伪造</a><a href='#s10'>第 9 题：SSTI（模板注入）</a><a href='#s11'>第 10 题：上传 + .htaccess</a><a href='#s12'>第 11 题：命令注入 + 过滤绕过</a><a href='#s13'>第 12 题：上传条件竞争（综合）</a><a href='#s14'>练完之后：你该会什么</a><a href='#s15'>接下来学什么（路线建议）</a></aside><main>
+<h1>第 12 章　十二道渐进练习：从「看页面」到「打完整链」</h1><p class='lead'>用工具箱自带的仿真靶场（250 道）练手。这里挑 12 道最有代表性的，按难度递增排，每道都写清「你要观察到什么」。</p>
+<div class="goals"><h4>怎么用这一章</h4>
+<ul>
+<li>先自己试 10 分钟，再看提示</li>
+<li>每道题都要能回答：输入是什么、进了什么<a class='gl' data-k='32' href='glossary.html#t-32' title='点一下看解释（Esc 关闭）'>函数</a>、我怎么判断成功</li>
+<li>答不出来就点开洪水对应节点的「详情」，看真实请求再复现</li>
+</ul></div>
+
+<h2 id='s1'>先启动靶场</h2>
+
+<pre class="term"><code>双击  文档\启动示例靶场.cmd      # 会挂 250 道题在本机并打印地址
+复制  任意一个地址 → 洪水 → 开始
+# 或者手工用浏览器打开那个地址，自己发请求</code></pre>
+
+<div class="tip"><span class="t">纪律：先手工，再一键</span>
+<p>每道题先用浏览器/curl 手工试一次，写下你的判断；再用洪水跑一遍对答案。
+<b>顺序反了就变成"看工具表演"</b>，学不到东西。</p></div>
+
+<figure><svg viewBox="0 0 940 270" xmlns="http://www.w3.org/2000/svg" role="img"><text x="470.0" y="26.0" fill="#ffd9a8" font-size="14.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="middle" opacity="1.00">一道题的完整链路（也是工具箱的工作流）</text><rect x="20.0" y="56.0" width="142.0" height="74.0" rx="10" fill="#23322b" stroke="#4fa87a" stroke-width="1.4" opacity="1.00"/><text x="91.0" y="91.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">看到页面</text><text x="91.0" y="107.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">抓响应/表单/参数</text><g><line x1="164.0" y1="92.0" x2="173.0" y2="92.0" stroke="#6b5550" stroke-width="1.8"/><polygon points="180.0,92.0 173.9,95.5 173.9,88.5" fill="#6b5550"/></g><rect x="176.0" y="56.0" width="142.0" height="74.0" rx="10" fill="#243040" stroke="#4f86c6" stroke-width="1.4" opacity="1.00"/><text x="247.0" y="91.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">收集信息</text><text x="247.0" y="107.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">路径/版本/源码/备份</text><g><line x1="320.0" y1="92.0" x2="329.0" y2="92.0" stroke="#6b5550" stroke-width="1.8"/><polygon points="336.0,92.0 329.9,95.5 329.9,88.5" fill="#6b5550"/></g><rect x="332.0" y="56.0" width="142.0" height="74.0" rx="10" fill="#3a2a1f" stroke="#e0a03a" stroke-width="1.4" opacity="1.00"/><text x="403.0" y="91.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">判断类型</text><text x="403.0" y="107.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">输入进了什么</text><g><line x1="476.0" y1="92.0" x2="485.0" y2="92.0" stroke="#6b5550" stroke-width="1.8"/><polygon points="492.0,92.0 485.9,95.5 485.9,88.5" fill="#6b5550"/></g><rect x="488.0" y="56.0" width="142.0" height="74.0" rx="10" fill="#3a2020" stroke="#d8504f" stroke-width="1.4" opacity="1.00"/><text x="559.0" y="91.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">构造请求</text><text x="559.0" y="107.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">改参数/改头/传文件</text><g><line x1="632.0" y1="92.0" x2="641.0" y2="92.0" stroke="#6b5550" stroke-width="1.8"/><polygon points="648.0,92.0 641.9,95.5 641.9,88.5" fill="#6b5550"/></g><rect x="644.0" y="56.0" width="142.0" height="74.0" rx="10" fill="#2d2438" stroke="#9a6bb5" stroke-width="1.4" opacity="1.00"/><text x="715.0" y="91.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">验证回显</text><text x="715.0" y="107.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">缺什么补什么</text><g><line x1="788.0" y1="92.0" x2="797.0" y2="92.0" stroke="#6b5550" stroke-width="1.8"/><polygon points="804.0,92.0 797.9,95.5 797.9,88.5" fill="#6b5550"/></g><rect x="800.0" y="56.0" width="142.0" height="74.0" rx="10" fill="#3a2f2e" stroke="#7d6f6d" stroke-width="1.4" opacity="1.00"/><text x="871.0" y="91.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">拿到 flag</text><text x="871.0" y="107.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">服务端亲口给的</text><text x="470.0" y="162.0" fill="#7d6f6d" font-size="12.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">验证不过 → 回到「收集信息」（考试时这一步占 70% 时间）</text><rect x="20.0" y="186.0" width="900.0" height="70.0" rx="10" fill="#1b1514" stroke="#3a2a2a" stroke-width="1.4" opacity="1.00"/><text x="34.0" y="210.0" fill="#ffce7a" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="start" opacity="1.00">工具箱对应：</text><text x="140.0" y="210.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">① 洪水首探 ② 敏感文件探针/<a class='gl' data-k='68' href='glossary.html#t-68' title='点一下看解释（Esc 关闭）'>目录爆破</a>/爬取 ③ 专家系统诊断 ④ 各专项面板</text><text x="140.0" y="236.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">⑤ 节点「详情」看每个 payload 与响应 ⑥ FLAG 板 + 信息显示（机器信息类题）</text></svg><figcaption>图 12-1　解题链路</figcaption></figure>
+
+<h2 id='s2'>第 1 题：flag 就在正文里</h2>
+<p><b>你要观察到</b>：打开页面，源码或正文里直接有 <code>CTF{...}</code> 形状的串。</p>
+<p><b>这一题教什么</b>：先看再打。很多新手一上手就扫<a class='gl' data-k='1' href='glossary.html#t-1' title='点一下看解释（Esc 关闭）'>端口</a>，其实答案在页面上。
+用 <code>Ctrl+U</code> 看源码、<code>F12</code> 看网络，比任何工具都快。</p>
+
+<h2 id='s3'>第 2 题：注释与前端 JS 里的线索</h2>
+<p><b>你要观察到</b>：HTML 注释里有一段 base64；或 JS 里写了"校验逻辑"和常量。</p>
+<p><b>这一题教什么</b>：前端的一切都可以被读。<b>前端校验不是安全措施</b>，
+它只是"让正常用户少犯错"。绕过方法：读代码 → 找到真正的判断 → 直接发请求跳过它。</p>
+
+<h2 id='s4'>第 3 题：robots.txt 与目录枚举</h2>
+<p><b>你要观察到</b>：<code>/robots.txt</code> 里写着 <code>Disallow: /secret/</code>。</p>
+<p><b>这一题教什么</b>：robots.txt 是给爬虫看的<b>约定</b>，不是权限控制 ——
+它恰恰把"不想被搜到的路径"列出来了。工具：敏感文件探针 / <a class='gl' data-k='68' href='glossary.html#t-68' title='点一下看解释（Esc 关闭）'>目录爆破</a>。</p>
+
+<h2 id='s5'>第 4 题：任意文件读取</h2>
+<p><b>你要观察到</b>：页面有个"读文件"的输入框，<code>/etc/passwd</code> 能读出来。</p>
+<p><b>这一题教什么</b>：路径可控 = 能读服务器上的文件。下一步就是找 flag 的位置
+（<code>/flag</code>、<code>/flag.txt</code>、应用源码里的硬编码）。</p>
+
+<h2 id='s6'>第 5 题：文件包含（读源码）</h2>
+<p><b>你要观察到</b>：<code>?file=index.php</code> 页面是渲染结果，看不到源码。</p>
+<p><b>这一题教什么</b>：读源码要套 <code>php://filter/convert.base64-encode/resource=index.php</code>。
+拿到 base64 解码后，你会看到真正的过滤逻辑 —— 这才是后面绕过的依据。</p>
+
+<h2 id='s7'>第 6 题：UNION 注入</h2>
+<p><b>你要观察到</b>：<code>?id=1'</code> 报 SQL 错；<code>order by</code> 能探出列数。</p>
+<p><b>这一题教什么</b>：第 6 章的完整流程：探列数 → 找回显位 → 查库名/表名/字段 → 取 flag。
+工具：<a class='gl' data-k='44' href='glossary.html#t-44' title='点一下看解释（Esc 关闭）'>SQL 注入</a>台或 <code>sqli_union</code>。</p>
+
+<h2 id='s8'>第 7 题：登录框 SQL 注入 / 弱口令</h2>
+<p><b>你要观察到</b>：登录失败时页面提示"密码错误"而不是"用户不存在"（说明用户名存在）。</p>
+<p><b>这一题教什么</b>：两种思路 —— 弱口令字典（<code>admin/123456</code>）或者
+<code>admin' -- -</code> 注释掉密码判断。工具：<code>login_cookie</code> / <code>login_inject</code>。</p>
+
+<h2 id='s9'>第 8 题：JWT 伪造</h2>
+<p><b>你要观察到</b>：<a class='gl' data-k='10' href='glossary.html#t-10' title='点一下看解释（Esc 关闭）'><a class='gl' data-k='10' href='glossary.html#t-10' title='点一下看解释（Esc 关闭）'>Cookie</a></a> 里是 <code>xxx.yyy.zzz</code> 三段式，解 base64 能看到 <code>"role":"user"</code>。</p>
+<p><b>这一题教什么</b>：<a class='gl' data-k='12' href='glossary.html#t-12' title='点一下看解释（Esc 关闭）'>JWT</a> 的"签名"是唯一防线。三种破法：alg=none、弱密钥重签、kid 注入。
+工具：<a class='gl' data-k='12' href='glossary.html#t-12' title='点一下看解释（Esc 关闭）'>JWT</a> / Token 分析面板，或 <code>jwt_forge</code>/<code>jwt_confuse</code>。</p>
+
+<h2 id='s10'>第 9 题：SSTI（模板注入）</h2>
+<p><b>你要观察到</b>：输入 <code>{7*7}</code>，页面回显 <code>49</code>。</p>
+<p><b>这一题教什么</b>：先证明"表达式被执行"，再去找能读文件/执行命令的链。
+不同引擎语法不同，先探方言（<code>tpl_dialect</code>）。</p>
+
+<h2 id='s11'>第 10 题：上传 + .htaccess</h2>
+<p><b>你要观察到</b>：能上传图片，但 <code>.php</code> 被拒；上传目录下的文件能访问。</p>
+<p><b>这一题教什么</b>：上传题的三道关（第 8 章）：后缀、内容、执行条件。
+<code>.htaccess</code> 的作用是"改规则"，让 <code>.jpg</code> 也当 PHP 跑。</p>
+
+<h2 id='s12'>第 11 题：命令注入 + 过滤绕过</h2>
+<p><b>你要观察到</b>：某个参数会进系统命令（<code>;id</code> 有回显），但 <code>cat</code>/空格被拦。</p>
+<p><b>这一题教什么</b>：过滤是字符级的，绕法是"等价写法"：
+<code>c${IFS}at</code>、<code>ca	</code>、编码、或者换命令（<code>tac</code>、<code>nl</code>、<code>more</code>）。</p>
+
+<h2 id='s13'>第 12 题：上传条件竞争（综合）</h2>
+<p><b>你要观察到</b>：上传后文件"存在一下就被删"；直接访问 404。</p>
+<p><b>这一题教什么</b>：第 8 章最后一条 + 第 11 章的时间窗口。
+一边传一边请求，抢"删除前"那一瞬间执行。工具：<code>upload_race</code>。</p>
+
+<h2 id='s14'>练完之后：你该会什么</h2>
+
+<table>
+<tr><th>能力</th><th>自测方法</th></tr>
+<tr><td>判断题型</td><td>看一个陌生页面，30 秒内说出"大概考什么"</td></tr>
+<tr><td>构造请求</td><td>不看 writeup，用 curl/浏览器改出第一个 payload</td></tr>
+<tr><td>读回显</td><td>能区分"报错/反射/执行成功"三种情况</td></tr>
+<tr><td>独立思考</td><td>工具失败时，能说出"它为什么失败、我下一步手工试什么"</td></tr>
+</table>
+
+<h2 id='s15'>接下来学什么（路线建议）</h2>
+
+<ol>
+<li><b>把 250 道仿真题按类刷一遍</b>：每次只刷一类，刷完写三行总结（这类的入口/<a class='gl' data-k='69' href='glossary.html#t-69' title='点一下看解释（Esc 关闭）'>判据</a>/绕法）。</li>
+<li><b>补一门语言的"能写"能力</b>：PHP 或 Python，能改别人的 PoC 就够。</li>
+<li><b>学 <a class='gl' data-k='7' href='glossary.html#t-7' title='点一下看解释（Esc 关闭）'>HTTP</a> 抓包</b>：MITM 面板 + 浏览器代理，亲眼看每个请求。</li>
+<li><b>再学内网</b>：<a class='gl' data-k='1' href='glossary.html#t-1' title='点一下看解释（Esc 关闭）'>端口</a>转发、代理、提权 —— 那是另一门课（Web 之后的方向）。</li>
+<li><b>最后才是免杀/绕过 <a class='gl' data-k='65' href='glossary.html#t-65' title='点一下看解释（Esc 关闭）'>WAF</a> 这类"对抗"</b>：没有前面的基础，学了也用不上。</li>
+</ol>
+
+<div class="warn"><span class="t">一句实话</span>
+<p>这套教程能让你"会做基础题"，但不会让你"什么题都会"。真正的分水岭是：
+遇到没见过的题，你能<b>自己拆出输入、判断流向、设计验证实验</b>。
+那需要刷题量，也需要读源码的习惯 —— 工具只能替你省时间，替不了判断。</p></div>
+
+<div class='pager'><a class='l' href='ch11.html'>← 11　用妮露工具箱实战：面板、洪水、信息显示</a><a class='r' href='ch13.html'>13　进阶：代理层、协议层与「看不见的」漏洞 →</a></div></main></div><script src="assets/terms.js"></script><script src="assets/site.js"></script><script>
+(function () {
+  var b = document.getElementById("bg5fnhBack");
+  if (!b) return;
+  b.addEventListener("click", function (e) {
+    e.preventDefault();
+    try {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: "BG5FNH_CLOSE_OVERLAY" }, "*");
+        return;
+      }
+    } catch (err) {}
+    var m = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+    window.location.href = "../../../../../" + (m ? "mobile/index_m.html" : "pc/index.html");
+  });
+})();
+</script>
+</body></html>

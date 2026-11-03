@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>术语总表 · 从零学网安</title><link rel="stylesheet" href="assets/style.css"><style>.top .btn.bk{color:#e7b98a;border-color:rgba(231,185,138,.55);margin-right:6px;text-decoration:none}.top .btn.bk:hover{color:#fff;border-color:#ff8b6b}</style></head><body><div class="top"><a class="btn bk" href="#" id="bg5fnhBack" title="回到网站">← 返回</a><div class="brand">从零学网安 <small>从 Linux 与网站运行原理，到用妮露工具箱做出一道题</small></div><div class="grow"></div><input id="q" type="search" placeholder="搜：SQL 注入 / session / 端口 …"><a class="btn" href="index.html">目录</a><div id="hits"></div></div><div class="wrap"><aside class='side'><h4>章节</h4><a href='ch00.html'>00　学习地图：这门课到底在教你什么</a><a href='ch01.html'>01　一次访问的全过程（从按下回车到看见页面）</a><a href='ch02.html'>02　Linux 最小必要：文件、权限、进程、命令</a><a href='ch03.html'>03　网站是怎么跑起来的（Nginx 与后端的分工）</a><a href='ch04.html'>04　读得懂代码：PHP / Python / JS 的最小语法对照</a><a href='ch05.html'>05　输入从哪来：参数、头、Cookie、文件、JSON</a><a href='ch06.html'>06　数据库与 SQL 注入：数据变成语法的瞬间</a><a href='ch07.html'>07　认证与会话：我是谁，以及我怎么证明</a><a href='ch08.html'>08　文件类漏洞：读取、包含、上传、穿越</a><a href='ch09.html'>09　执行类与借刀类：命令、模板、反序列化、SSRF、XXE</a><a href='ch10.html'>10　信息收集：把「一个网址」变成「一张清单」</a><a href='ch11.html'>11　用妮露工具箱实战：面板、洪水、信息显示</a><a href='ch12.html'>12　十二道渐进练习：从「看页面」到「打完整链」</a><a href='ch13.html'>13　进阶：代理层、协议层与「看不见的」漏洞</a><a href='ch14.html'>14　附录：工具箱全表（面板 · 策略 · 判据）</a><h4>附录</h4><a href='glossary.html'>术语总表</a></aside><main>
+<h1>术语总表</h1>
+<p class='lead'>按「它为了解决什么问题」排序 —— 每个词都先回答「为什么会有它」，再给定义。共 73 条。</p>
+<input id='gq' class='gsearch' placeholder='过滤：输入中文或英文…'>
+<table id='gtable'><thead><tr><th>术语</th><th>为什么存在</th><th>一句话定义</th><th>章</th></tr></thead><tbody>
+<tr id='t-0' data-k='ip 地址 ip address'><td><b>IP 地址</b><br><span class='small'>IP address</span></td><td>机器需要一个唯一标识才能互相找到</td><td>网络中一台主机的数字门牌号</td><td class='small'>第 1 章</td></tr>
+<tr id='t-1' data-k='端口 port'><td><b>端口</b><br><span class='small'>port</span></td><td>一台机器要同时跑很多服务，得区分是哪个服务</td><td>0~65535 的编号，用来区分同一 IP 上的不同服务</td><td class='small'>第 1 章</td></tr>
+<tr id='t-2' data-k='dns domain name system'><td><b>DNS</b><br><span class='small'>Domain Name System</span></td><td>人记不住 IP，改名又不方便</td><td>把域名翻译成 IP 的电话簿</td><td class='small'>第 1 章</td></tr>
+<tr id='t-3' data-k='tcp transmission control protocol'><td><b>TCP</b><br><span class='small'>Transmission Control Protocol</span></td><td>IP 不保证送达，而网页内容不能缺块</td><td>在 IP 之上提供可靠、有序传输的协议</td><td class='small'>第 1 章</td></tr>
+<tr id='t-4' data-k='三次握手 three-way handshake'><td><b>三次握手</b><br><span class='small'>three-way handshake</span></td><td>双方要确认彼此都能收发、并同步序号</td><td>TCP 建立连接的三步确认</td><td class='small'>第 1 章</td></tr>
+<tr id='t-5' data-k='tls transport layer security'><td><b>TLS</b><br><span class='small'>Transport Layer Security</span></td><td>明文会被中间人看到、也无法确认对面是谁</td><td>给 TCP 套上加密与身份校验的协议</td><td class='small'>第 1 章</td></tr>
+<tr id='t-6' data-k='证书 certificate'><td><b>证书</b><br><span class='small'>certificate</span></td><td>加密还不够，要证明对面真的是这个域名</td><td>由 CA 签发的、绑定域名与公钥的文件</td><td class='small'>第 1 章</td></tr>
+<tr id='t-7' data-k='http hypertext transfer protocol'><td><b>HTTP</b><br><span class='small'>HyperText Transfer Protocol</span></td><td>浏览器和服务器要约定一种&#x27;问与答&#x27;的格式</td><td>一问一答的文本协议：请求行+头+体</td><td class='small'>第 1 章</td></tr>
+<tr id='t-8' data-k='请求头 request header'><td><b>请求头</b><br><span class='small'>request header</span></td><td>请求除了&#x27;要什么&#x27;，还要说明&#x27;我是谁、能接受什么格式&#x27;</td><td>放在请求行之后的 key: value 行</td><td class='small'>第 1 章</td></tr>
+<tr id='t-9' data-k='状态码 status code'><td><b>状态码</b><br><span class='small'>status code</span></td><td>服务器要快速告诉客户端结果类别</td><td>3 位数字：2xx 成功、3xx 跳转、4xx 客户端错、5xx 服务端错</td><td class='small'>第 1 章</td></tr>
+<tr id='t-10' data-k='cookie cookie'><td><b>Cookie</b><br><span class='small'>cookie</span></td><td>HTTP 无状态，服务器需要&#x27;记住&#x27;你是谁</td><td>浏览器保存、每次请求自动带上的 key=value</td><td class='small'>第 1、7 章</td></tr>
+<tr id='t-11' data-k='session session'><td><b>Session</b><br><span class='small'>session</span></td><td>把身份数据放客户端不安全，想放服务器</td><td>服务器保存的会话状态，客户端只拿一个 id</td><td class='small'>第 7 章</td></tr>
+<tr id='t-12' data-k='jwt json web token'><td><b>JWT</b><br><span class='small'>JSON Web Token</span></td><td>多服务/多端时不想每次都查服务器存储</td><td>自带签名、无状态的身份令牌（三段 base64）</td><td class='small'>第 7 章</td></tr>
+<tr id='t-13' data-k='反向代理 reverse proxy'><td><b>反向代理</b><br><span class='small'>reverse proxy</span></td><td>后端不该直接暴露，且要做统一入口</td><td>挡在服务器前面的转发层（Nginx 常见）</td><td class='small'>第 3 章</td></tr>
+<tr id='t-14' data-k='绝对路径 absolute path'><td><b>绝对路径</b><br><span class='small'>absolute path</span></td><td>从根开始才能唯一确定一个文件</td><td>以 / 开头的路径</td><td class='small'>第 2 章</td></tr>
+<tr id='t-15' data-k='相对路径 relative path'><td><b>相对路径</b><br><span class='small'>relative path</span></td><td>同一个文件在不同位置引用时写法不同</td><td>相对于当前工作目录的路径</td><td class='small'>第 2 章</td></tr>
+<tr id='t-16' data-k='权限位 permission bits'><td><b>权限位</b><br><span class='small'>permission bits</span></td><td>多用户共用一台机器，要区分谁能读/写/执行</td><td>rwx 三组九位，分别对应属主/属组/其他人</td><td class='small'>第 2 章</td></tr>
+<tr id='t-17' data-k='suid setuid'><td><b>SUID</b><br><span class='small'>setuid</span></td><td>某些程序需要临时获得更高权限（如 passwd）</td><td>执行时以文件属主身份运行的特殊位</td><td class='small'>第 2 章</td></tr>
+<tr id='t-18' data-k='进程 process'><td><b>进程</b><br><span class='small'>process</span></td><td>一个程序要跑起来需要独立的内存与身份</td><td>正在运行的程序实例，带自己的用户身份</td><td class='small'>第 2 章</td></tr>
+<tr id='t-19' data-k='守护进程 daemon'><td><b>守护进程</b><br><span class='small'>daemon</span></td><td>服务要长期在后台跑，不能跟着终端退出</td><td>脱离终端常驻后台的进程（nginx、php-fpm）</td><td class='small'>第 2 章</td></tr>
+<tr id='t-20' data-k='日志 log'><td><b>日志</b><br><span class='small'>log</span></td><td>出问题要能回查&#x27;谁在什么时候做了什么&#x27;</td><td>按时间追加记录的文本文件</td><td class='small'>第 2、8 章</td></tr>
+<tr id='t-21' data-k='环境变量 environment variable'><td><b>环境变量</b><br><span class='small'>environment variable</span></td><td>配置不该写死在代码里（不同环境不同值）</td><td>进程启动时带上的 key=value 配置</td><td class='small'>第 2 章</td></tr>
+<tr id='t-22' data-k='静态资源 static asset'><td><b>静态资源</b><br><span class='small'>static asset</span></td><td>图片/CSS/JS 不需要每次计算，直接发文件最快</td><td>磁盘上原样返回的文件</td><td class='small'>第 3 章</td></tr>
+<tr id='t-23' data-k='动态页面 dynamic page'><td><b>动态页面</b><br><span class='small'>dynamic page</span></td><td>内容要跟用户/数据库变化</td><td>由程序运行时生成的页面</td><td class='small'>第 3 章</td></tr>
+<tr id='t-24' data-k='网站根目录 document root'><td><b>网站根目录</b><br><span class='small'>document root</span></td><td>URL 需要映射到磁盘上的某个目录</td><td>URL 里的 / 对应的磁盘目录</td><td class='small'>第 3 章</td></tr>
+<tr id='t-25' data-k='location location'><td><b>location</b><br><span class='small'>location</span></td><td>同一个域名下不同路径要不同处理</td><td>Nginx 里按路径匹配并分流的规则</td><td class='small'>第 3 章</td></tr>
+<tr id='t-26' data-k='fastcgi fastcgi'><td><b>FastCGI</b><br><span class='small'>FastCGI</span></td><td>每次请求都启动一个 PHP 进程太慢</td><td>Nginx 与 PHP-FPM 之间的通信协议</td><td class='small'>第 3 章</td></tr>
+<tr id='t-27' data-k='php-fpm php fastcgi process manager'><td><b>PHP-FPM</b><br><span class='small'>PHP FastCGI Process Manager</span></td><td>PHP 需要一个常驻的进程池来处理请求</td><td>管理 PHP 工作进程、执行脚本的服务</td><td class='small'>第 3 章</td></tr>
+<tr id='t-28' data-k='中间件 middleware'><td><b>中间件</b><br><span class='small'>middleware</span></td><td>通用逻辑（鉴权/日志/限流）不该在每个接口里重写</td><td>请求进入业务代码前的一层处理链</td><td class='small'>第 3 章</td></tr>
+<tr id='t-29' data-k='无状态 stateless'><td><b>无状态</b><br><span class='small'>stateless</span></td><td>服务器不记会话才能横向扩展</td><td>每个请求自带全部信息，服务端不保存上下文</td><td class='small'>第 1、7 章</td></tr>
+<tr id='t-30' data-k='变量 variable'><td><b>变量</b><br><span class='small'>variable</span></td><td>需要给一个值起名字，后面反复用</td><td>指向内存中某个值的名字</td><td class='small'>第 4 章</td></tr>
+<tr id='t-31' data-k='数组 array / list'><td><b>数组</b><br><span class='small'>array / list</span></td><td>一组同类数据要一起处理</td><td>按顺序或按键存放多个值</td><td class='small'>第 4 章</td></tr>
+<tr id='t-32' data-k='函数 function'><td><b>函数</b><br><span class='small'>function</span></td><td>同样的逻辑要复用，不要复制粘贴</td><td>有名字、可传参、可返回的一段代码</td><td class='small'>第 4 章</td></tr>
+<tr id='t-33' data-k='类 / 对象 class / object'><td><b>类 / 对象</b><br><span class='small'>class / object</span></td><td>数据和行为要绑在一起（一个&#x27;东西&#x27;）</td><td>类是模板，对象是按模板造出来的实例</td><td class='small'>第 4 章</td></tr>
+<tr id='t-34' data-k='魔术方法 magic method'><td><b>魔术方法</b><br><span class='small'>magic method</span></td><td>有些动作要在特定时机自动发生（如销毁时清理）</td><td>PHP 里以 __ 开头、由引擎自动调用的方法</td><td class='small'>第 4、9 章</td></tr>
+<tr id='t-35' data-k='序列化 serialize'><td><b>序列化</b><br><span class='small'>serialize</span></td><td>对象要存到文件/传网络，必须先变成字节</td><td>把对象转成字符串/字节的过程</td><td class='small'>第 9 章</td></tr>
+<tr id='t-36' data-k='反序列化 unserialize'><td><b>反序列化</b><br><span class='small'>unserialize</span></td><td>从存储/网络恢复对象</td><td>把字符串/字节还原成对象的过程</td><td class='small'>第 9 章</td></tr>
+<tr id='t-37' data-k='pop 链 property-oriented programming'><td><b>POP 链</b><br><span class='small'>property-oriented programming</span></td><td>单个魔术方法不够，要把多个对象串起来用</td><td>利用可控属性把一串方法调用接到危险函数上</td><td class='small'>第 9 章</td></tr>
+<tr id='t-38' data-k='正则 regex'><td><b>正则</b><br><span class='small'>regex</span></td><td>按模式匹配文本比逐字符判断方便</td><td>描述字符串模式的小语言</td><td class='small'>第 4 章</td></tr>
+<tr id='t-39' data-k='白名单 / 黑名单 allowlist / denylist'><td><b>白名单 / 黑名单</b><br><span class='small'>allowlist / denylist</span></td><td>要么只允许已知安全，要么只拦已知危险</td><td>允许集合 / 禁止集合两种过滤策略</td><td class='small'>第 4 章</td></tr>
+<tr id='t-40' data-k='漏洞 vulnerability'><td><b>漏洞</b><br><span class='small'>vulnerability</span></td><td>系统在被&#x27;非预期使用&#x27;时会做错事</td><td>代码/配置中可被利用来达成非预期行为的缺陷</td><td class='small'>第 0 章</td></tr>
+<tr id='t-41' data-k='攻击面 attack surface'><td><b>攻击面</b><br><span class='small'>attack surface</span></td><td>要评估&#x27;有多少地方能被碰&#x27;</td><td>所有可被外部输入触达的接口与数据流</td><td class='small'>第 0 章</td></tr>
+<tr id='t-42' data-k='输入校验 input validation'><td><b>输入校验</b><br><span class='small'>input validation</span></td><td>不可信输入必须先判断是否符合预期</td><td>在使用前检查数据格式/范围/类型</td><td class='small'>第 5 章</td></tr>
+<tr id='t-43' data-k='输出编码 output encoding'><td><b>输出编码</b><br><span class='small'>output encoding</span></td><td>数据要显示在 HTML/JS 里时必须转义</td><td>按上下文把特殊字符转成安全形式</td><td class='small'>第 5 章</td></tr>
+<tr id='t-44' data-k='sql 注入 sql injection'><td><b>SQL 注入</b><br><span class='small'>SQL injection</span></td><td>拼接字符串会让用户输入变成 SQL 语法</td><td>用户输入越界成 SQL 语句的一部分</td><td class='small'>第 6 章</td></tr>
+<tr id='t-45' data-k='参数化查询 prepared statement'><td><b>参数化查询</b><br><span class='small'>prepared statement</span></td><td>拼字符串治不了注入，需要把语法与数据分开</td><td>先定 SQL 结构、再绑定值的查询方式</td><td class='small'>第 6 章</td></tr>
+<tr id='t-46' data-k='盲注 blind injection'><td><b>盲注</b><br><span class='small'>blind injection</span></td><td>没有回显时仍想读数据</td><td>把数据变成是非题（布尔）或时间差（时间盲）来猜</td><td class='small'>第 6 章</td></tr>
+<tr id='t-47' data-k='联合注入 union injection'><td><b>联合注入</b><br><span class='small'>UNION injection</span></td><td>页面会显示查询结果，想把别的数据并进来</td><td>用 UNION SELECT 把自定义行拼到结果里</td><td class='small'>第 6 章</td></tr>
+<tr id='t-48' data-k='文件包含 local file inclusion'><td><b>文件包含</b><br><span class='small'>local file inclusion</span></td><td>模板/插件需要动态加载文件，于是路径可配</td><td>把用户可控路径交给 include/require 执行</td><td class='small'>第 8 章</td></tr>
+<tr id='t-49' data-k='路径穿越 path traversal'><td><b>路径穿越</b><br><span class='small'>path traversal</span></td><td>限定目录内的读取常靠拼接实现</td><td>用 ../ 跳出限定目录</td><td class='small'>第 8 章</td></tr>
+<tr id='t-50' data-k='任意文件读取 arbitrary file read'><td><b>任意文件读取</b><br><span class='small'>arbitrary file read</span></td><td>程序需要读文件（配置/模板）</td><td>用户可指定任意路径并读到内容</td><td class='small'>第 8 章</td></tr>
+<tr id='t-51' data-k='伪协议 php wrapper'><td><b>伪协议</b><br><span class='small'>PHP wrapper</span></td><td>PHP 要支持各种数据源（文件/网络/内存）</td><td>php://、data://、phar:// 等统一的流封装</td><td class='small'>第 8 章</td></tr>
+<tr id='t-52' data-k='文件上传 file upload'><td><b>文件上传</b><br><span class='small'>file upload</span></td><td>用户要传头像/附件，文件必须落到服务器</td><td>把客户端文件写到服务端磁盘的功能</td><td class='small'>第 8 章</td></tr>
+<tr id='t-53' data-k='webshell web shell'><td><b>webshell</b><br><span class='small'>web shell</span></td><td>拿到执行能力后需要一个稳定的远程入口</td><td>放在服务器上、通过 HTTP 执行命令的脚本</td><td class='small'>第 8 章</td></tr>
+<tr id='t-54' data-k='条件竞争 race condition'><td><b>条件竞争</b><br><span class='small'>race condition</span></td><td>多步操作不是原子的，中间状态可被利用</td><td>在检查与使用之间插入操作来绕过限制</td><td class='small'>第 8 章</td></tr>
+<tr id='t-55' data-k='命令注入 command injection'><td><b>命令注入</b><br><span class='small'>command injection</span></td><td>调系统命令时习惯拼接参数</td><td>用户输入被 shell 当成命令的一部分</td><td class='small'>第 9 章</td></tr>
+<tr id='t-56' data-k='ssti server-side template injection'><td><b>SSTI</b><br><span class='small'>server-side template injection</span></td><td>模板引擎把字符串当模板渲染</td><td>用户输入被当成模板代码执行</td><td class='small'>第 9 章</td></tr>
+<tr id='t-57' data-k='ssrf server-side request forgery'><td><b>SSRF</b><br><span class='small'>server-side request forgery</span></td><td>服务器需要替用户取远程资源</td><td>让服务器去请求攻击者指定的地址</td><td class='small'>第 9 章</td></tr>
+<tr id='t-58' data-k='xxe xml external entity'><td><b>XXE</b><br><span class='small'>XML external entity</span></td><td>XML 想复用文档片段，引入了外部实体</td><td>解析 XML 时加载外部资源（读文件/发请求）</td><td class='small'>第 9 章</td></tr>
+<tr id='t-59' data-k='反序列化漏洞 insecure deserialization'><td><b>反序列化漏洞</b><br><span class='small'>insecure deserialization</span></td><td>对象要跨请求/跨服务传递</td><td>把不可信字节还原成对象，触发非预期行为</td><td class='small'>第 9 章</td></tr>
+<tr id='t-60' data-k='越权 idor'><td><b>越权</b><br><span class='small'>IDOR</span></td><td>接口按 id 取数据时忘了校验归属</td><td>合法用户访问了不属于自己的资源</td><td class='small'>第 7 章</td></tr>
+<tr id='t-61' data-k='认证 / 授权 authentication / authorization'><td><b>认证 / 授权</b><br><span class='small'>authentication / authorization</span></td><td>先确认是谁，再确认能干什么</td><td>认证=你是谁；授权=你能做什么</td><td class='small'>第 7 章</td></tr>
+<tr id='t-62' data-k='哈希 hash'><td><b>哈希</b><br><span class='small'>hash</span></td><td>密码只需要比对，不需要还原</td><td>单向函数：任意输入 → 固定长度摘要</td><td class='small'>第 7 章</td></tr>
+<tr id='t-63' data-k='加盐 salt'><td><b>加盐</b><br><span class='small'>salt</span></td><td>相同密码不该得到相同哈希（防彩虹表）</td><td>哈希前拼上一段随机值</td><td class='small'>第 7 章</td></tr>
+<tr id='t-64' data-k='验证码 captcha'><td><b>验证码</b><br><span class='small'>captcha</span></td><td>要区分&#x27;人&#x27;和&#x27;脚本&#x27;</td><td>要求完成人类容易机器难的任务</td><td class='small'>第 7 章</td></tr>
+<tr id='t-65' data-k='waf web application firewall'><td><b>WAF</b><br><span class='small'>web application firewall</span></td><td>要在请求到达代码前挡掉明显的攻击</td><td>按规则匹配并拦截恶意请求的网关</td><td class='small'>第 5 章</td></tr>
+<tr id='t-66' data-k='信息泄露 information disclosure'><td><b>信息泄露</b><br><span class='small'>information disclosure</span></td><td>开发/运维的方便文件常被留在线上</td><td>本不该公开的信息（源码/备份/配置）可被访问</td><td class='small'>第 10 章</td></tr>
+<tr id='t-67' data-k='指纹 fingerprint'><td><b>指纹</b><br><span class='small'>fingerprint</span></td><td>知道对面是什么技术栈才能选对打法</td><td>从响应头/报错/URL 推断软件与版本</td><td class='small'>第 10 章</td></tr>
+<tr id='t-68' data-k='目录爆破 directory brute force'><td><b>目录爆破</b><br><span class='small'>directory brute force</span></td><td>隐藏路径不会主动告诉你</td><td>用字典逐个请求常见路径并比较响应</td><td class='small'>第 10 章</td></tr>
+<tr id='t-69' data-k='判据 acceptance criterion'><td><b>判据</b><br><span class='small'>acceptance criterion</span></td><td>没有明确判据就会把&#x27;像&#x27;当成&#x27;是&#x27;</td><td>判断一次尝试是否真的成功的硬标准</td><td class='small'>第 11 章</td></tr>
+<tr id='t-70' data-k='假阳性 false positive'><td><b>假阳性</b><br><span class='small'>false positive</span></td><td>误判成功会让人放弃真正的问题</td><td>把失败误认为成功</td><td class='small'>第 11 章</td></tr>
+<tr id='t-71' data-k='回归测试 regression test'><td><b>回归测试</b><br><span class='small'>regression test</span></td><td>改一处容易弄坏另一处</td><td>每次改动后重跑整套检查确认没坏</td><td class='small'>第 11 章</td></tr>
+<tr id='t-72' data-k='节点树 node tree'><td><b>节点树</b><br><span class='small'>node tree</span></td><td>一次解题有很多分支，需要看得见</td><td>把每一步尝试记录成父子节点的结构</td><td class='small'>第 11 章</td></tr>
+</tbody></table>
+<script>
+document.getElementById('gq').addEventListener('input', function(){
+  var q = this.value.trim().toLowerCase();
+  document.querySelectorAll('#gtable tbody tr').forEach(function(tr){
+    tr.style.display = (!q || tr.dataset.k.indexOf(q) >= 0) ? '' : 'none';
+  });
+});
+</script>
+</main></div><script src="assets/terms.js"></script><script src="assets/site.js"></script><script>
+(function () {
+  var b = document.getElementById("bg5fnhBack");
+  if (!b) return;
+  b.addEventListener("click", function (e) {
+    e.preventDefault();
+    try {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: "BG5FNH_CLOSE_OVERLAY" }, "*");
+        return;
+      }
+    } catch (err) {}
+    var m = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+    window.location.href = "../../../../../" + (m ? "mobile/index_m.html" : "pc/index.html");
+  });
+})();
+</script>
+</body></html>

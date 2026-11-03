@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>进阶：代理层、协议层与「看不见的」漏洞 · 从零学网安</title><link rel="stylesheet" href="assets/style.css"><style>.top .btn.bk{color:#e7b98a;border-color:rgba(231,185,138,.55);margin-right:6px;text-decoration:none}.top .btn.bk:hover{color:#fff;border-color:#ff8b6b}</style></head><body><div class="top"><a class="btn bk" href="#" id="bg5fnhBack" title="回到网站">← 返回</a><div class="brand">从零学网安 <small>从 Linux 与网站运行原理，到用妮露工具箱做出一道题</small></div><div class="grow"></div><input id="q" type="search" placeholder="搜：SQL 注入 / session / 端口 …"><a class="btn" href="index.html">目录</a><div id="hits"></div></div><div class="wrap"><aside class='side'><h4>章节</h4><a href='ch00.html'>00　学习地图：这门课到底在教你什么</a><a href='ch01.html'>01　一次访问的全过程（从按下回车到看见页面）</a><a href='ch02.html'>02　Linux 最小必要：文件、权限、进程、命令</a><a href='ch03.html'>03　网站是怎么跑起来的（Nginx 与后端的分工）</a><a href='ch04.html'>04　读得懂代码：PHP / Python / JS 的最小语法对照</a><a href='ch05.html'>05　输入从哪来：参数、头、Cookie、文件、JSON</a><a href='ch06.html'>06　数据库与 SQL 注入：数据变成语法的瞬间</a><a href='ch07.html'>07　认证与会话：我是谁，以及我怎么证明</a><a href='ch08.html'>08　文件类漏洞：读取、包含、上传、穿越</a><a href='ch09.html'>09　执行类与借刀类：命令、模板、反序列化、SSRF、XXE</a><a href='ch10.html'>10　信息收集：把「一个网址」变成「一张清单」</a><a href='ch11.html'>11　用妮露工具箱实战：面板、洪水、信息显示</a><a href='ch12.html'>12　十二道渐进练习：从「看页面」到「打完整链」</a><a class='on' href='ch13.html'>13　进阶：代理层、协议层与「看不见的」漏洞</a><a href='ch14.html'>14　附录：工具箱全表（面板 · 策略 · 判据）</a><h4>附录</h4><a href='glossary.html'>术语总表</a><h4>本页</h4><a href='#s1'>① Host 头：一个&quot;看起来只是域名&quot;的输入</a><a href='#s2'>② 请求走私（HTTP Smuggling）：两个解析器意见不一致</a><a href='#s3'>③ 缓存投毒 / 缓存欺骗：缓存键比内容粗</a><a href='#s4'>④ 原型链污染（JavaScript）</a><a href='#s5'>⑤ SAML / OAuth：断言与跳转的信任问题</a><a href='#s6'>⑥ 条件竞争与&quot;业务时序&quot;</a><a href='#s7'>⑦ 还有这些&quot;看到就该想到&quot;的信号</a><a href='#s8'>本章小结</a></aside><main>
+<h1>第 13 章　进阶：代理层、协议层与「看不见的」漏洞</h1><p class='lead'>前面十二章覆盖了 80% 的基础题。这一章补剩下的那 20%：Host 头、请求走私、缓存投毒、原型链、SAML、竞态与杂项。</p>
+<div class="goals"><h4>本章你会得到</h4>
+<ul>
+<li>六个"不靠注入"的<a class='gl' data-k='40' href='glossary.html#t-40' title='点一下看解释（Esc 关闭）'>漏洞</a>类别，各自的判断信号</li>
+<li>知道它们为什么难：<b>没有明显的 payload 回显</b>，要靠间接证据</li>
+<li>一份"看到这个信号就该想到它"的对照表</li>
+</ul></div>
+
+<div class="tip"><span class="t">先说实话</span>
+<p>这一章的内容在省赛里出现频率远低于前十二章，但一旦出现，往往就是拉开差距的题。
+建议：<b>先能稳定做掉基础题，再回来读这一章</b>。</p></div>
+
+<h2 id='s1'>① Host 头：一个"看起来只是域名"的输入</h2>
+
+<p><a class='gl' data-k='7' href='glossary.html#t-7' title='点一下看解释（Esc 关闭）'>HTTP</a>/1.1 必须带 <code>Host</code>，因为一个 IP 上可能挂很多站。服务器用它在内部路由。</p>
+
+<div class="why"><span class="t">为什么它能出事</span>
+<p>因为代码里经常拿 <code>Host</code> 去拼<b>绝对地址</b>：密码重置链接、
+跳转地址、<a class='gl' data-k='22' href='glossary.html#t-22' title='点一下看解释（Esc 关闭）'>静态资源</a>前缀。而这些值会被写进邮件、写进缓存、写进数据库。
+攻击者改一个 Host，就能让"发给用户的链接"指向自己的域名 —— 用户点开时 token 就送到攻击者手里。</p></div>
+
+<pre class="term"><code># 判断：改 Host 后，页面里的绝对链接跟着变了吗
+curl -H "Host: evil.example" http://TARGET/forgot
+# 响应里出现 http://evil.example/reset?token=… → 有戏
+
+# 常见变体：X-Forwarded-Host / X-Host / Forwarded
+curl -H "X-Forwarded-Host: evil.example" http://TARGET/</code></pre>
+
+<table>
+<tr><th>现象</th><th>说明</th><th>怎么利用</th></tr>
+<tr><td>页面绝对链接变了</td><td>用了 Host 拼 URL</td><td>重置密码/邀请链接拿到 token</td></tr>
+<tr><td>访问任意 Host 都返回同一站</td><td>没做 Host 校验（默认站点）</td><td>缓存投毒 / 密码重置污染</td></tr>
+<tr><td>403 但改 Host 就过</td><td>按 Host 做访问控制</td><td>绕过"只允许内网域名"</td></tr>
+</table>
+
+<h2 id='s2'>② 请求走私（HTTP Smuggling）：两个解析器意见不一致</h2>
+
+<figure><svg viewBox="0 0 960 320" xmlns="http://www.w3.org/2000/svg" role="img"><text x="480.0" y="28.0" fill="#ffd9a8" font-size="14.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="middle" opacity="1.00">请求走私：前端与后端对「body 有多长」意见不同</text><rect x="24.0" y="60.0" width="190.0" height="110.0" rx="10" fill="#3a2020" stroke="#d8504f" stroke-width="1.4" opacity="1.00"/><text x="119.0" y="113.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">攻击者发出的字节</text><text x="119.0" y="129.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">两个头同时出现</text><text x="40.0" y="84.0" fill="#ff9a8f" font-size="12.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">CL: 6</text><text x="40.0" y="106.0" fill="#ff9a8f" font-size="12.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">TE: chunked</text><text x="40.0" y="128.0" fill="#ff9a8f" font-size="12.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">0</text><text x="40.0" y="150.0" fill="#ff9a8f" font-size="12.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">G</text><rect x="250.0" y="40.0" width="200.0" height="70.0" rx="10" fill="#3a2a1f" stroke="#e0a03a" stroke-width="1.4" opacity="1.00"/><text x="350.0" y="73.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">前端代理</text><text x="350.0" y="89.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">按 CL 读 6 字节</text><rect x="250.0" y="130.0" width="200.0" height="70.0" rx="10" fill="#3a2a1f" stroke="#e0a03a" stroke-width="1.4" opacity="1.00"/><text x="350.0" y="163.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">后端服务器</text><text x="350.0" y="179.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">按 TE 读分块</text><g><line x1="216.0" y1="100.0" x2="242.4" y2="80.2" stroke="#d8504f" stroke-width="1.8"/><polygon points="248.0,76.0 245.3,82.4 241.1,76.8" fill="#d8504f"/></g><g><line x1="216.0" y1="130.0" x2="243.2" y2="158.9" stroke="#d8504f" stroke-width="1.8"/><polygon points="248.0,164.0 241.3,162.0 246.4,157.2" fill="#d8504f"/></g><rect x="500.0" y="40.0" width="210.0" height="70.0" rx="10" fill="#243040" stroke="#4f86c6" stroke-width="1.4" opacity="1.00"/><text x="605.0" y="73.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">转给后端的第一段</text><text x="605.0" y="89.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">GET /admin</text><rect x="500.0" y="130.0" width="210.0" height="70.0" rx="10" fill="#3a2020" stroke="#d8504f" stroke-width="1.4" opacity="1.00"/><text x="605.0" y="163.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">多出来的 G</text><text x="605.0" y="179.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">被当成下一个请求的开头</text><rect x="740.0" y="40.0" width="190.0" height="70.0" rx="10" fill="#2d2438" stroke="#9a6bb5" stroke-width="1.4" opacity="1.00"/><text x="835.0" y="73.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">受害者</text><text x="835.0" y="89.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">他的下一个请求被污染</text><rect x="740.0" y="130.0" width="190.0" height="70.0" rx="10" fill="#2d2438" stroke="#9a6bb5" stroke-width="1.4" opacity="1.00"/><text x="835.0" y="163.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">结果</text><text x="835.0" y="179.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">执行了攻击者的请求</text><g><line x1="452.0" y1="76.0" x2="491.0" y2="76.0" stroke="#4f86c6" stroke-width="1.8"/><polygon points="498.0,76.0 491.9,79.5 491.9,72.5" fill="#4f86c6"/></g><g><line x1="452.0" y1="164.0" x2="491.0" y2="164.0" stroke="#d8504f" stroke-width="1.8"/><polygon points="498.0,164.0 491.9,167.5 491.9,160.5" fill="#d8504f"/></g><g><line x1="712.0" y1="76.0" x2="731.0" y2="76.0" stroke="#9a6bb5" stroke-width="1.8"/><polygon points="738.0,76.0 731.9,79.5 731.9,72.5" fill="#9a6bb5"/></g><g><line x1="712.0" y1="164.0" x2="731.0" y2="164.0" stroke="#9a6bb5" stroke-width="1.8"/><polygon points="738.0,164.0 731.9,167.5 731.9,160.5" fill="#9a6bb5"/></g><text x="480.0" y="226.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">CL = Content-Length（数字）；TE = Transfer-Encoding: chunked（分块）</text><rect x="24.0" y="244.0" width="906.0" height="60.0" rx="10" fill="#1b1514" stroke="#3a2a2a" stroke-width="1.4" opacity="1.00"/><text x="38.0" y="268.0" fill="#ffce7a" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="start" opacity="1.00">为什么难验证：</text><text x="176.0" y="268.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">你发的一个请求，效果出现在「别人的下一个请求」上。要靠「发两发、看第二发响应」来确认。</text><text x="176.0" y="292.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">工具里用两台真服务器模拟前后端，所以判定是「后端真的执行了」。</text></svg><figcaption>图 13-1　CL.TE 型走私</figcaption></figure>
+
+<p>链路是"前端代理 → 后端服务器"。如果两边对"请求体有多长"理解不同，
+就会有一部分字节被<b>后一个请求</b>吃掉 —— 于是我们能"偷"一个请求。</p>
+
+<pre class="term"><code>POST / HTTP/1.1
+Host: t
+Content-Length: 6
+Transfer-Encoding: chunked
+
+0
+
+G</code></pre>
+
+<div class="why"><span class="t">为什么会有这种不一致</span>
+<p>因为 <a class='gl' data-k='7' href='glossary.html#t-7' title='点一下看解释（Esc 关闭）'>HTTP</a> 有两个表示"body 多长"的头：<code>Content-Length</code>（数字）和
+<code>Transfer-Encoding: chunked</code>（分块）。规范说"两个都有时以 TE 为准并应拒绝"，
+但很多实现各自处理：有的看 CL、有的看 TE、有的把两个都信。差异就是缝隙。</p></div>
+
+<table>
+<tr><th>类型</th><th>谁看 CL、谁看 TE</th><th>结果</th></tr>
+<tr><td>CL.TE</td><td>前端看 CL，后端看 TE</td><td>后端把剩下的当成下一个请求</td></tr>
+<tr><td>TE.CL</td><td>前端看 TE，后端看 CL</td><td>同上前提反</td></tr>
+<tr><td>TE.TE</td><td>两边都看 TE，但一个被混淆头骗过</td><td>用畸形头让一方忽略 TE</td></tr>
+</table>
+
+<div class="warn"><span class="t">为什么这类题很难"看见"</span>
+<p>因为你发的是一个请求，效果却作用在<b>别人的下一个请求</b>上。验证方式通常是
+"发两发，看第二发的响应是不是第一发的" —— 需要精确控制连接复用。工具里是
+<code>smuggle</code> 策略，靶子用两台真服务器模拟前后端。</p></div>
+
+<h2 id='s3'>③ 缓存投毒 / 缓存欺骗：缓存键比内容粗</h2>
+
+<figure><svg viewBox="0 0 940 300" xmlns="http://www.w3.org/2000/svg" role="img"><text x="470.0" y="28.0" fill="#ffd9a8" font-size="14.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="middle" opacity="1.00">缓存投毒：缓存键比内容粗</text><rect x="26.0" y="60.0" width="170.0" height="70.0" rx="10" fill="#3a2020" stroke="#d8504f" stroke-width="1.4" opacity="1.00"/><text x="111.0" y="93.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">攻击者</text><text x="111.0" y="109.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">带恶意头的请求</text><rect x="226.0" y="60.0" width="190.0" height="70.0" rx="10" fill="#3a2a1f" stroke="#e0a03a" stroke-width="1.4" opacity="1.00"/><text x="321.0" y="93.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">CDN 缓存</text><text x="321.0" y="109.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">按「路径」当键</text><rect x="446.0" y="60.0" width="190.0" height="70.0" rx="10" fill="#243040" stroke="#4f86c6" stroke-width="1.4" opacity="1.00"/><text x="541.0" y="93.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">源站</text><text x="541.0" y="109.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">把恶意头拼进了页面</text><rect x="666.0" y="60.0" width="240.0" height="70.0" rx="10" fill="#2d2438" stroke="#9a6bb5" stroke-width="1.4" opacity="1.00"/><text x="786.0" y="93.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">缓存下来</text><text x="786.0" y="109.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">path=/a.js 存了这份响应</text><g><line x1="198.0" y1="95.0" x2="217.0" y2="95.0" stroke="#d8504f" stroke-width="1.8"/><polygon points="224.0,95.0 217.9,98.5 217.9,91.5" fill="#d8504f"/></g><g><line x1="418.0" y1="95.0" x2="437.0" y2="95.0" stroke="#e0a03a" stroke-width="1.8"/><polygon points="444.0,95.0 437.9,98.5 437.9,91.5" fill="#e0a03a"/></g><g><line x1="638.0" y1="95.0" x2="657.0" y2="95.0" stroke="#4f86c6" stroke-width="1.8"/><polygon points="664.0,95.0 657.9,98.5 657.9,91.5" fill="#4f86c6"/></g><rect x="26.0" y="160.0" width="170.0" height="70.0" rx="10" fill="#23322b" stroke="#4fa87a" stroke-width="1.4" opacity="1.00"/><text x="111.0" y="193.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">正常用户</text><text x="111.0" y="209.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">只想拿 a.js</text><rect x="226.0" y="160.0" width="190.0" height="70.0" rx="10" fill="#3a2a1f" stroke="#e0a03a" stroke-width="1.4" opacity="1.00"/><text x="321.0" y="193.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">CDN</text><text x="321.0" y="209.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">命中缓存</text><rect x="446.0" y="160.0" width="460.0" height="70.0" rx="10" fill="#3a2020" stroke="#d8504f" stroke-width="1.4" opacity="1.00"/><text x="676.0" y="193.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">于是他拿到了被投毒的响应</text><text x="676.0" y="209.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">里面可能有跳转、脚本、假的登录页</text><g><line x1="198.0" y1="195.0" x2="217.0" y2="195.0" stroke="#4fa87a" stroke-width="1.8"/><polygon points="224.0,195.0 217.9,198.5 217.9,191.5" fill="#4fa87a"/></g><g><line x1="418.0" y1="195.0" x2="437.0" y2="195.0" stroke="#e0a03a" stroke-width="1.8"/><polygon points="444.0,195.0 437.9,198.5 437.9,191.5" fill="#e0a03a"/></g><rect x="26.0" y="246.0" width="900.0" height="46.0" rx="10" fill="#1b1514" stroke="#3a2a2a" stroke-width="1.4" opacity="1.00"/><text x="40.0" y="274.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">判断信号：响应头里的 X-Cache / Age / CF-Cache-Status；同一个路径换参数，内容是否跟着变。</text></svg><figcaption>图 13-2　缓存投毒与缓存欺骗</figcaption></figure>
+
+<p>CDN 为了加速，会把响应存起来。它判断"这份内容属于谁"用的是 <b>缓存键</b>（通常=路径）。</p>
+
+<table>
+<tr><th>问题</th><th>怎么发现</th><th>后果</th></tr>
+<tr><td>查询串不在缓存键里</td><td>访问 <code>/p?x=1</code> 再访问 <code>/p?x=2</code>，内容一样</td><td>把带攻击 payload 的页面缓存给所有人（XSS）</td></tr>
+<tr><td>路径后缀被忽略</td><td><code>/profile/x.css</code> 返回 profile 内容</td><td>缓存欺骗：别人能读到你的隐私页</td></tr>
+<tr><td>Host/头参与不参与</td><td>换头看缓存是否命中</td><td>投毒到"看起来是静态文件"的路径</td></tr>
+</table>
+
+<pre class="term"><code># 判断缓存：看响应头
+curl -I http://TARGET/a.js
+# X-Cache: HIT / MISS、Age、CF-Cache-Status 都是信号
+
+# 投毒尝试：让缓存记住我们想要的响应
+curl -H "X-Forwarded-Host: evil.example" http://TARGET/a.js
+curl http://TARGET/a.js          # 第二次如果带上了 evil → 投毒成功</code></pre>
+
+<h2 id='s4'>④ 原型链污染（JavaScript）</h2>
+
+<p>JS 的对象都有"原型"，查找属性时会沿原型链往上找。如果合并逻辑允许写
+<code>__proto__</code>，你就能给<b>所有对象</b>加属性。</p>
+
+<pre class="term"><code>// 漏洞：深合并时没过滤 __proto__
+merge(target, JSON.parse(userInput))
+// 输入：{"__proto__": {"isAdmin": true}}
+// 之后任何对象 obj.isAdmin 都是 true</code></pre>
+
+<div class="why"><span class="t">为什么这很隐蔽</span>
+<p>因为<b>没有任何一个地方写着 isAdmin = true</b>。它污染的是"默认值"，
+只有在别的代码读这个属性时才生效（比如权限判断、模板渲染、child_process 的参数）。
+所以判断方法是：找一个"接收 JSON 并合并"的接口，然后看权限/行为是否变化。</p></div>
+
+<h2 id='s5'>⑤ SAML / OAuth：断言与跳转的信任问题</h2>
+
+<table>
+<tr><th>协议</th><th>它解决什么</th><th>典型问题</th></tr>
+<tr><td>SAML</td><td>企业单点登录（IdP 签发断言，SP 信任）</td>
+    <td>签名没校验 / 只校验一部分 / XML 签名包装（XSW）</td></tr>
+<tr><td>OAuth 2.0</td><td>第三方授权（拿 token 访问资源）</td>
+    <td>redirect_uri 校验不严 → 授权码送到攻击者</td></tr>
+</table>
+
+<pre class="term"><code># OAuth：改 redirect_uri 看是否被接受
+/authorize?client_id=x&redirect_uri=https://evil.example/cb&response_type=code
+# 常见松法：前缀匹配（https://good.com.evil.com）、路径穿越、子域、@ 混淆</code></pre>
+
+<h2 id='s6'>⑥ 条件竞争与"业务时序"</h2>
+
+<p>前面第 8 章讲过上传竞争。同一类问题在业务里更常见：<b>先查后改</b>、
+<b>先扣后加</b>、<b>先审后发</b>。</p>
+
+<table>
+<tr><th>场景</th><th>怎么打</th><th>看什么</th></tr>
+<tr><td>优惠券只能用一次</td><td>同一个券并发提交多份订单</td><td>是否出现多份成功</td></tr>
+<tr><td>余额提现</td><td>并发发起提现</td><td>总提现 > 余额</td></tr>
+<tr><td>注册同名用户</td><td>并发注册</td><td>是否出现两个同名</td></tr>
+<tr><td>限购一件</td><td>并发下单</td><td>订单数 > 1</td></tr>
+</table>
+
+<h2 id='s7'>⑦ 还有这些"看到就该想到"的信号</h2>
+
+<table>
+<tr><th>你看到</th><th>该想到</th><th>试什么</th></tr>
+<tr><td>URL 里有 <code>?url=</code>/<code>?image=</code></td><td><a class='gl' data-k='57' href='glossary.html#t-57' title='点一下看解释（Esc 关闭）'>SSRF</a></td><td><code>http://127.0.0.1:80</code></td></tr>
+<tr><td>XML 上传/接口</td><td><a class='gl' data-k='58' href='glossary.html#t-58' title='点一下看解释（Esc 关闭）'>XXE</a></td><td>外部实体读文件</td></tr>
+<tr><td><a class='gl' data-k='10' href='glossary.html#t-10' title='点一下看解释（Esc 关闭）'><a class='gl' data-k='10' href='glossary.html#t-10' title='点一下看解释（Esc 关闭）'>Cookie</a></a> 是三段 base64</td><td><a class='gl' data-k='12' href='glossary.html#t-12' title='点一下看解释（Esc 关闭）'>JWT</a></td><td>alg=none / 弱密钥</td></tr>
+<tr><td>页面有 <code>{{ }}</code> 被渲染</td><td><a class='gl' data-k='56' href='glossary.html#t-56' title='点一下看解释（Esc 关闭）'>SSTI</a></td><td><code>{{7*7}}</code></td></tr>
+<tr><td>下载功能带文件名参数</td><td><a class='gl' data-k='49' href='glossary.html#t-49' title='点一下看解释（Esc 关闭）'>路径穿越</a></td><td><code>../../etc/passwd</code></td></tr>
+<tr><td>登录后有 <code>/api/user/1</code></td><td><a class='gl' data-k='60' href='glossary.html#t-60' title='点一下看解释（Esc 关闭）'>IDOR</a></td><td>改成 2 / 0 / admin</td></tr>
+<tr><td>报错页带<a class='gl' data-k='14' href='glossary.html#t-14' title='点一下看解释（Esc 关闭）'>绝对路径</a></td><td><a class='gl' data-k='66' href='glossary.html#t-66' title='点一下看解释（Esc 关闭）'>信息泄露</a></td><td>顺着路径读源码</td></tr>
+<tr><td>响应头有 <code>X-Powered-By</code></td><td><a class='gl' data-k='67' href='glossary.html#t-67' title='点一下看解释（Esc 关闭）'>指纹</a></td><td>查该版本已知<a class='gl' data-k='40' href='glossary.html#t-40' title='点一下看解释（Esc 关闭）'>漏洞</a></td></tr>
+</table>
+
+<div class="tool"><span class="t">工具箱里对应什么</span>
+<p><code>host_bypass</code>（Host 头）、<code>smuggle</code>（请求走私）、
+<code>cache_trick</code>（缓存）、<code>proto_pollution</code>（原型链）、
+<code>saml_forge</code>（SAML）、<code>oauth_redirect</code>（OAuth）、
+<code>race</code>/<code>upload_race</code>（竞争）。</p>
+<p>这些策略的<b>分数普遍偏低（0.4~0.6）</b>，因为它们很难拿到"服务端亲口给的 flag"作为证据。
+看到 0.5 分不要以为是失败，去看节点详情里的证据链。</p></div>
+
+<h2 id='s8'>本章小结</h2>
+
+<table>
+<tr><th>类别</th><th>一句话</th></tr>
+<tr><td>Host 头</td><td>被拼进绝对链接的输入</td></tr>
+<tr><td>请求走私</td><td>两个解析器对"body 多长"意见不一致</td></tr>
+<tr><td>缓存</td><td>缓存键比内容粗 → 把别人的内容给别人</td></tr>
+<tr><td>原型链</td><td>污染"默认值"，没有一行代码写着 true</td></tr>
+<tr><td>SAML/OAuth</td><td>信任了不该信任的断言/跳转地址</td></tr>
+<tr><td>竞争</td><td>多步操作不是原子的</td></tr>
+</table>
+
+<div class='pager'><a class='l' href='ch12.html'>← 12　十二道渐进练习：从「看页面」到「打完整链」</a><a class='r' href='ch14.html'>14　附录：工具箱全表（面板 · 策略 · 判据） →</a></div></main></div><script src="assets/terms.js"></script><script src="assets/site.js"></script><script>
+(function () {
+  var b = document.getElementById("bg5fnhBack");
+  if (!b) return;
+  b.addEventListener("click", function (e) {
+    e.preventDefault();
+    try {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: "BG5FNH_CLOSE_OVERLAY" }, "*");
+        return;
+      }
+    } catch (err) {}
+    var m = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+    window.location.href = "../../../../../" + (m ? "mobile/index_m.html" : "pc/index.html");
+  });
+})();
+</script>
+</body></html>

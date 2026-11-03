@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>网站是怎么跑起来的（Nginx 与后端的分工） · 从零学网安</title><link rel="stylesheet" href="assets/style.css"><style>.top .btn.bk{color:#e7b98a;border-color:rgba(231,185,138,.55);margin-right:6px;text-decoration:none}.top .btn.bk:hover{color:#fff;border-color:#ff8b6b}</style></head><body><div class="top"><a class="btn bk" href="#" id="bg5fnhBack" title="回到网站">← 返回</a><div class="brand">从零学网安 <small>从 Linux 与网站运行原理，到用妮露工具箱做出一道题</small></div><div class="grow"></div><input id="q" type="search" placeholder="搜：SQL 注入 / session / 端口 …"><a class="btn" href="index.html">目录</a><div id="hits"></div></div><div class="wrap"><aside class='side'><h4>章节</h4><a href='ch00.html'>00　学习地图：这门课到底在教你什么</a><a href='ch01.html'>01　一次访问的全过程（从按下回车到看见页面）</a><a href='ch02.html'>02　Linux 最小必要：文件、权限、进程、命令</a><a class='on' href='ch03.html'>03　网站是怎么跑起来的（Nginx 与后端的分工）</a><a href='ch04.html'>04　读得懂代码：PHP / Python / JS 的最小语法对照</a><a href='ch05.html'>05　输入从哪来：参数、头、Cookie、文件、JSON</a><a href='ch06.html'>06　数据库与 SQL 注入：数据变成语法的瞬间</a><a href='ch07.html'>07　认证与会话：我是谁，以及我怎么证明</a><a href='ch08.html'>08　文件类漏洞：读取、包含、上传、穿越</a><a href='ch09.html'>09　执行类与借刀类：命令、模板、反序列化、SSRF、XXE</a><a href='ch10.html'>10　信息收集：把「一个网址」变成「一张清单」</a><a href='ch11.html'>11　用妮露工具箱实战：面板、洪水、信息显示</a><a href='ch12.html'>12　十二道渐进练习：从「看页面」到「打完整链」</a><a href='ch13.html'>13　进阶：代理层、协议层与「看不见的」漏洞</a><a href='ch14.html'>14　附录：工具箱全表（面板 · 策略 · 判据）</a><h4>附录</h4><a href='glossary.html'>术语总表</a><h4>本页</h4><a href='#s1'>静态与动态：两种完全不同的处理方式</a><a href='#s2'>一份最小 nginx 配置，逐行讲</a><a href='#s3'>PHP 是怎么被&quot;执行&quot;而不是&quot;下载&quot;的</a><a href='#s4'>三种服务器/后端组合，漏洞长相不同</a><a href='#s5'>反向代理与&quot;信任边界&quot;</a><a href='#s6'>本章小结</a></aside><main>
+<h1>第 03 章　网站是怎么跑起来的（Nginx 与后端的分工）</h1><p class='lead'>同一台服务器上，静态文件和动态脚本走的是两条完全不同的路。搞清楚「谁执行、执行哪个文件」，才能理解上传/包含/解析类漏洞。</p>
+<div class="goals"><h4>本章你会得到</h4>
+<ul>
+<li>看懂 nginx 配置里那几十行到底在说什么（root / index / <a class='gl' data-k='25' href='glossary.html#t-25' title='点一下看解释（Esc 关闭）'>location</a> / try_files / fastcgi_pass）</li>
+<li>知道「请求一个 .php 文件」时，文件是怎么被执行的（而不是被当文本下载）</li>
+<li>搞懂三种最常见的配置级<a class='gl' data-k='40' href='glossary.html#t-40' title='点一下看解释（Esc 关闭）'>漏洞</a>：路径解析差异、后缀判断、上传目录可执行</li>
+</ul></div>
+
+<h2 id='s1'>静态与动态：两种完全不同的处理方式</h2>
+
+<figure><svg viewBox="0 0 960 300" xmlns="http://www.w3.org/2000/svg" role="img"><rect x="20.0" y="46.0" width="450.0" height="220.0" rx="12" fill="#1b1514" stroke="#3a2a2a" stroke-width="1.4" opacity="1.00"/><text x="245.0" y="72.0" fill="#9fd8b4" font-size="14.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="middle" opacity="1.00">静态站点：文件就是答案</text><rect x="40.0" y="90.0" width="120.0" height="60.0" rx="10" fill="#23322b" stroke="#4fa87a" stroke-width="1.4" opacity="1.00"/><text x="100.0" y="118.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">浏览器</text><text x="100.0" y="134.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">要 /a.html</text><rect x="240.0" y="90.0" width="120.0" height="60.0" rx="10" fill="#3a2a2a" stroke="#d8504f" stroke-width="1.4" opacity="1.00"/><text x="300.0" y="118.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">Nginx</text><text x="300.0" y="134.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">磁盘上找文件</text><rect x="400.0" y="90.0" width="56.0" height="60.0" rx="10" fill="#2a2a2a" stroke="#7d6f6d" stroke-width="1.4" opacity="1.00"/><text x="428.0" y="118.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">磁盘</text><text x="428.0" y="134.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">a.html</text><g><line x1="160.0" y1="120.0" x2="231.0" y2="120.0" stroke="#4fa87a" stroke-width="1.8"/><polygon points="238.0,120.0 231.9,123.5 231.9,116.5" fill="#4fa87a"/></g><g><line x1="360.0" y1="120.0" x2="391.0" y2="120.0" stroke="#4fa87a" stroke-width="1.8"/><polygon points="398.0,120.0 391.9,123.5 391.9,116.5" fill="#4fa87a"/></g><text x="245.0" y="176.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">路径 = 文件名；没有代码执行；</text><text x="245.0" y="196.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">风险主要在「目录/备份/软链接」而不是注入</text><rect x="496.0" y="46.0" width="444.0" height="220.0" rx="12" fill="#1b1514" stroke="#3a2a2a" stroke-width="1.4" opacity="1.00"/><text x="718.0" y="72.0" fill="#ffb3a0" font-size="14.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="middle" opacity="1.00">动态站点：代码生成答案</text><rect x="514.0" y="90.0" width="100.0" height="60.0" rx="10" fill="#23322b" stroke="#4fa87a" stroke-width="1.4" opacity="1.00"/><text x="564.0" y="118.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">浏览器</text><text x="564.0" y="134.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">要 /a?id=1</text><rect x="634.0" y="90.0" width="96.0" height="60.0" rx="10" fill="#3a2a2a" stroke="#d8504f" stroke-width="1.4" opacity="1.00"/><text x="682.0" y="118.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">Nginx</text><text x="682.0" y="134.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">转给后端</text><rect x="750.0" y="90.0" width="84.0" height="60.0" rx="10" fill="#3a2a2a" stroke="#d8504f" stroke-width="1.4" opacity="1.00"/><text x="792.0" y="118.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">PHP/Java</text><text x="792.0" y="134.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">跑代码</text><rect x="854.0" y="90.0" width="74.0" height="60.0" rx="10" fill="#243040" stroke="#4f86c6" stroke-width="1.4" opacity="1.00"/><text x="891.0" y="118.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">数据库</text><text x="891.0" y="134.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">取数据</text><g><line x1="614.0" y1="120.0" x2="625.0" y2="120.0" stroke="#d8504f" stroke-width="1.8"/><polygon points="632.0,120.0 625.9,123.5 625.9,116.5" fill="#d8504f"/></g><g><line x1="730.0" y1="120.0" x2="741.0" y2="120.0" stroke="#d8504f" stroke-width="1.8"/><polygon points="748.0,120.0 741.9,123.5 741.9,116.5" fill="#d8504f"/></g><g><line x1="834.0" y1="120.0" x2="845.0" y2="120.0" stroke="#d8504f" stroke-width="1.8"/><polygon points="852.0,120.0 845.9,123.5 845.9,116.5" fill="#d8504f"/></g><text x="718.0" y="176.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">路径 = 代码里的一个入口；</text><text x="718.0" y="196.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">用户输入会流进 SQL / 文件 / 命令 / 模板 —— <a class='gl' data-k='40' href='glossary.html#t-40' title='点一下看解释（Esc 关闭）'>漏洞</a>从这儿长出来</text></svg><figcaption>图 3-1　静态与动态：风险点完全不同</figcaption></figure>
+
+<div class="why"><span class="t">为什么必须区分</span>
+<p><b>静态</b>：请求 <code>/a.html</code> → 服务器把那个文件原样发给你。没有代码执行，
+所以不会有 <a class='gl' data-k='44' href='glossary.html#t-44' title='点一下看解释（Esc 关闭）'>SQL 注入</a>、命令执行。风险在"文件本身"：备份文件被下载、目录被列、软链接穿越。</p>
+<p><b>动态</b>：请求 <code>/a.php</code> → 服务器要<b>启动解释器执行这个文件</b>。
+只要参数进了代码，就可能出现所有第 5~9 章的漏洞。风险在"代码怎么写"。</p>
+<p>判断一道题属于哪类，看两件事：URL 后缀、页面有没有"根据参数变化的内容"。</p></div>
+
+<h2 id='s2'>一份最小 nginx 配置，逐行讲</h2>
+
+<pre class="term"><code>server {
+    listen 80;
+    server_name shop.example.com;
+
+    root  /var/www/html;        # 网站的"根目录"：URL 里的 / 对应这里的目录
+    index index.php index.html;# 请求目录时默认找哪个文件
+
+    location / {               # 所有路径：先找文件，找不到就交给 index.php
+        try_files $uri $uri/ /index.php?$args;
+    }
+
+    location ~ \.php$ {        # 后缀是 .php 的请求：
+        fastcgi_pass 127.0.0.1:9000;   # 交给 PHP-FPM 去执行
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    }
+}</code></pre>
+
+<table>
+<tr><th>指令</th><th>它在解决什么问题</th><th>攻击者关心什么</th></tr>
+<tr><td><code>root</code></td><td>把 URL 映射到磁盘路径</td><td>网站根在哪 → 能不能读到根外的文件</td></tr>
+<tr><td><code>index</code></td><td>访问目录时给个默认页</td><td>目录下有没有默认页泄露</td></tr>
+<tr><td><code>location</code></td><td>按路径分流（静态/动态/拒绝）</td><td>哪条规则先匹配？不同软件匹配顺序不同</td></tr>
+<tr><td><code>try_files</code></td><td>"文件不存在就换个地方找"</td><td>可能把请求转给 index.php 导致奇怪的包含</td></tr>
+<tr><td><code>fastcgi_pass</code></td><td>把请求转给 PHP <a class='gl' data-k='18' href='glossary.html#t-18' title='点一下看解释（Esc 关闭）'>进程</a></td><td>上游地址一旦可控 = 直接打后端</td></tr>
+</table>
+
+<figure><svg viewBox="0 0 960 320" xmlns="http://www.w3.org/2000/svg" role="img"><text x="480.0" y="28.0" fill="#ffd9a8" font-size="14.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="middle" opacity="1.00">请求进来后，Nginx 怎么决定「谁来处理」</text><rect x="26.0" y="60.0" width="150.0" height="70.0" rx="10" fill="#23322b" stroke="#4fa87a" stroke-width="1.4" opacity="1.00"/><text x="101.0" y="93.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">请求</text><text x="101.0" y="109.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">/a.php?id=1</text><rect x="210.0" y="60.0" width="200.0" height="70.0" rx="10" fill="#3a2a1f" stroke="#e0a03a" stroke-width="1.4" opacity="1.00"/><text x="310.0" y="93.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">Nginx 匹配 <a class='gl' data-k='25' href='glossary.html#t-25' title='点一下看解释（Esc 关闭）'>location</a></text><text x="310.0" y="109.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">按路径/后缀选规则</text><g><line x1="176.0" y1="95.0" x2="201.0" y2="95.0" stroke="#4fa87a" stroke-width="1.8"/><polygon points="208.0,95.0 201.9,98.5 201.9,91.5" fill="#4fa87a"/></g><rect x="450.0" y="40.0" width="220.0" height="56.0" rx="10" fill="#2a2a2a" stroke="#7d6f6d" stroke-width="1.4" opacity="1.00"/><text x="560.0" y="66.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">静态：root + 文件名</text><text x="560.0" y="82.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">读磁盘直接返回</text><rect x="450.0" y="118.0" width="220.0" height="56.0" rx="10" fill="#3a2020" stroke="#d8504f" stroke-width="1.4" opacity="1.00"/><text x="560.0" y="144.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">动态：fastcgi_pass</text><text x="560.0" y="160.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">把请求转给 127.0.0.1:9000</text><rect x="710.0" y="40.0" width="220.0" height="56.0" rx="10" fill="#243040" stroke="#4f86c6" stroke-width="1.4" opacity="1.00"/><text x="820.0" y="66.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">文件存在 → 200</text><text x="820.0" y="82.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">不存在 → 404</text><rect x="710.0" y="118.0" width="220.0" height="56.0" rx="10" fill="#2d2438" stroke="#9a6bb5" stroke-width="1.4" opacity="1.00"/><text x="820.0" y="144.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00"><a class='gl' data-k='27' href='glossary.html#t-27' title='点一下看解释（Esc 关闭）'>PHP-FPM</a> 执行脚本</text><text x="820.0" y="160.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">把输出交回 Nginx</text><g><line x1="410.0" y1="82.0" x2="441.4" y2="70.4" stroke="#7d6f6d" stroke-width="1.8"/><polygon points="448.0,68.0 443.5,73.4 441.1,66.8" fill="#7d6f6d"/></g><g><line x1="410.0" y1="108.0" x2="442.6" y2="135.5" stroke="#d8504f" stroke-width="1.8"/><polygon points="448.0,140.0 441.1,138.8 445.6,133.4" fill="#d8504f"/></g><g><line x1="670.0" y1="68.0" x2="701.0" y2="68.0" stroke="#4f86c6" stroke-width="1.8"/><polygon points="708.0,68.0 701.9,71.5 701.9,64.5" fill="#4f86c6"/></g><g><line x1="670.0" y1="146.0" x2="701.0" y2="146.0" stroke="#9a6bb5" stroke-width="1.8"/><polygon points="708.0,146.0 701.9,149.5 701.9,142.5" fill="#9a6bb5"/></g><rect x="26.0" y="200.0" width="904.0" height="100.0" rx="10" fill="#1b1514" stroke="#3a2a2a" stroke-width="1.4" opacity="1.00"/><text x="40.0" y="224.0" fill="#ffce7a" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="start" opacity="1.00">为什么要知道这个：</text><text x="184.0" y="224.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">① 只有「交给 <a class='gl' data-k='27' href='glossary.html#t-27' title='点一下看解释（Esc 关闭）'>PHP-FPM</a>」的请求才会执行代码 —— 上传题常要把文件落到能被当成脚本的路径/后缀。</text><text x="184.0" y="248.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">② Nginx 的路径匹配和 PHP 的后缀判断不一定一致 —— 这就是「解析漏洞 / 后缀绕过」的来源。</text><text x="184.0" y="272.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">③ 反过来，能改 upstream（请求走私、<a class='gl' data-k='57' href='glossary.html#t-57' title='点一下看解释（Esc 关闭）'>SSRF</a>）就等于绕过前面所有规则。</text></svg><figcaption>图 3-1　Nginx 的两条分支：静态 vs 动态</figcaption></figure>
+
+<h2 id='s3'>PHP 是怎么被"执行"而不是"下载"的</h2>
+
+<p>关键在 <code>SCRIPT_FILENAME</code>：Nginx 告诉 PHP-FPM "请执行这个磁盘文件"。
+PHP-FPM 收到后<b>把文件当 PHP 代码解析</b>，输出结果再交回 Nginx。</p>
+
+<div class="why"><span class="t">为什么这件事会产生漏洞</span>
+<p>因为它依赖一个约定：<b>「哪些请求该交给 PHP」是按路径/后缀判断的</b>。而这个判断由 Nginx 做，
+执行由 PHP 做，两边的规则不一定一致。于是出现三类经典问题：</p>
+<ol>
+<li><b>后缀绕过</b>：<code>shell.php.jpg</code>、<code>shell.pHp</code>、<code>shell.php%00.jpg</code> ——
+绕过应用的上传白名单，或绕过 Nginx 的后缀匹配。</li>
+<li><b>解析差异</b>：<code>/upload/shell.jpg/x.php</code> 这种"路径里带 .php"的写法，
+Nginx 认为该交给 PHP，PHP 却去执行前面的 shell.jpg。</li>
+<li><b>上传目录可执行</b>：上传目录本来只想放图片，但配置里没有禁止执行。</li>
+</ol></div>
+
+<h2 id='s4'>三种服务器/后端组合，漏洞长相不同</h2>
+
+<table>
+<tr><th>组合</th><th>典型坑</th><th>怎么验证</th></tr>
+<tr><td>Nginx + PHP-FPM</td><td>fastcgi_split_path_info 配错导致任意文件当 PHP 执行</td>
+    <td>传个 1.jpg 内容写 <code>&lt;?php echo 7*7;?&gt;</code>，访问 <code>/1.jpg/x.php</code></td></tr>
+<tr><td>Apache + mod_php</td><td>多后缀按最后一个可识别后缀执行；<code>.htaccess</code> 可被上传改写</td>
+    <td>传 <code>.htaccess</code> 把 .jpg 映射成 PHP</td></tr>
+<tr><td>Tomcat / Spring</td><td>路径规范化差异、<code>;jsessionid</code>、Actuator 暴露</td>
+    <td>访问 <code>/actuator/env</code>、<code>/..;/</code></td></tr>
+</table>
+
+<h2 id='s5'>反向代理与"信任边界"</h2>
+
+<p>真实业务常是：用户 → CDN/<a class='gl' data-k='65' href='glossary.html#t-65' title='点一下看解释（Esc 关闭）'>WAF</a> → Nginx → 应用。每一跳都会给请求<b>加头</b>说明"真实来源"，
+比如 <code>X-Forwarded-For</code>、<code>X-Real-IP</code>。</p>
+
+<div class="why"><span class="t">为什么要加这些头</span>
+<p>因为应用需要知道"用户从哪来"（限流、风控、只允许内网访问后台）。
+但代理加的这个头，<b>客户端也能自己加</b>。如果应用只信这个头、不校验来源，
+就能伪造身份 —— 这就是「IP 伪造 / 仅限本地」类题（第 10 章的信息收集也会用到）。</p></div>
+
+<pre class="term"><code>curl -H "X-Forwarded-For: 127.0.0.1" http://TARGET/admin
+curl -H "X-Real-IP: 127.0.0.1" -H "Client-IP: 127.0.0.1" http://TARGET/admin</code></pre>
+
+<div class="tool"><span class="t">工具箱里对应什么</span>
+<p>「敏感文件探针」找配置/备份；「<a class='gl' data-k='68' href='glossary.html#t-68' title='点一下看解释（Esc 关闭）'>目录爆破</a>」找隐藏路径；
+「洪水」的 <code>host_bypass</code>、<code>ip_spoof</code>、<code>path_bypass</code>、<code>upload</code>
+分别对应本章的四类问题；失败时看节点详情里的原始请求，确认服务器到底怎么理解的。</p></div>
+
+<h2 id='s6'>本章小结</h2>
+
+<table>
+<tr><th>记住</th><th>为什么</th></tr>
+<tr><td>静态 = 发文件，动态 = 执行代码</td><td>决定这道题有没有代码级漏洞</td></tr>
+<tr><td><code>root</code> 决定 URL 与磁盘的映射</td><td>所有<a class='gl' data-k='49' href='glossary.html#t-49' title='点一下看解释（Esc 关闭）'>路径穿越</a>/包含都相对它算</td></tr>
+<tr><td>「交给谁」由 location 决定</td><td>解析漏洞、后缀绕过的根源</td></tr>
+<tr><td>代理加的信任头可伪造</td><td>IP/来源类绕过的根源</td></tr>
+</table>
+
+<div class='pager'><a class='l' href='ch02.html'>← 02　Linux 最小必要：文件、权限、进程、命令</a><a class='r' href='ch04.html'>04　读得懂代码：PHP / Python / JS 的最小语法对照 →</a></div></main></div><script src="assets/terms.js"></script><script src="assets/site.js"></script><script>
+(function () {
+  var b = document.getElementById("bg5fnhBack");
+  if (!b) return;
+  b.addEventListener("click", function (e) {
+    e.preventDefault();
+    try {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: "BG5FNH_CLOSE_OVERLAY" }, "*");
+        return;
+      }
+    } catch (err) {}
+    var m = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+    window.location.href = "../../../../../" + (m ? "mobile/index_m.html" : "pc/index.html");
+  });
+})();
+</script>
+</body></html>

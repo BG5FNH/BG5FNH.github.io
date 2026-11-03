@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Linux 最小必要：文件、权限、进程、命令 · 从零学网安</title><link rel="stylesheet" href="assets/style.css"><style>.top .btn.bk{color:#e7b98a;border-color:rgba(231,185,138,.55);margin-right:6px;text-decoration:none}.top .btn.bk:hover{color:#fff;border-color:#ff8b6b}</style></head><body><div class="top"><a class="btn bk" href="#" id="bg5fnhBack" title="回到网站">← 返回</a><div class="brand">从零学网安 <small>从 Linux 与网站运行原理，到用妮露工具箱做出一道题</small></div><div class="grow"></div><input id="q" type="search" placeholder="搜：SQL 注入 / session / 端口 …"><a class="btn" href="index.html">目录</a><div id="hits"></div></div><div class="wrap"><aside class='side'><h4>章节</h4><a href='ch00.html'>00　学习地图：这门课到底在教你什么</a><a href='ch01.html'>01　一次访问的全过程（从按下回车到看见页面）</a><a class='on' href='ch02.html'>02　Linux 最小必要：文件、权限、进程、命令</a><a href='ch03.html'>03　网站是怎么跑起来的（Nginx 与后端的分工）</a><a href='ch04.html'>04　读得懂代码：PHP / Python / JS 的最小语法对照</a><a href='ch05.html'>05　输入从哪来：参数、头、Cookie、文件、JSON</a><a href='ch06.html'>06　数据库与 SQL 注入：数据变成语法的瞬间</a><a href='ch07.html'>07　认证与会话：我是谁，以及我怎么证明</a><a href='ch08.html'>08　文件类漏洞：读取、包含、上传、穿越</a><a href='ch09.html'>09　执行类与借刀类：命令、模板、反序列化、SSRF、XXE</a><a href='ch10.html'>10　信息收集：把「一个网址」变成「一张清单」</a><a href='ch11.html'>11　用妮露工具箱实战：面板、洪水、信息显示</a><a href='ch12.html'>12　十二道渐进练习：从「看页面」到「打完整链」</a><a href='ch13.html'>13　进阶：代理层、协议层与「看不见的」漏洞</a><a href='ch14.html'>14　附录：工具箱全表（面板 · 策略 · 判据）</a><h4>附录</h4><a href='glossary.html'>术语总表</a><h4>本页</h4><a href='#s1'>为什么有 Linux，它和 Windows 的区别在哪</a><a href='#s2'>路径：一切从 / 开始</a><a href='#s3'>权限：rwx 的三组，和&quot;目录上的 x&quot;</a><a href='#s4'>12 条够用的命令</a><a href='#s5'>拿到 shell 之后：第一分钟的检查清单</a><a href='#s6'>本章小结</a></aside><main>
+<h1>第 02 章　Linux 最小必要：文件、权限、进程、命令</h1><p class='lead'>靶场 90% 是 Linux。这一章只讲「看懂一台被黑/被打的机器」需要的部分：路径怎么走、权限怎么读、进程怎么找、日志在哪。</p>
+<div class="goals"><h4>本章你会得到</h4>
+<ul>
+<li>能在脑子里画出「一个网站」在服务器上的位置（代码在哪、配置在哪、<a class='gl' data-k='20' href='glossary.html#t-20' title='点一下看解释（Esc 关闭）'>日志</a>在哪）</li>
+<li>会读 <code>ls -l</code> 那串权限，知道 <code>rwx</code> 对目录和文件是两种意思</li>
+<li>会用 12 条命令完成 90% 的现场查看</li>
+<li>知道「拿到 shell 之后第一步干什么」</li>
+</ul></div>
+
+<figure><svg viewBox="0 0 960 330" xmlns="http://www.w3.org/2000/svg" role="img"><text x="250.0" y="28.0" fill="#ffd9a8" font-size="14.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="middle" opacity="1.00">一台 Linux 服务器上，「网站」是这几样东西</text><rect x="24.0" y="52.0" width="250.0" height="44.0" rx="10" fill="#23322b" stroke="#4fa87a" stroke-width="1.4" opacity="1.00"/><text x="34.0" y="79.0" fill="#ffffff" font-size="13.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="start" opacity="1.00">/var/www/html/</text><text x="290.0" y="72.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">代码目录（网站根）</text><text x="290.0" y="89.0" fill="#7d6f6d" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">index.php  flag.php  uploads/</text><rect x="24.0" y="104.0" width="250.0" height="44.0" rx="10" fill="#3a2a1f" stroke="#e0a03a" stroke-width="1.4" opacity="1.00"/><text x="34.0" y="131.0" fill="#ffffff" font-size="13.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="start" opacity="1.00">/etc/nginx/</text><text x="290.0" y="124.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">服务器配置</text><text x="290.0" y="141.0" fill="#7d6f6d" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">nginx.conf  sites-enabled/default</text><rect x="24.0" y="156.0" width="250.0" height="44.0" rx="10" fill="#243040" stroke="#4f86c6" stroke-width="1.4" opacity="1.00"/><text x="34.0" y="183.0" fill="#ffffff" font-size="13.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="start" opacity="1.00">/etc/passwd</text><text x="290.0" y="176.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">用户清单</text><text x="290.0" y="193.0" fill="#7d6f6d" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">www-data:x:33:33:...</text><rect x="24.0" y="208.0" width="250.0" height="44.0" rx="10" fill="#2d2438" stroke="#9a6bb5" stroke-width="1.4" opacity="1.00"/><text x="34.0" y="235.0" fill="#ffffff" font-size="13.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="start" opacity="1.00">/var/log/nginx/</text><text x="290.0" y="228.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">访问<a class='gl' data-k='20' href='glossary.html#t-20' title='点一下看解释（Esc 关闭）'>日志</a></text><text x="290.0" y="245.0" fill="#7d6f6d" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">access.log  error.log</text><rect x="24.0" y="260.0" width="250.0" height="44.0" rx="10" fill="#3a2020" stroke="#d8504f" stroke-width="1.4" opacity="1.00"/><text x="34.0" y="287.0" fill="#ffffff" font-size="13.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="start" opacity="1.00">/tmp/</text><text x="290.0" y="280.0" fill="#c9b6b2" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">临时目录（谁都能写）</text><text x="290.0" y="297.0" fill="#7d6f6d" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">sess_xxx  pearcmd 写出来的文件</text><rect x="600.0" y="52.0" width="336.0" height="250.0" rx="10" fill="#1b1514" stroke="#3a2a2a" stroke-width="1.4" opacity="1.00"/><text x="768.0" y="76.0" fill="#ffce7a" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="middle" opacity="1.00">权限那一列怎么读</text><text x="616.0" y="100.0" fill="#9fd8b4" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">-rwxr-xr-x 1 www-data www-data</text><text x="616.0" y="122.0" fill="#5a3a3e" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">│└┬┘└┬┘└┬┘   └──┬───┘ └──┬───┘</text><text x="616.0" y="144.0" fill="#7d6f6d" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">│ 属主 组 其他人   属主      属组</text><text x="616.0" y="170.0" fill="#c9b6b2" font-size="12.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">r=读 w=写 x=执行（目录上是「能进入」）</text><text x="616.0" y="198.0" fill="#ffce7a" font-size="12.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="start" opacity="1.00">为什么关心它：</text><text x="616.0" y="220.0" fill="#c9b6b2" font-size="12.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">· 上传目录可写 → 能落 <a class='gl' data-k='53' href='glossary.html#t-53' title='点一下看解释（Esc 关闭）'>webshell</a></text><text x="616.0" y="242.0" fill="#c9b6b2" font-size="12.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">· 代码目录可读 → 能读源码找洞</text><text x="616.0" y="264.0" fill="#c9b6b2" font-size="12.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">· /tmp 谁都能写 → 竞争、写马的老巢</text><text x="616.0" y="286.0" fill="#c9b6b2" font-size="12.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">· <a class='gl' data-k='18' href='glossary.html#t-18' title='点一下看解释（Esc 关闭）'>进程</a>身份 www-data 能读什么，决定 RCE 后能拿什么</text></svg><figcaption>图 2-1　Linux 上「一个网站」的五个位置</figcaption></figure>
+
+<h2 id='s1'>为什么有 Linux，它和 Windows 的区别在哪</h2>
+
+<p>服务器上跑 Linux 不是因为它"更安全"，而是因为它<b>便宜、稳定、能远程管理、几乎不花钱</b>：
+不用买授权、可以只装需要的组件、命令行就能完成所有事（带宽小、可脚本化）。</p>
+
+<div class="why"><span class="t">为什么这决定了你学安全的方式</span>
+<p>因为<b>一切皆文件</b>：配置是文件、设备是文件、<a class='gl' data-k='18' href='glossary.html#t-18' title='点一下看解释（Esc 关闭）'>进程</a>信息也是文件（<code>/proc</code>）。
+所以「读文件」这件事在 Linux 上威力特别大 —— 一个<a class='gl' data-k='50' href='glossary.html#t-50' title='点一下看解释（Esc 关闭）'>任意文件读取</a><a class='gl' data-k='40' href='glossary.html#t-40' title='点一下看解释（Esc 关闭）'>漏洞</a>，往往等于
+"看源码 + 看配置 + 看密码 + 看日志"四件事一起拿到。</p></div>
+
+<h2 id='s2'>路径：一切从 <code>/</code> 开始</h2>
+
+<table>
+<tr><th>路径</th><th>放什么</th><th>为什么记住它</th></tr>
+<tr><td><code>/var/www/html/</code></td><td>网站代码（默认站点根）</td><td>读源码、找 flag.php、判断上传目录</td></tr>
+<tr><td><code>/etc/nginx/</code>、<code>/etc/apache2/</code></td><td>服务器配置</td><td>看 root 指到哪、哪些路径被拒绝、上游是谁</td></tr>
+<tr><td><code>/etc/passwd</code></td><td>用户列表（所有人可读）</td><td>确认 web 进程用哪个用户跑</td></tr>
+<tr><td><code>/etc/shadow</code></td><td>密码<a class='gl' data-k='62' href='glossary.html#t-62' title='点一下看解释（Esc 关闭）'>哈希</a>（只有 root 能读）</td><td>提权后才看得到，说明权限边界在哪</td></tr>
+<tr><td><code>/var/log/nginx/access.log</code></td><td>访问日志</td><td>日志投毒（把 PHP 写进 UA，再包含这个文件）</td></tr>
+<tr><td><code>/tmp/</code></td><td>临时目录（任何用户可写）</td><td>session 文件、竞争写马、pearcmd 落点</td></tr>
+<tr><td><code>/proc/self/</code></td><td>当前进程的信息（虚拟文件）</td><td><code>/proc/self/environ</code>、<code>/proc/self/cmdline</code> 常被当包含目标</td></tr>
+</table>
+
+<div class="tip"><span class="t"><a class='gl' data-k='15' href='glossary.html#t-15' title='点一下看解释（Esc 关闭）'>相对路径</a> vs <a class='gl' data-k='14' href='glossary.html#t-14' title='点一下看解释（Esc 关闭）'>绝对路径</a>（新手最常搞混）</span>
+<p><code>/etc/passwd</code> 开头有 <code>/</code> → 从根开始，叫<b><a class='gl' data-k='14' href='glossary.html#t-14' title='点一下看解释（Esc 关闭）'>绝对路径</a></b>。<br>
+<code>../../etc/passwd</code> 没有 → 从"当前工作目录"开始往上退，叫<b><a class='gl' data-k='15' href='glossary.html#t-15' title='点一下看解释（Esc 关闭）'>相对路径</a></b>。<br>
+<a class='gl' data-k='40' href='glossary.html#t-40' title='点一下看解释（Esc 关闭）'>漏洞</a>里写 <code>../../</code> 能成功，前提是程序当前目录在某个深层目录里（比如 <code>/var/www/html/upload/</code>）。
+所以<b>同一个 payload 在这题能穿、在那题穿不动</b>，差别就在当前目录。</p></div>
+
+<h2 id='s3'>权限：<code>rwx</code> 的三组，和"目录上的 x"</h2>
+
+<pre class="term"><code>-rwxr-xr-x 1 www-data www-data 1234 Jan 1 12:00 index.php
+│└┬┘└┬┘└┬┘   └───┬──┘ └───┬──┘
+│ │  │  │        │        └── 属组
+│ │  │  │        └─────────── 属主
+│ │  │  └──────────────────── 其他人（other）
+│ │  └─────────────────────── 属组（group）
+│ └────────────────────────── 属主（owner）
+└──────────────────────────── 类型：- 普通文件，d 目录，l 链接</code></pre>
+
+<table>
+<tr><th>位</th><th>对文件</th><th>对目录</th></tr>
+<tr><td><code>r</code></td><td>能读内容</td><td>能列出里面有什么（<code>ls</code>）</td></tr>
+<tr><td><code>w</code></td><td>能改内容</td><td>能在里面新建/删除文件</td></tr>
+<tr><td><code>x</code></td><td>能执行（当程序跑）</td><td><b>能进入</b>（能访问里面的文件）</td></tr>
+</table>
+
+<div class="why"><span class="t">为什么"上传目录可写"这件事很致命</span>
+<p>上传目录通常给 web 用户 <code>w</code>（要存文件嘛）。如果同时它又在网站根下面，
+并且服务器配置允许那里执行脚本，那么<b>我们上传的文件就成了服务器上的一段可执行代码</b>。
+这就是 <a class='gl' data-k='53' href='glossary.html#t-53' title='点一下看解释（Esc 关闭）'>webshell</a> 的物理基础（第 8 章）。</p></div>
+
+<h2 id='s4'>12 条够用的命令</h2>
+
+<table>
+<tr><th>命令</th><th>它解决什么问题</th><th>典型用法</th></tr>
+<tr><td><code>pwd</code> / <code>cd</code></td><td>我在哪 / 换目录</td><td><code>cd /var/www/html</code></td></tr>
+<tr><td><code>ls -la</code></td><td>看有什么（含隐藏文件）</td><td>找 <code>.git</code>、<code>.env</code>、备份</td></tr>
+<tr><td><code>cat</code> / <code>less</code></td><td>看文件内容</td><td><code>cat /etc/passwd</code></td></tr>
+<tr><td><code>grep -rn</code></td><td>在目录里搜字符串</td><td><code>grep -rn "flag" /var/www</code></td></tr>
+<tr><td><code>find</code></td><td>按名字/时间找文件</td><td><code>find / -name "flag*" 2>/dev/null</code></td></tr>
+<tr><td><code>ps aux</code></td><td>看有哪些进程</td><td>找 mysql / redis / 自研服务</td></tr>
+<tr><td><code>ss -lntp</code></td><td>看监听<a class='gl' data-k='1' href='glossary.html#t-1' title='点一下看解释（Esc 关闭）'>端口</a>和对应进程</td><td>内网里哪些服务没对外</td></tr>
+<tr><td><code>id</code> / <code>whoami</code></td><td>我是谁（哪个用户）</td><td>拿到 shell 第一件事</td></tr>
+<tr><td><code>env</code></td><td>看<a class='gl' data-k='21' href='glossary.html#t-21' title='点一下看解释（Esc 关闭）'>环境变量</a></td><td>有时 flag 就在<a class='gl' data-k='21' href='glossary.html#t-21' title='点一下看解释（Esc 关闭）'>环境变量</a>里（本题库就有一类）</td></tr>
+<tr><td><code>curl</code></td><td>命令行发 <a class='gl' data-k='7' href='glossary.html#t-7' title='点一下看解释（Esc 关闭）'>HTTP</a> 请求</td><td>内网探测、确认回显</td></tr>
+<tr><td><code>chmod</code> / <code>chown</code></td><td>改权限/属主</td><td>提权后常见动作</td></tr>
+<tr><td><code>tail -f</code></td><td>盯着日志看</td><td>确认自己的请求有没有到</td></tr>
+</table>
+
+<div class="warn"><span class="t">Windows 上的等价物（因为你在 Windows 学）</span>
+<p>本教程所有"靶场"都在本机跑，所以你也可以用 Windows 命令看：
+<code>dir</code>（≈ls）、<code>type</code>（≈cat）、<code>findstr /s</code>（≈grep -r）、
+<code>netstat -ano</code>（≈ss）、<code>tasklist</code>（≈ps）、<code>set</code>（≈env）。
+两者对照着记，看到 writeup 里的 Linux 命令也不会慌。</p></div>
+
+<h2 id='s5'>拿到 shell 之后：第一分钟的检查清单</h2>
+
+<ol>
+<li><code>id</code>：我是谁？（www-data 还是 root，决定能不能直接读 /flag）</li>
+<li><code>pwd; ls -la</code>：我在哪？当前目录有什么？（常常 flag 就在旁边）</li>
+<li><code>cat /flag</code> 或 <code>find / -name "flag*"</code>：先试最直白的</li>
+<li><code>env</code>：环境变量里有没有 FLAG</li>
+<li><code>cat /etc/passwd</code>：机器上有哪些用户（提权线索）</li>
+<li><code>ss -lntp</code>：内网还有什么服务（横向移动的入口）</li>
+</ol>
+
+<div class="tool"><span class="t">工具箱里对应什么</span>
+<p>「洪水」的 <code>code_eval</code> / <code>param_rce</code> / <code>blind_rce</code> 策略在拿到执行后
+会自动跑这套清单（读 flag 常见路径、<code>printenv</code>、<code>id</code>）。
+如果你手工拿到 shell，就按上面六条走。</p></div>
+
+<h2 id='s6'>本章小结</h2>
+
+<table>
+<tr><th>要记住的</th><th>为什么</th></tr>
+<tr><td>网站 = 代码目录 + 配置 + 日志 + 进程</td><td>四样东西各自是一个<a class='gl' data-k='41' href='glossary.html#t-41' title='点一下看解释（Esc 关闭）'>攻击面</a></td></tr>
+<tr><td>目录的 <code>x</code> = 能进入</td><td>决定你能不能不读目录却直接访问里面文件</td></tr>
+<tr><td><code>/tmp</code> 谁都能写</td><td>竞争、写马、session 都在这儿</td></tr>
+<tr><td>进程身份决定能读什么</td><td>RCE 不等于 root，很多题就卡在这</td></tr>
+</table>
+
+<div class='pager'><a class='l' href='ch01.html'>← 01　一次访问的全过程（从按下回车到看见页面）</a><a class='r' href='ch03.html'>03　网站是怎么跑起来的（Nginx 与后端的分工） →</a></div></main></div><script src="assets/terms.js"></script><script src="assets/site.js"></script><script>
+(function () {
+  var b = document.getElementById("bg5fnhBack");
+  if (!b) return;
+  b.addEventListener("click", function (e) {
+    e.preventDefault();
+    try {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: "BG5FNH_CLOSE_OVERLAY" }, "*");
+        return;
+      }
+    } catch (err) {}
+    var m = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+    window.location.href = "../../../../../" + (m ? "mobile/index_m.html" : "pc/index.html");
+  });
+})();
+</script>
+</body></html>

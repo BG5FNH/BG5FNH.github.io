@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>用妮露工具箱实战：面板、洪水、信息显示 · 从零学网安</title><link rel="stylesheet" href="assets/style.css"><style>.top .btn.bk{color:#e7b98a;border-color:rgba(231,185,138,.55);margin-right:6px;text-decoration:none}.top .btn.bk:hover{color:#fff;border-color:#ff8b6b}</style></head><body><div class="top"><a class="btn bk" href="#" id="bg5fnhBack" title="回到网站">← 返回</a><div class="brand">从零学网安 <small>从 Linux 与网站运行原理，到用妮露工具箱做出一道题</small></div><div class="grow"></div><input id="q" type="search" placeholder="搜：SQL 注入 / session / 端口 …"><a class="btn" href="index.html">目录</a><div id="hits"></div></div><div class="wrap"><aside class='side'><h4>章节</h4><a href='ch00.html'>00　学习地图：这门课到底在教你什么</a><a href='ch01.html'>01　一次访问的全过程（从按下回车到看见页面）</a><a href='ch02.html'>02　Linux 最小必要：文件、权限、进程、命令</a><a href='ch03.html'>03　网站是怎么跑起来的（Nginx 与后端的分工）</a><a href='ch04.html'>04　读得懂代码：PHP / Python / JS 的最小语法对照</a><a href='ch05.html'>05　输入从哪来：参数、头、Cookie、文件、JSON</a><a href='ch06.html'>06　数据库与 SQL 注入：数据变成语法的瞬间</a><a href='ch07.html'>07　认证与会话：我是谁，以及我怎么证明</a><a href='ch08.html'>08　文件类漏洞：读取、包含、上传、穿越</a><a href='ch09.html'>09　执行类与借刀类：命令、模板、反序列化、SSRF、XXE</a><a href='ch10.html'>10　信息收集：把「一个网址」变成「一张清单」</a><a class='on' href='ch11.html'>11　用妮露工具箱实战：面板、洪水、信息显示</a><a href='ch12.html'>12　十二道渐进练习：从「看页面」到「打完整链」</a><a href='ch13.html'>13　进阶：代理层、协议层与「看不见的」漏洞</a><a href='ch14.html'>14　附录：工具箱全表（面板 · 策略 · 判据）</a><h4>附录</h4><a href='glossary.html'>术语总表</a><h4>本页</h4><a href='#s1'>先认清工具箱的形状</a><a href='#s2'>洪水：一键流程的五个动作</a><a href='#s3'>四个按钮与暂停</a><a href='#s4'>文件模式：当题目给的不是网址</a><a href='#s5'>什么时候该放弃一键，转手工</a><a href='#s6'>本章小结</a></aside><main>
+<h1>第 11 章　用妮露工具箱实战：面板、洪水、信息显示</h1><p class='lead'>前面十章讲的是「原理」，这一章讲「落点」：同一个概念，在工具箱里点哪里、看到什么、怎么判断它成功了。</p>
+<div class="goals"><h4>本章你会得到</h4>
+<ul>
+<li>工具箱的 12 类面板各自负责什么（40 个面板的地图）</li>
+<li>「洪水」一键流程：输入 → 跑 → 读节点 → 看详情 → 取 flag</li>
+<li>文件模式：pcap 解密与内存镜像取证（顺带解释"为什么答案有时不是 flag"）</li>
+<li>什么时候该放弃一键、转手工</li>
+</ul></div>
+
+<h2 id='s1'>先认清工具箱的形状</h2>
+
+<p>它不是一个"点一下就出答案"的黑盒，而是<b>把前面十章的手工步骤做成了面板</b>：</p>
+
+<table>
+<tr><th>分类</th><th>面板</th><th>对应章节</th></tr>
+<tr><td>杂项</td><td><b>洪水</b>（一键破题）</td><td>第 5~10 章的全部</td></tr>
+<tr><td>Web 攻防</td><td>发包工作台 / <a class='gl' data-k='44' href='glossary.html#t-44' title='点一下看解释（Esc 关闭）'>SQL 注入</a>台 / Payload 工坊 / <a class='gl' data-k='12' href='glossary.html#t-12' title='点一下看解释（Esc 关闭）'>JWT</a> 分析 / <a class='gl' data-k='68' href='glossary.html#t-68' title='点一下看解释（Esc 关闭）'>目录爆破</a> / 敏感文件探针 / 子域枚举 / 站点爬取 / JS 校验逆向 / MITM 抓包台</td><td>第 5~10 章</td></tr>
+<tr><td>逆向取证</td><td>文件识别 / Hex / PE-ELF / 压缩包 / 取证大屏（内存事实）/ 信息显示</td><td>第 12 章（文件类题）</td></tr>
+<tr><td>流量分析</td><td>pcap 分析 / 明文 <a class='gl' data-k='7' href='glossary.html#t-7' title='点一下看解释（Esc 关闭）'>HTTP</a> 提取</td><td>第 11.4 节</td></tr>
+<tr><td>隐写分析</td><td>图片隐写 / 音频隐写 / 文件尾分离</td><td>文件类题</td></tr>
+<tr><td>编解码 / 密码学 / <a class='gl' data-k='62' href='glossary.html#t-62' title='点一下看解释（Esc 关闭）'>哈希</a></td><td>编解码链 / Base 换表 / 多层解码 / 对称、RSA、古典、XOR / <a class='gl' data-k='62' href='glossary.html#t-62' title='点一下看解释（Esc 关闭）'>哈希</a>计算、口令恢复</td><td>杂项与文件题</td></tr>
+<tr><td>侦察扫描</td><td><a class='gl' data-k='1' href='glossary.html#t-1' title='点一下看解释（Esc 关闭）'>端口</a>扫描 / <a class='gl' data-k='2' href='glossary.html#t-2' title='点一下看解释（Esc 关闭）'>DNS</a> 工具</td><td>第 1、10 章</td></tr>
+<tr><td>记录与速查</td><td>Flag 收集板 / 速查手册 / 关于自检</td><td>全程</td></tr>
+</table>
+
+<figure><svg viewBox="0 0 980 340" xmlns="http://www.w3.org/2000/svg" role="img"><text x="490.0" y="26.0" fill="#ffd9a8" font-size="15.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="middle" opacity="1.00">妮露「洪水」：一键破题的内部结构</text><rect x="24.0" y="52.0" width="150.0" height="62.0" rx="10" fill="#23322b" stroke="#4fa87a" stroke-width="1.4" opacity="1.00"/><text x="99.0" y="81.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">输入</text><text x="99.0" y="97.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">网址/文件/文本</text><rect x="206.0" y="52.0" width="170.0" height="62.0" rx="10" fill="#3a2a1f" stroke="#e0a03a" stroke-width="1.4" opacity="1.00"/><text x="291.0" y="81.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">首探 probe</text><text x="291.0" y="97.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">抓页面/表单/长串</text><rect x="408.0" y="52.0" width="200.0" height="62.0" rx="10" fill="#243040" stroke="#4f86c6" stroke-width="1.4" opacity="1.00"/><text x="508.0" y="81.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">hunt 最佳优先</text><text x="508.0" y="97.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">堆 + 节点预算</text><rect x="640.0" y="52.0" width="170.0" height="62.0" rx="10" fill="#2d2438" stroke="#9a6bb5" stroke-width="1.4" opacity="1.00"/><text x="725.0" y="81.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">126 条策略</text><text x="725.0" y="97.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">按分数排队试</text><rect x="840.0" y="52.0" width="120.0" height="62.0" rx="10" fill="#3a2020" stroke="#d8504f" stroke-width="1.4" opacity="1.00"/><text x="900.0" y="81.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">出 flag</text><text x="900.0" y="97.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">只认服务端</text><g><line x1="174.0" y1="83.0" x2="197.0" y2="83.0" stroke="#6b5550" stroke-width="1.8"/><polygon points="204.0,83.0 197.9,86.5 197.9,79.5" fill="#6b5550"/></g><g><line x1="376.0" y1="83.0" x2="399.0" y2="83.0" stroke="#6b5550" stroke-width="1.8"/><polygon points="406.0,83.0 399.9,86.5 399.9,79.5" fill="#6b5550"/></g><g><line x1="608.0" y1="83.0" x2="631.0" y2="83.0" stroke="#6b5550" stroke-width="1.8"/><polygon points="638.0,83.0 631.9,86.5 631.9,79.5" fill="#6b5550"/></g><g><line x1="810.0" y1="83.0" x2="831.0" y2="83.0" stroke="#6b5550" stroke-width="1.8"/><polygon points="838.0,83.0 831.9,86.5 831.9,79.5" fill="#6b5550"/></g><rect x="206.0" y="150.0" width="300.0" height="70.0" rx="10" fill="#1b1514" stroke="#5a3a3e" stroke-width="1.4" opacity="1.00"/><text x="356.0" y="183.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00"><a class='gl' data-k='72' href='glossary.html#t-72' title='点一下看解释（Esc 关闭）'>节点树</a>（deep.Tree）</text><text x="356.0" y="199.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">每个动作 a 个节点：成功/失败/笔记都留在图上</text><rect x="540.0" y="150.0" width="300.0" height="70.0" rx="10" fill="#1b1514" stroke="#5a3a3e" stroke-width="1.4" opacity="1.00"/><text x="690.0" y="183.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00">信息显示（大节点）</text><text x="690.0" y="199.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">卡片写事实，详情是可搜索表格</text><rect x="206.0" y="246.0" width="634.0" height="66.0" rx="10" fill="#1b1514" stroke="#3a2a2a" stroke-width="1.4" opacity="1.00"/><text x="523.0" y="277.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="middle" opacity="1.00"><a class='gl' data-k='69' href='glossary.html#t-69' title='点一下看解释（Esc 关闭）'>判据</a>：只认服务端亲口给的 flag</text><text x="523.0" y="293.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">页面 200 / 回显像 / 报错页 都不算 —— 宁可报 0.45 也绝不<a class='gl' data-k='70' href='glossary.html#t-70' title='点一下看解释（Esc 关闭）'>假阳性</a></text><line x1="290.0" y1="114.0" x2="290.0" y2="148.0" stroke="#5a3a3e" stroke-width="1.0" stroke-dasharray="3 4"/><line x1="690.0" y1="114.0" x2="690.0" y2="148.0" stroke="#5a3a3e" stroke-width="1.0" stroke-dasharray="3 4"/><text x="490.0" y="330.0" fill="#7d6f6d" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="middle" opacity="1.00">跑不动的时候：会把「最接近的几条」和「下一步手工试什么」写进<a class='gl' data-k='20' href='glossary.html#t-20' title='点一下看解释（Esc 关闭）'>日志</a></text></svg><figcaption>图 12-1　洪水面板的执行结构</figcaption></figure>
+
+<h2 id='s2'>洪水：一键流程的五个动作</h2>
+
+<ol>
+<li><b>选输入形式</b>：左上角下拉（网址 / 文件 / 文本）。网址就是第 1 章那条链的起点。</li>
+<li><b>贴地址或拖文件</b>：拖进来会自动开始（省一次点击）。</li>
+<li><b>看节点图</b>：每个节点是一步尝试，颜色代表"有多可能是真线索"（红=不通，黄=有线索，绿=通了）。</li>
+<li><b>点「详情」</b>：能看这一步实际发的请求、收到的响应、改了哪些参数 —— 这是学习价值最高的地方。</li>
+<li><b>看<a class='gl' data-k='20' href='glossary.html#t-20' title='点一下看解释（Esc 关闭）'>日志</a>与 FLAG 板</b>：命中会写「★ FLAG（已验证）」；未验证的候选会标「未验证」。</li>
+</ol>
+
+<div class="why"><span class="t">为什么它"能一键"却不"乱打"</span>
+<p>因为它有<b><a class='gl' data-k='69' href='glossary.html#t-69' title='点一下看解释（Esc 关闭）'>判据</a></b>：只认服务端亲口给的 flag。页面 200、回显里有可疑字符串、报错页，
+都不算成功 —— 宁可报"0.45 分、最接近的是 XX"，也不假装解出来了。
+这条规矩是踩了很多次坑之后定的（<a class='gl' data-k='70' href='glossary.html#t-70' title='点一下看解释（Esc 关闭）'>假阳性</a>会让你放弃一道其实没做的题）。</p></div>
+
+<h2 id='s3'>四个按钮与暂停</h2>
+
+<table>
+<tr><th>按钮</th><th>作用</th><th>什么时候用</th></tr>
+<tr><td>▶ 开始</td><td>按当前输入跑一遍</td><td>常规</td></tr>
+<tr><td>⏸ 暂停</td><td>在<b>两个步骤之间</b>停住（不会打断正在发的请求）</td><td>想看清楚它刚才做了什么</td></tr>
+<tr><td>⏭ 继续</td><td>放行；若停在"待确认的 flag"上，等于说"这条不对"</td><td>误报时</td></tr>
+<tr><td>⏹ 结束</td><td>收工，保留现有结果</td><td>已经拿到想要的东西</td></tr>
+</table>
+
+<h2 id='s4'>文件模式：当题目给的不是网址</h2>
+
+<h3>① pcap + keylog（HTTPS 流量分析）</h3>
+<p>题目给一个 <code>sslkey.log</code> 和一个 <code>.pcap</code>。原理是第 1 章的 <a class='gl' data-k='5' href='glossary.html#t-5' title='点一下看解释（Esc 关闭）'>TLS</a>：
+有了会话密钥，就能把加密流量还原成明文。</p>
+<pre class="term"><code>拖 zip 进去 → 自动解出两个成员 → 识别出 pcap + keylog
+→ TLS 解密节点 → 在 HTTP 明文里找到 flag</code></pre>
+
+<h3>② 内存镜像（取证题，"答案不是 flag"）</h3>
+<p>给一个 <code>.raw/.vmem</code>，问"采集时的计算机名 / IP / build 号"。
+这类题<b>答案是一段机器信息</b>，不是 flag。工具箱会：
+读注册表里的 <code>ComputerName</code>、<code>DhcpIPAddress</code>、<code>CurrentBuildNumber</code>
+→ 拼成 <code>ctfshow{主机名_IP_build}</code> 候选 → 同时把全部事实列进「信息显示」。</p>
+
+<div class="warn"><span class="t">如果拖错文件，它会直说</span>
+<p>把 pcap 当内存镜像拖进去不会有主机名 —— 面板会写
+"这不是内存镜像；取证题请拖 .raw/.vmem/.dmp"。<b>不要对着空表猜</b>。</p></div>
+
+<h3>③ 压缩包 / 图片 / 文档</h3>
+<p>压缩包会尝试列条目、试弱口令、看 CRC；图片走隐写；文档看宏。
+这些都属于"文件类"，判据同样是"服务端/文件里真的给出了答案"。</p>
+
+<h2 id='s5'>什么时候该放弃一键，转手工</h2>
+
+<table>
+<tr><th>现象</th><th>说明</th><th>转哪个面板</th></tr>
+<tr><td>所有策略都"不适用"</td><td>页面没有它认识的形状</td><td>发包工作台（手工构造第一个请求）</td></tr>
+<tr><td>403 / 429 连续出现</td><td>被 <a class='gl' data-k='65' href='glossary.html#t-65' title='点一下看解释（Esc 关闭）'>WAF</a> 或限速挡了</td><td>降低频率、换头、换编码（第 5 章）</td></tr>
+<tr><td>有回显但拿不到 flag</td><td>可能需要多步（登录→上传→包含）</td><td>按节点详情里的请求，手工串起来</td></tr>
+<tr><td>题目要"机器信息"</td><td>答案不是 flag</td><td>信息显示 / 取证大屏</td></tr>
+</table>
+
+<div class="tip"><span class="t">学习用法：把它当"对照组"</span>
+<p>自己做不出来时，让洪水跑一遍，然后<b>点开每个节点的详情</b>看它发了什么。
+你会看到"原来这个参数要这么绕"——这比看 writeup 有效，因为请求是真实发出去的，
+响应也是真实的。然后再关掉它，自己复现一遍。</p></div>
+
+<h2 id='s6'>本章小结</h2>
+
+<table>
+<tr><th>要点</th><th>一句话</th></tr>
+<tr><td>工具箱 = 前面十章的面板化</td><td>知道原理才知道该点哪</td></tr>
+<tr><td>洪水有判据</td><td>只认服务端亲口给的 flag</td></tr>
+<tr><td>文件模式三类</td><td>pcap / 内存镜像 / 压缩包图片文档</td></tr>
+<tr><td>详情是学习入口</td><td>看真实请求，比看 writeup 快</td></tr>
+</table>
+
+<div class='pager'><a class='l' href='ch10.html'>← 10　信息收集：把「一个网址」变成「一张清单」</a><a class='r' href='ch12.html'>12　十二道渐进练习：从「看页面」到「打完整链」 →</a></div></main></div><script src="assets/terms.js"></script><script src="assets/site.js"></script><script>
+(function () {
+  var b = document.getElementById("bg5fnhBack");
+  if (!b) return;
+  b.addEventListener("click", function (e) {
+    e.preventDefault();
+    try {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: "BG5FNH_CLOSE_OVERLAY" }, "*");
+        return;
+      }
+    } catch (err) {}
+    var m = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+    window.location.href = "../../../../../" + (m ? "mobile/index_m.html" : "pc/index.html");
+  });
+})();
+</script>
+</body></html>

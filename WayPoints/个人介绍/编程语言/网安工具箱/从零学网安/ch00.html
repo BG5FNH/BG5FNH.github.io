@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>学习地图：这门课到底在教你什么 · 从零学网安</title><link rel="stylesheet" href="assets/style.css"><style>.top .btn.bk{color:#e7b98a;border-color:rgba(231,185,138,.55);margin-right:6px;text-decoration:none}.top .btn.bk:hover{color:#fff;border-color:#ff8b6b}</style></head><body><div class="top"><a class="btn bk" href="#" id="bg5fnhBack" title="回到网站">← 返回</a><div class="brand">从零学网安 <small>从 Linux 与网站运行原理，到用妮露工具箱做出一道题</small></div><div class="grow"></div><input id="q" type="search" placeholder="搜：SQL 注入 / session / 端口 …"><a class="btn" href="index.html">目录</a><div id="hits"></div></div><div class="wrap"><aside class='side'><h4>章节</h4><a class='on' href='ch00.html'>00　学习地图：这门课到底在教你什么</a><a href='ch01.html'>01　一次访问的全过程（从按下回车到看见页面）</a><a href='ch02.html'>02　Linux 最小必要：文件、权限、进程、命令</a><a href='ch03.html'>03　网站是怎么跑起来的（Nginx 与后端的分工）</a><a href='ch04.html'>04　读得懂代码：PHP / Python / JS 的最小语法对照</a><a href='ch05.html'>05　输入从哪来：参数、头、Cookie、文件、JSON</a><a href='ch06.html'>06　数据库与 SQL 注入：数据变成语法的瞬间</a><a href='ch07.html'>07　认证与会话：我是谁，以及我怎么证明</a><a href='ch08.html'>08　文件类漏洞：读取、包含、上传、穿越</a><a href='ch09.html'>09　执行类与借刀类：命令、模板、反序列化、SSRF、XXE</a><a href='ch10.html'>10　信息收集：把「一个网址」变成「一张清单」</a><a href='ch11.html'>11　用妮露工具箱实战：面板、洪水、信息显示</a><a href='ch12.html'>12　十二道渐进练习：从「看页面」到「打完整链」</a><a href='ch13.html'>13　进阶：代理层、协议层与「看不见的」漏洞</a><a href='ch14.html'>14　附录：工具箱全表（面板 · 策略 · 判据）</a><h4>附录</h4><a href='glossary.html'>术语总表</a><h4>本页</h4><a href='#s1'>先回答一个最基础的问题：什么是「网站」</a><a href='#s2'>五层结构：每一层各自会出什么错</a><a href='#s3'>「学会」的标准是什么</a><a href='#s4'>13 章的顺序，以及为什么这么排</a><a href='#s5'>怎么读最有效</a></aside><main>
+<h1>第 00 章　学习地图：这门课到底在教你什么</h1><p class='lead'>先看全景：一个网站由哪些部分组成、每一层各自会出什么错、以及「学会」的标准长什么样。</p>
+<div class="goals"><h4>本章你会得到</h4>
+<ul>
+<li>一张<b>全局地图</b>：网站由哪 5 层组成，每层的<a class='gl' data-k='40' href='glossary.html#t-40' title='点一下看解释（Esc 关闭）'>漏洞</a>叫什么</li>
+<li>一个<b>判断标准</b>：什么样才算"学会了"，而不是"背下来了"</li>
+<li>一条<b>学习路线</b>：13 章为什么按这个顺序排</li>
+</ul></div>
+
+<h2 id='s1'>先回答一个最基础的问题：什么是「网站」</h2>
+
+<p>你打开浏览器输入一个网址，几秒后看到页面。这中间发生的事，可以粗暴地分成两半：</p>
+
+<ul>
+<li><b>把话送到</b>：域名换成 IP、建立连接、加密、发一段文本过去。这一半由<b>操作系统 + 网络协议</b>负责。</li>
+<li><b>把话理解并回答</b>：对面的程序读这段文本，决定"你是谁、你要什么、我该给你什么"。这一半由<b>服务器软件 + 你写的代码 + 数据库</b>负责。</li>
+</ul>
+
+<div class="why"><span class="t">为什么必须先分清这两半</span>
+<p>因为<b><a class='gl' data-k='40' href='glossary.html#t-40' title='点一下看解释（Esc 关闭）'>漏洞</a>的位置决定了你该用什么工具</b>。同样是"打一个站"：</p>
+<ul>
+<li>问题在"把话送到"这一半 → 你要用 <code>nmap</code>、抓包、改 Host 头；</li>
+<li>问题在"理解并回答"这一半 → 你要构造参数、读源码、猜路径。</li>
+</ul>
+<p>新手最常见的情况是：拿到一道参数注入的题，却在那里扫<a class='gl' data-k='1' href='glossary.html#t-1' title='点一下看解释（Esc 关闭）'>端口</a>扫了半小时。</p></div>
+
+<figure><svg viewBox="0 0 940 320" xmlns="http://www.w3.org/2000/svg" role="img"><text x="470.0" y="26.0" fill="#ffd9a8" font-size="15.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="700" text-anchor="middle" opacity="1.00">四层<a class='gl' data-k='41' href='glossary.html#t-41' title='点一下看解释（Esc 关闭）'>攻击面</a>：从外到内，越内越致命</text><rect x="40.0" y="52.0" width="620.0" height="54.0" rx="10" fill="#243040" stroke="#4f86c6" stroke-width="1.4" opacity="1.00"/><text x="50.0" y="77.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="start" opacity="1.00">网络层</text><text x="50.0" y="93.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00"><a class='gl' data-k='1' href='glossary.html#t-1' title='点一下看解释（Esc 关闭）'>端口</a>/服务/防火墙/代理</text><text x="674.0" y="76.0" fill="#7d6f6d" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">例：端口扫描、弱口令</text><rect x="60.0" y="114.0" width="580.0" height="54.0" rx="10" fill="#2d2438" stroke="#9a6bb5" stroke-width="1.4" opacity="1.00"/><text x="70.0" y="139.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="start" opacity="1.00">传输/协议层</text><text x="70.0" y="155.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00"><a class='gl' data-k='5' href='glossary.html#t-5' title='点一下看解释（Esc 关闭）'>TLS</a>、<a class='gl' data-k='7' href='glossary.html#t-7' title='点一下看解释（Esc 关闭）'>HTTP</a> 走私、Host 头</text><text x="654.0" y="138.0" fill="#7d6f6d" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">例：请求走私、Host 投毒</text><rect x="80.0" y="176.0" width="540.0" height="54.0" rx="10" fill="#3a2a1f" stroke="#e0a03a" stroke-width="1.4" opacity="1.00"/><text x="90.0" y="201.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="start" opacity="1.00">应用层</text><text x="90.0" y="217.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">参数/文件/身份/模板/<a class='gl' data-k='36' href='glossary.html#t-36' title='点一下看解释（Esc 关闭）'>反序列化</a></text><text x="634.0" y="200.0" fill="#7d6f6d" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">例：SQLi、LFI、上传、<a class='gl' data-k='12' href='glossary.html#t-12' title='点一下看解释（Esc 关闭）'>JWT</a></text><rect x="100.0" y="238.0" width="500.0" height="54.0" rx="10" fill="#3a2020" stroke="#d8504f" stroke-width="1.4" opacity="1.00"/><text x="110.0" y="263.0" fill="#ffffff" font-size="13.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="600" text-anchor="start" opacity="1.00">数据与逻辑</text><text x="110.0" y="279.5" fill="#a49795" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">库表、权限模型、业务规则</text><text x="614.0" y="262.0" fill="#7d6f6d" font-size="11.5" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">例：<a class='gl' data-k='60' href='glossary.html#t-60' title='点一下看解释（Esc 关闭）'>越权</a>、竞争、价格篡改</text><text x="700.0" y="78.0" fill="#c9b6b2" font-size="12.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">→ 外面能碰到的，往往只是「入口」</text><text x="700.0" y="140.0" fill="#c9b6b2" font-size="12.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">→ 越往里，越依赖「应用自己写错」</text><text x="700.0" y="202.0" fill="#c9b6b2" font-size="12.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">→ CTF 的 Web 题 90% 落在第 3 层</text><text x="700.0" y="264.0" fill="#c9b6b2" font-size="12.0" font-family="Microsoft YaHei UI, Segoe UI, PingFang SC, sans-serif" font-weight="400" text-anchor="start" opacity="1.00">→ 省赛偶尔给第 4 层（逻辑漏洞）</text></svg><figcaption>图 13-1　<a class='gl' data-k='41' href='glossary.html#t-41' title='点一下看解释（Esc 关闭）'>攻击面</a>分层</figcaption></figure>
+
+<h2 id='s2'>五层结构：每一层各自会出什么错</h2>
+
+<table>
+<tr><th>层</th><th>这一层在干什么</th><th>它信任什么（信任错了就出事）</th><th>漏洞名</th></tr>
+<tr><td>硬件 / 系统</td><td>跑<a class='gl' data-k='18' href='glossary.html#t-18' title='点一下看解释（Esc 关闭）'>进程</a>、管文件、管权限</td><td>信任"文件路径"和"用户身份"</td>
+    <td>权限提升、<a class='gl' data-k='17' href='glossary.html#t-17' title='点一下看解释（Esc 关闭）'>SUID</a>、<a class='gl' data-k='49' href='glossary.html#t-49' title='点一下看解释（Esc 关闭）'>路径穿越</a></td></tr>
+<tr><td>服务器软件<br><span class="small">Nginx / Apache</span></td>
+    <td>决定"这个请求交给谁"</td><td>信任 Host 头、信任路径前缀、信任上游</td>
+    <td>Host 头投毒、请求走私、解析漏洞</td></tr>
+<tr><td>应用代码<br><span class="small">PHP / Java / Python / Node</span></td>
+    <td>读参数、查库、拼页面</td><td>信任"用户输入是数据"</td>
+    <td>SQLi、<a class='gl' data-k='55' href='glossary.html#t-55' title='点一下看解释（Esc 关闭）'>命令注入</a>、<a class='gl' data-k='56' href='glossary.html#t-56' title='点一下看解释（Esc 关闭）'>SSTI</a>、<a class='gl' data-k='36' href='glossary.html#t-36' title='点一下看解释（Esc 关闭）'>反序列化</a>、<a class='gl' data-k='48' href='glossary.html#t-48' title='点一下看解释（Esc 关闭）'>文件包含</a>、上传</td></tr>
+<tr><td>数据层</td><td>存用户、存配置、存会话</td><td>信任"应用传进来的语句"</td>
+    <td>注入、<a class='gl' data-k='60' href='glossary.html#t-60' title='点一下看解释（Esc 关闭）'>越权</a>读表、备份泄露</td></tr>
+<tr><td>人的流程</td><td>登录、改密、下单、审批</td><td>信任"步骤会按顺序走"</td>
+    <td>逻辑漏洞、<a class='gl' data-k='54' href='glossary.html#t-54' title='点一下看解释（Esc 关闭）'>条件竞争</a>、越权</td></tr>
+</table>
+
+<div class="tip"><span class="t">一句话记住这张表</span>
+<p>每一层都信任了下一层的某个东西。攻击就是<b>找到那个"被信任但没校验"的东西，然后给它一个意外的值</b>。</p></div>
+
+<h2 id='s3'>「学会」的标准是什么</h2>
+
+<p>不是"能背出 20 个 payload"。是这三件事：</p>
+
+<ol>
+<li><b>能说出这道题在考什么。</b>看到页面，能判断"这里有参数 → 可能是注入"、"这里显示文件内容 → 可能是包含"。</li>
+<li><b>能自己造出第一个请求。</b>不看 writeup，也能用浏览器 / curl / 工具箱把这个请求发出去。</li>
+<li><b>失败时知道往哪看。</b>返回 403 是 <a class='gl' data-k='65' href='glossary.html#t-65' title='点一下看解释（Esc 关闭）'>WAF</a> 还是权限？空响应是路径错了还是被过滤了？</li>
+</ol>
+
+<div class="warn"><span class="t">为什么"背 payload"一定会失败</span>
+<p>payload 是<b>针对某个具体过滤规则</b>造出来的。题目换一个过滤（比如把 <code>select</code> 换成拦 <code>union</code>），
+你背的那串就死了。但"输入流到了 SQL 里"这个判断不会死 —— 你要学的是判断，不是字符串。</p></div>
+
+<h2 id='s4'>13 章的顺序，以及为什么这么排</h2>
+
+<table>
+<tr><th>章</th><th>内容</th><th>为什么排在这</th></tr>
+<tr><td>01</td><td>一次访问的全过程</td><td>先有全局图，后面每章才知道自己在放大哪一格</td></tr>
+<tr><td>02</td><td>Linux 最小必要</td><td>90% 的靶场是 Linux；不会看权限和路径，读源码都读不懂</td></tr>
+<tr><td>03</td><td>网站怎么跑起来</td><td>不知道 Nginx/php-fpm 分工，就看不懂"为什么改个后缀就执行了"</td></tr>
+<tr><td>04</td><td>语言与代码阅读</td><td>漏洞藏在代码里，先能读懂 20 行 PHP</td></tr>
+<tr><td>05</td><td>输入与数据流</td><td>所有漏洞的公共模型：输入 → 处理 → 存储 → 输出</td></tr>
+<tr><td>06</td><td>数据库与 <a class='gl' data-k='44' href='glossary.html#t-44' title='点一下看解释（Esc 关闭）'>SQL 注入</a></td><td>最经典、最好理解"数据变代码"的入口</td></tr>
+<tr><td>07</td><td>认证与会话</td><td>第二大类：我是谁，能不能装成别人</td></tr>
+<tr><td>08</td><td>文件类漏洞</td><td>包含 / 上传 / 穿越：最常出现在入门题里</td></tr>
+<tr><td>09</td><td>执行类与"借刀"类</td><td><a class='gl' data-k='55' href='glossary.html#t-55' title='点一下看解释（Esc 关闭）'>命令注入</a>、<a class='gl' data-k='56' href='glossary.html#t-56' title='点一下看解释（Esc 关闭）'>SSTI</a>、反序列化、<a class='gl' data-k='57' href='glossary.html#t-57' title='点一下看解释（Esc 关闭）'>SSRF</a>、<a class='gl' data-k='58' href='glossary.html#t-58' title='点一下看解释（Esc 关闭）'>XXE</a></td></tr>
+<tr><td>10</td><td>信息收集</td><td>真实比赛第一步；也决定你该验哪个洞</td></tr>
+<tr><td>11</td><td>妮露工具箱实战</td><td>把前面所有概念落到"点哪个按钮"</td></tr>
+<tr><td>12</td><td>渐进练习与路线</td><td>用自带靶场从易到难走一遍</td></tr>
+<tr><td>附录</td><td>术语总表</td><td>每个词的"为什么存在"集中查</td></tr>
+</table>
+
+<h2 id='s5'>怎么读最有效</h2>
+
+<div class="tip"><span class="t">建议节奏（每章 40~90 分钟）</span>
+<ol>
+<li><b>先只看图和表格</b>，不读正文，试着给自己讲一遍这张图在说什么；</li>
+<li>再读正文，专门找你刚才讲错的地方；</li>
+<li>把"为什么"框抄进自己的笔记（别抄定义，抄因果）；</li>
+<li>打开工具箱，找到这一章对应的面板，点一遍（第 11 章之前可以先只看不跑）。</li>
+</ol></div>
+
+<div class="tool"><span class="t">现在就可以做的事</span>
+<p>双击 <code>妮露の网安工具包.cmd</code>，把「洪水」面板开出来放在旁边。
+现在你只需要认识两件事：<b>输入框</b>（贴网址/拖文件）和<b>开始按钮</b>。
+后面每讲一个概念，都会回到这两个东西上。</p></div>
+
+<div class='pager'><span></span><a class='r' href='ch01.html'>01　一次访问的全过程（从按下回车到看见页面） →</a></div></main></div><script src="assets/terms.js"></script><script src="assets/site.js"></script><script>
+(function () {
+  var b = document.getElementById("bg5fnhBack");
+  if (!b) return;
+  b.addEventListener("click", function (e) {
+    e.preventDefault();
+    try {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: "BG5FNH_CLOSE_OVERLAY" }, "*");
+        return;
+      }
+    } catch (err) {}
+    var m = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+    window.location.href = "../../../../../" + (m ? "mobile/index_m.html" : "pc/index.html");
+  });
+})();
+</script>
+</body></html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>目录 · 从零学网安</title><link rel="stylesheet" href="assets/style.css"><style>.top .btn.bk{color:#e7b98a;border-color:rgba(231,185,138,.55);margin-right:6px;text-decoration:none}.top .btn.bk:hover{color:#fff;border-color:#ff8b6b}</style></head><body><div class="top"><a class="btn bk" href="#" id="bg5fnhBack" title="回到网站">← 返回</a><div class="brand">从零学网安 <small>从 Linux 与网站运行原理，到用妮露工具箱做出一道题</small></div><div class="grow"></div><input id="q" type="search" placeholder="搜：SQL 注入 / session / 端口 …"><a class="btn" href="index.html">目录</a><div id="hits"></div></div><div class="wrap"><aside class='side'><h4>章节</h4><a href='ch00.html'>00　学习地图：这门课到底在教你什么</a><a href='ch01.html'>01　一次访问的全过程（从按下回车到看见页面）</a><a href='ch02.html'>02　Linux 最小必要：文件、权限、进程、命令</a><a href='ch03.html'>03　网站是怎么跑起来的（Nginx 与后端的分工）</a><a href='ch04.html'>04　读得懂代码：PHP / Python / JS 的最小语法对照</a><a href='ch05.html'>05　输入从哪来：参数、头、Cookie、文件、JSON</a><a href='ch06.html'>06　数据库与 SQL 注入：数据变成语法的瞬间</a><a href='ch07.html'>07　认证与会话：我是谁，以及我怎么证明</a><a href='ch08.html'>08　文件类漏洞：读取、包含、上传、穿越</a><a href='ch09.html'>09　执行类与借刀类：命令、模板、反序列化、SSRF、XXE</a><a href='ch10.html'>10　信息收集：把「一个网址」变成「一张清单」</a><a href='ch11.html'>11　用妮露工具箱实战：面板、洪水、信息显示</a><a href='ch12.html'>12　十二道渐进练习：从「看页面」到「打完整链」</a><a href='ch13.html'>13　进阶：代理层、协议层与「看不见的」漏洞</a><a href='ch14.html'>14　附录：工具箱全表（面板 · 策略 · 判据）</a><h4>附录</h4><a href='glossary.html'>术语总表</a></aside><main>
+
+<h1>从零学网安</h1>
+<p class="lead">这门课的目标很具体：<b>让你能独立做出一道「Web 方向」的入门/省赛题</b>，
+并且知道自己在干什么，而不是背 payload。</p>
+
+<div class="why"><span class="t">学习方法：三问法（每一章都会用到）</span>
+<p>看到任何一个东西（一个命令、一个文件、一个参数、一个漏洞），先回答三个问题：</p>
+<ol>
+<li><b>它为了解决什么问题才被造出来？</b>（没有它的时候，人们卡在哪）</li>
+<li><b>它简化了什么？</b>（把什么复杂的事变成一句话/一个按钮）</li>
+<li><b>它把什么交给了谁？</b>（谁来解释它、谁信任它、谁可以改它）</li>
+</ol>
+<p>第三个问题最关键：<b>几乎所有漏洞，都是「本该当数据的东西，被当成了命令/代码/身份」</b>。
+后面每章都会指给你看这一类边界在哪。</p></div>
+
+<h2>这门课怎么走</h2>
+<p>顺序不是随便排的：先学「东西怎么跑起来」，再学「代码怎么读」，最后才学「怎么打」。
+跳过前两步直接背 payload，遇到换皮的题就废了。</p>
+<a class='card' href='ch00.html'><div class='n'>第 00 章</div><div class='h'>学习地图：这门课到底在教你什么</div><div class='d'>先看全景：一个网站由哪些部分组成、每一层各自会出什么错、以及「学会」的标准长什么样。</div></a><a class='card' href='ch01.html'><div class='n'>第 01 章</div><div class='h'>一次访问的全过程（从按下回车到看见页面）</div><div class='d'>DNS、TCP、TLS、HTTP、Nginx、PHP 各干一件事。这一章把这条链拆开，并标出每一步能被怎么利用。</div></a><a class='card' href='ch02.html'><div class='n'>第 02 章</div><div class='h'>Linux 最小必要：文件、权限、进程、命令</div><div class='d'>靶场 90% 是 Linux。这一章只讲「看懂一台被黑/被打的机器」需要的部分：路径怎么走、权限怎么读、进程怎么找、日志在哪。</div></a><a class='card' href='ch03.html'><div class='n'>第 03 章</div><div class='h'>网站是怎么跑起来的（Nginx 与后端的分工）</div><div class='d'>同一台服务器上，静态文件和动态脚本走的是两条完全不同的路。搞清楚「谁执行、执行哪个文件」，才能理解上传/包含/解析类漏洞。</div></a><a class='card' href='ch04.html'><div class='n'>第 04 章</div><div class='h'>读得懂代码：PHP / Python / JS 的最小语法对照</div><div class='d'>你不需要会写项目，但要能在 30 秒内看出「这个参数流到了哪」。这一章只讲读漏洞代码要用的语法：变量、数组、函数、包含、类。</div></a><a class='card' href='ch05.html'><div class='n'>第 05 章</div><div class='h'>输入从哪来：参数、头、Cookie、文件、JSON</div><div class='d'>所有 Web 漏洞都发生在「外部输入」上。这一章把输入的每个入口列清楚，并给出「输入 → 处理 → 存储 → 输出」这个万能分析模型。</div></a><a class='card' href='ch06.html'><div class='n'>第 06 章</div><div class='h'>数据库与 SQL 注入：数据变成语法的瞬间</div><div class='d'>先花十分钟学会读一张表，再理解「拼接」为什么必然出事，最后按回显形态分成四种注入打法。</div></a><a class='card' href='ch07.html'><div class='n'>第 07 章</div><div class='h'>认证与会话：我是谁，以及我怎么证明</div><div class='d'>密码怎么存、登录之后服务器怎么记得你、凭证为什么能被伪造 —— 这一类题占了入门的第二大块。</div></a><a class='card' href='ch08.html'><div class='n'>第 08 章</div><div class='h'>文件类漏洞：读取、包含、上传、穿越</div><div class='d'>文件是 Linux 上最有威力的东西。这一章把「路径可控」的四种后果讲清楚，并给出每种的最小验证方法。</div></a><a class='card' href='ch09.html'><div class='n'>第 09 章</div><div class='h'>执行类与借刀类：命令、模板、反序列化、SSRF、XXE</div><div class='d'>这一章是「数据变代码」的五种高级形态。共同点：服务器替你执行了你写的东西，或者替你发起了请求。</div></a><a class='card' href='ch10.html'><div class='n'>第 10 章</div><div class='h'>信息收集：把「一个网址」变成「一张清单」</div><div class='d'>真实比赛里，第一步永远不是打 payload，而是搞清楚对面是什么。这一章给出按顺序做的四步，以及每一步在找什么。</div></a><a class='card' href='ch11.html'><div class='n'>第 11 章</div><div class='h'>用妮露工具箱实战：面板、洪水、信息显示</div><div class='d'>前面十章讲的是「原理」，这一章讲「落点」：同一个概念，在工具箱里点哪里、看到什么、怎么判断它成功了。</div></a><a class='card' href='ch12.html'><div class='n'>第 12 章</div><div class='h'>十二道渐进练习：从「看页面」到「打完整链」</div><div class='d'>用工具箱自带的仿真靶场（250 道）练手。这里挑 12 道最有代表性的，按难度递增排，每道都写清「你要观察到什么」。</div></a><a class='card' href='ch13.html'><div class='n'>第 13 章</div><div class='h'>进阶：代理层、协议层与「看不见的」漏洞</div><div class='d'>前面十二章覆盖了 80% 的基础题。这一章补剩下的那 20%：Host 头、请求走私、缓存投毒、原型链、SAML、竞态与杂项。</div></a><a class='card' href='ch14.html'><div class='n'>第 14 章</div><div class='h'>附录：工具箱全表（面板 · 策略 · 判据）</div><div class='d'>两张「现场生成」的表：40 个面板各自干什么、126 条策略各自想解决什么。查表用，不用通读。</div></a>
+
+<h2>需要准备什么</h2>
+<ul>
+<li>一台 Windows（本教程所有命令都在 Windows 上验证过；Linux 命令会用同义写法说明）</li>
+<li><b>妮露の网安工具包</b>（本教程第 11~13 章全程用它；它自带 Python，不用装环境）</li>
+<li>浏览器（看图 + 打开教程附带的本地练习靶）</li>
+<li>耐心：第 1~6 章看起来"跟打靶无关"，但它们是后面所有解释的地基</li>
+</ul>
+
+<h2>这套教程的三个约定</h2>
+<table>
+<tr><th>约定</th><th>意思</th></tr>
+<tr><td>每个词先讲「为什么」</td><td>不出现"凭空掉下来的名词"；出现即解释它是为了解决什么</td></tr>
+<tr><td>图优先</td><td>能用一张图说清的，不写三段话；每章至少一张</td></tr>
+<tr><td>工具落点</td><td>每讲一个漏洞，都告诉你「妮露里点哪个面板 / 哪条策略」</td></tr>
+</table>
+
+</main></div><script src="assets/terms.js"></script><script src="assets/site.js"></script><script>
+(function () {
+  var b = document.getElementById("bg5fnhBack");
+  if (!b) return;
+  b.addEventListener("click", function (e) {
+    e.preventDefault();
+    try {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: "BG5FNH_CLOSE_OVERLAY" }, "*");
+        return;
+      }
+    } catch (err) {}
+    var m = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+    window.location.href = "../../../../../" + (m ? "mobile/index_m.html" : "pc/index.html");
+  });
+})();
+</script>
+</body></html>
