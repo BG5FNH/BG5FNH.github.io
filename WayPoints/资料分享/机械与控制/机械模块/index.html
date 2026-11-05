@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>机械模块 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../../";</script>
+  <link rel="stylesheet" href="../../../../assets/style.css" />
+  <style>
+    .mm-tip { margin: 12px 0 0; padding: 12px 14px; border-radius: 10px; font-size: 12.5px; line-height: 1.85;
+      color: var(--text-muted); background: rgba(201, 168, 106, 0.045); border: 1px dashed rgba(201, 168, 106, 0.28); }
+    .mm-list { display: grid; gap: 10px; margin: 14px 0 0; }
+    .mm-item { padding: 12px 14px; border: 1px solid rgba(201, 168, 106, 0.2); border-radius: 10px;
+      background: rgba(201, 168, 106, 0.03); }
+    .mm-item h3 { margin: 0 0 6px; font-size: 14px; color: var(--gold); letter-spacing: 0.5px; font-weight: 600; }
+    .mm-item p { margin: 4px 0; font-size: 13px; line-height: 1.75; }
+    .mm-item .k { color: var(--text-muted); font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">机械模块</h1>
+    <p class="page-subtitle">资料分享 · 机械与控制 · 机械模块</p>
+
+    <section class="card">
+      <p>机械这一侧真正需要在选型时决定的，其实只有四件事：<b>用什么驱动</b>、<b>怎么把力传过去</b>、<b>怎么保证位置准</b>、<b>拿什么搭架子</b>。下面按这四类列常见件，以及各自的取舍点。</p>
+    </section>
+
+    <section class="card">
+      <h2>执行器：谁在出力</h2>
+      <div class="mm-list">
+        <div class="mm-item">
+          <h3>舵机（位置伺服）</h3>
+          <p>内置电机 + 减速箱 + 电位器反馈，给一个脉宽就转到对应角度。常见 SG90 / MG996R 这类。</p>
+          <p class="k">选型看：扭矩（kg·cm）、速度（s/60°）、是模拟还是数字、金属齿还是塑料齿、供电电压。</p>
+        </div>
+        <div class="mm-item">
+          <h3>步进电机</h3>
+          <p>按脉冲走固定步距角（常见 1.8°），不闭环也能"数着走"，定位重复性好、低速扭矩大。</p>
+          <p class="k">选型看：步距角、相电流、保持扭矩、是否需要细分驱动（A4988 / TMC2209 这类）、高速时扭矩衰减。</p>
+        </div>
+        <div class="mm-item">
+          <h3>直流减速电机</h3>
+          <p>结构最简单、同等体积下功率密度高，但要靠编码器才知道转了多少。</p>
+          <p class="k">选型看：减速比、空载转速、堵转扭矩、是否带霍尔/光电编码器、齿轮箱类型（行星/蜗轮）。</p>
+        </div>
+        <div class="mm-item">
+          <h3>无刷电机 + 电调</h3>
+          <p>效率与转速上限高，穿越机、风机、泵常用；控制复杂度也最高（要换相、要限流）。</p>
+          <p class="k">选型看：KV 值、支持电压（几 S）、电调持续/峰值电流、是否需要 FOC。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>传动与导向：力怎么传、位置怎么定</h2>
+      <p>齿轮、同步带、丝杠、链条各自的效率与精度差别很大，单独整理了一页对比：</p>
+      <p><a href="结构与传动/index.html">结构与传动 →</a></p>
+    </section>
+
+    <section class="card">
+      <h2>结构件：拿什么搭</h2>
+      <div class="mm-list">
+        <div class="mm-item">
+          <h3>铝型材（2020 / 2040）</h3>
+          <p>按米切、用角件连，改结构只松几颗螺丝；刚性好，适合做机架、龙门、导轨底座。</p>
+          <p class="k">选型看：截面规格、壁厚、配套角件/T 螺母、加工是否需要攻丝。</p>
+        </div>
+        <div class="mm-item">
+          <h3>3D 打印件</h3>
+          <p>形状自由、迭代快，适合非受力件、转接板、外壳；受力件要注意层间强度和各向异性。</p>
+          <p class="k">选型看：材料（PLA / PETG / ABS / 尼龙）、填充率、打印方向、螺丝孔是否要留余量。</p>
+        </div>
+        <div class="mm-item">
+          <h3>钣金与亚克力</h3>
+          <p>薄板折弯做底板、面板便宜；亚克力好看但脆，受力孔位容易裂。</p>
+          <p class="k">选型看：板厚、折弯半径、孔位公差、是否需要沉头/压铆。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>几个通用的坑</h2>
+      <p class="mm-tip">
+        ① 舵机和步进都要<b>单独供电</b>，别从主控板 5V 取电，一堵转就把主控拉复位。<br />
+        ② 传动链上任何一个环节有背隙，末端精度就废了——先查联轴器，再查减速箱。<br />
+        ③ 结构刚度不够时，先加支撑/加厚，再考虑换更大的电机；否则只是把抖动放大。<br />
+        ④ 选件留 30% 以上余量：堵转扭矩、电流、行程都要留，跑满额定值的东西很快就坏。
+      </p>
+    </section>
+  </main>
+
+  <script src="../../../../assets/page.js"></script>
+</body>
+</html>

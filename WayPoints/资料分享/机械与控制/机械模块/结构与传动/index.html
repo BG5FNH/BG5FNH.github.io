@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>结构与传动 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../../../";</script>
+  <link rel="stylesheet" href="../../../../../assets/style.css" />
+  <style>
+    table.tr-table { width: 100%; border-collapse: collapse; margin: 14px 0 6px; font-size: 12.5px; }
+    table.tr-table th { padding: 9px 10px; text-align: left; color: var(--gold); font-weight: 600;
+      letter-spacing: 0.5px; border-bottom: 1px solid rgba(201, 168, 106, 0.32); white-space: nowrap; }
+    table.tr-table td { padding: 9px 10px; vertical-align: top; line-height: 1.7;
+      border-bottom: 1px solid rgba(201, 168, 106, 0.1); }
+    table.tr-table tr:last-child td { border-bottom: 0; }
+    table.tr-table td.k { color: var(--text); font-weight: 500; }
+    .tr-note { margin: 12px 0 0; padding: 12px 14px; border-radius: 10px; font-size: 12.5px; line-height: 1.85;
+      color: var(--text-muted); background: rgba(201, 168, 106, 0.045); border: 1px dashed rgba(201, 168, 106, 0.28); }
+    .tr-wrap { overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">结构与传动</h1>
+    <p class="page-subtitle">资料分享 · 机械与控制 · 机械模块</p>
+
+    <section class="card">
+      <p>同样一个电机，换一种传动方式，末端得到的速度、精度、噪音、成本完全不同。下面这张表是常见六种方式的对照——<b>数值给的是典型量级</b>，具体型号差异很大，选型时以 datasheet 为准。</p>
+      <div class="tr-wrap">
+        <table class="tr-table">
+          <tr><th>方式</th><th>单级效率</th><th>减速比范围</th><th>精度 / 背隙</th><th>适合什么</th><th>主要缺点</th></tr>
+          <tr>
+            <td class="k">齿轮传动</td><td>95% 左右/级</td><td>几 : 1 ~ 几十 : 1</td><td>精度高，背隙小（可预紧）</td>
+            <td>减速箱、机械臂关节、需要大扭矩且结构紧凑</td><td>噪音、需要润滑、中心距必须精确</td>
+          </tr>
+          <tr>
+            <td class="k">同步带 + 带轮</td><td>90% ~ 98%</td><td>1 : 1 ~ 5 : 1 常见</td><td>中等，靠张紧；长距离会累积误差</td>
+            <td>3D 打印机 XY 轴、长行程直线运动、要轻要快</td><td>会拉伸、需张紧、过载会跳齿</td>
+          </tr>
+          <tr>
+            <td class="k">丝杠（梯形）</td><td>30% ~ 50%</td><td>—（把旋转变直线）</td><td>中等，有背隙</td>
+            <td>低速顶升、成本敏感的直线机构</td><td>效率低、发热、不适合高速</td>
+          </tr>
+          <tr>
+            <td class="k">滚珠丝杠</td><td>85% ~ 95%</td><td>—</td><td>高，配预压螺母可做到很小</td>
+            <td>CNC、需要高速高精度的直线轴</td><td>贵、怕脏、冲击载荷易损伤滚道</td>
+          </tr>
+          <tr>
+            <td class="k">链条</td><td>90% 左右</td><td>1 : 1 ~ 几 : 1</td><td>低，多边形效应导致速度波动</td>
+            <td>长中心距、低速大扭矩、脏环境</td><td>需润滑、噪音、精度差</td>
+          </tr>
+          <tr>
+            <td class="k">联轴器直连</td><td>接近 100%</td><td>1 : 1</td><td>取决于联轴器（膜片/波纹管可做到无背隙）</td>
+            <td>电机与丝杠/主轴同轴，最短传动链</td><td>不减速，对同轴度要求高；弹性联轴器会引入回差</td>
+          </tr>
+        </table>
+      </div>
+      <p class="tr-note">
+        背隙（回差）是这套表里最容易被忽略的一列：它决定"指令走 1 mm，实际末端到底动了多少"，而且在反向时误差会翻倍。
+        对定位有要求的机构，优先选可预紧的结构（齿轮预紧、滚珠丝杠双螺母、膜片联轴器），再谈电机选型。
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>结构刚度：别让传动白做</h2>
+      <p>传动件精度再高，只要机架会晃，末端还是抖。顺序应该是：<b>先保证刚度，再谈精度，最后才上闭环</b>。</p>
+      <p>几个实用的判断：手推末端，感觉是"弹性回弹"还是"松动"——回弹是刚度不足，松动是背隙；前者加支撑/加厚，后者换传动件或预紧。</p>
+    </section>
+  </main>
+
+  <script src="../../../../../assets/page.js"></script>
+</body>
+</html>

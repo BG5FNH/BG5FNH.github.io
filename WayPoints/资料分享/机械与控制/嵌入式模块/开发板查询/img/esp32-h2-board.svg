@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 210" width="340" height="210" role="img" aria-label="ESP32-H2-DevKitM-1 板型示意">
+  <style>
+    .bg{fill:#0f0e12}.pcb{fill:#1d2a24;stroke:#6fae8a;stroke-width:1.2}
+    .pin{fill:#c9a86a}.chip{fill:#2a2530;stroke:#c9a86a;stroke-width:1}
+    .usb{fill:#3a3a44;stroke:#8a7348}
+    .t{fill:#e6d7b8;font-family:Consolas,monospace}.m{fill:#a89878;font-family:Consolas,monospace;font-size:9px}
+  </style>
+  <rect class="bg" width="340" height="210" rx="10"/>
+  <rect class="pcb" x="54.0" y="51.0" width="232.0" height="116.0" rx="4"/>
+  <rect x="62.4" y="46.0" width="3.2" height="5" class="pin"/><rect x="62.4" y="167.0" width="3.2" height="5" class="pin"/><rect x="86.0" y="46.0" width="3.2" height="5" class="pin"/><rect x="86.0" y="167.0" width="3.2" height="5" class="pin"/><rect x="109.5" y="46.0" width="3.2" height="5" class="pin"/><rect x="109.5" y="167.0" width="3.2" height="5" class="pin"/><rect x="133.1" y="46.0" width="3.2" height="5" class="pin"/><rect x="133.1" y="167.0" width="3.2" height="5" class="pin"/><rect x="156.6" y="46.0" width="3.2" height="5" class="pin"/><rect x="156.6" y="167.0" width="3.2" height="5" class="pin"/><rect x="180.2" y="46.0" width="3.2" height="5" class="pin"/><rect x="180.2" y="167.0" width="3.2" height="5" class="pin"/><rect x="203.7" y="46.0" width="3.2" height="5" class="pin"/><rect x="203.7" y="167.0" width="3.2" height="5" class="pin"/><rect x="227.3" y="46.0" width="3.2" height="5" class="pin"/><rect x="227.3" y="167.0" width="3.2" height="5" class="pin"/><rect x="250.8" y="46.0" width="3.2" height="5" class="pin"/><rect x="250.8" y="167.0" width="3.2" height="5" class="pin"/><rect x="274.4" y="46.0" width="3.2" height="5" class="pin"/><rect x="274.4" y="167.0" width="3.2" height="5" class="pin"/>
+  <rect class="usb" x="256.0" y="149.0" width="22" height="12" rx="2"/>
+  <rect class="chip" x="156.0" y="97.0" width="28" height="24" rx="2"/>
+  <text class="m" x="170" y="16" text-anchor="middle">最小系统板示意 · 50 × 25 mm</text>
+  <text class="m" x="170" y="204" text-anchor="middle">ESP32-H2-DevKitM-1</text>
+</svg>

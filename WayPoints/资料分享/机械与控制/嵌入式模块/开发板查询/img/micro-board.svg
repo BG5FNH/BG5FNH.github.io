@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 210" width="340" height="210" role="img" aria-label="Arduino Micro 板型示意">
+  <style>
+    .bg{fill:#0f0e12}.pcb{fill:#1d2a24;stroke:#6fae8a;stroke-width:1.2}
+    .pin{fill:#c9a86a}.chip{fill:#2a2530;stroke:#c9a86a;stroke-width:1}
+    .usb{fill:#3a3a44;stroke:#8a7348}
+    .t{fill:#e6d7b8;font-family:Consolas,monospace}.m{fill:#a89878;font-family:Consolas,monospace;font-size:9px}
+  </style>
+  <rect class="bg" width="340" height="210" rx="10"/>
+  <rect class="pcb" x="34.0" y="58.0" width="272.0" height="102.0" rx="4"/>
+  <rect x="42.4" y="53.0" width="3.2" height="5" class="pin"/><rect x="42.4" y="160.0" width="3.2" height="5" class="pin"/><rect x="70.4" y="53.0" width="3.2" height="5" class="pin"/><rect x="70.4" y="160.0" width="3.2" height="5" class="pin"/><rect x="98.4" y="53.0" width="3.2" height="5" class="pin"/><rect x="98.4" y="160.0" width="3.2" height="5" class="pin"/><rect x="126.4" y="53.0" width="3.2" height="5" class="pin"/><rect x="126.4" y="160.0" width="3.2" height="5" class="pin"/><rect x="154.4" y="53.0" width="3.2" height="5" class="pin"/><rect x="154.4" y="160.0" width="3.2" height="5" class="pin"/><rect x="182.4" y="53.0" width="3.2" height="5" class="pin"/><rect x="182.4" y="160.0" width="3.2" height="5" class="pin"/><rect x="210.4" y="53.0" width="3.2" height="5" class="pin"/><rect x="210.4" y="160.0" width="3.2" height="5" class="pin"/><rect x="238.4" y="53.0" width="3.2" height="5" class="pin"/><rect x="238.4" y="160.0" width="3.2" height="5" class="pin"/><rect x="266.4" y="53.0" width="3.2" height="5" class="pin"/><rect x="266.4" y="160.0" width="3.2" height="5" class="pin"/><rect x="294.4" y="53.0" width="3.2" height="5" class="pin"/><rect x="294.4" y="160.0" width="3.2" height="5" class="pin"/>
+  <rect class="usb" x="276.0" y="142.0" width="22" height="12" rx="2"/>
+  <rect class="chip" x="156.0" y="97.0" width="28" height="24" rx="2"/>
+  <text class="m" x="170" y="16" text-anchor="middle">最小系统板示意 · 48 × 18 mm</text>
+  <text class="m" x="170" y="204" text-anchor="middle">Arduino Micro</text>
+</svg>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 210" width="340" height="210" role="img" aria-label="Raspberry Pi Pico 板型示意">
+  <style>
+    .bg{fill:#0f0e12}.pcb{fill:#1d2a24;stroke:#6fae8a;stroke-width:1.2}
+    .pin{fill:#c9a86a}.chip{fill:#2a2530;stroke:#c9a86a;stroke-width:1}
+    .usb{fill:#3a3a44;stroke:#8a7348}
+    .t{fill:#e6d7b8;font-family:Consolas,monospace}.m{fill:#a89878;font-family:Consolas,monospace;font-size:9px}
+  </style>
+  <rect class="bg" width="340" height="210" rx="10"/>
+  <rect class="pcb" x="34.0" y="53.0" width="272.0" height="112.0" rx="4"/>
+  <rect x="42.4" y="48.0" width="3.2" height="5" class="pin"/><rect x="42.4" y="165.0" width="3.2" height="5" class="pin"/><rect x="63.4" y="48.0" width="3.2" height="5" class="pin"/><rect x="63.4" y="165.0" width="3.2" height="5" class="pin"/><rect x="84.4" y="48.0" width="3.2" height="5" class="pin"/><rect x="84.4" y="165.0" width="3.2" height="5" class="pin"/><rect x="105.4" y="48.0" width="3.2" height="5" class="pin"/><rect x="105.4" y="165.0" width="3.2" height="5" class="pin"/><rect x="126.4" y="48.0" width="3.2" height="5" class="pin"/><rect x="126.4" y="165.0" width="3.2" height="5" class="pin"/><rect x="147.4" y="48.0" width="3.2" height="5" class="pin"/><rect x="147.4" y="165.0" width="3.2" height="5" class="pin"/><rect x="168.4" y="48.0" width="3.2" height="5" class="pin"/><rect x="168.4" y="165.0" width="3.2" height="5" class="pin"/><rect x="189.4" y="48.0" width="3.2" height="5" class="pin"/><rect x="189.4" y="165.0" width="3.2" height="5" class="pin"/><rect x="210.4" y="48.0" width="3.2" height="5" class="pin"/><rect x="210.4" y="165.0" width="3.2" height="5" class="pin"/><rect x="231.4" y="48.0" width="3.2" height="5" class="pin"/><rect x="231.4" y="165.0" width="3.2" height="5" class="pin"/><rect x="252.4" y="48.0" width="3.2" height="5" class="pin"/><rect x="252.4" y="165.0" width="3.2" height="5" class="pin"/><rect x="273.4" y="48.0" width="3.2" height="5" class="pin"/><rect x="273.4" y="165.0" width="3.2" height="5" class="pin"/><rect x="294.4" y="48.0" width="3.2" height="5" class="pin"/><rect x="294.4" y="165.0" width="3.2" height="5" class="pin"/>
+  <rect class="usb" x="276.0" y="147.0" width="22" height="12" rx="2"/>
+  <rect class="chip" x="156.0" y="97.0" width="28" height="24" rx="2"/>
+  <text class="m" x="170" y="16" text-anchor="middle">最小系统板示意 · 51 × 21 mm</text>
+  <text class="m" x="170" y="204" text-anchor="middle">Raspberry Pi Pico</text>
+</svg>

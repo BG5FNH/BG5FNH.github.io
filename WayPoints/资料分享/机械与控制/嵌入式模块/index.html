@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>嵌入式模块 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../../";</script>
+  <link rel="stylesheet" href="../../../../assets/style.css" />
+  <style>
+    .em-card { display: block; margin: 14px 0 0; padding: 16px 18px; border: 1px solid rgba(201, 168, 106, 0.24);
+      border-radius: 12px; background: rgba(201, 168, 106, 0.035); text-decoration: none;
+      transition: border-color 0.2s, background 0.2s; }
+    .em-card:hover { border-color: rgba(201, 168, 106, 0.6); background: rgba(201, 168, 106, 0.07); }
+    .em-card h3 { margin: 0 0 6px; font-size: 15px; color: var(--gold); letter-spacing: 1px; font-weight: 600; }
+    .em-card p { margin: 0; font-size: 13px; line-height: 1.75; color: var(--text-muted); }
+    .em-card .go { display: inline-block; margin-top: 8px; font-size: 12.5px; color: var(--gold); }
+    .em-tip { margin: 14px 0 0; padding: 12px 14px; border-radius: 10px; font-size: 12.5px; line-height: 1.85;
+      color: var(--text-muted); background: rgba(201, 168, 106, 0.045); border: 1px dashed rgba(201, 168, 106, 0.28); }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">嵌入式模块</h1>
+    <p class="page-subtitle">资料分享 · 机械与控制 · 嵌入式模块</p>
+
+    <section class="card">
+      <p>控制这一侧：选一块主控板，把传感器读进来、把执行器驱动出去。所有"选型"到最后都能落回四个问题——<b>要几个引脚</b>、<b>要多少内存和存储</b>、<b>要跑多快</b>、<b>要不要无线</b>。</p>
+      <p>下面是已经整理好的部分，点进去能直接按参数排。</p>
+
+      <a class="em-card" href="开发板查询/index.html">
+        <h3>开发板查询</h3>
+        <p>ESP32 / STM32 / Arduino / 树莓派，34 款主流开发板：主频、SRAM、Flash、GPIO、总线数量、估算 CoreMark、扩展性评分，点表头排序，点行看封装示意图与数据出处。</p>
+        <span class="go">打开查询表 →</span>
+      </a>
+    </section>
+
+    <section class="card">
+      <h2>怎么用这张表</h2>
+      <p class="em-tip">
+        ① 先按<b>系列</b>筛，圈定生态（要 Arduino 库多？要 Wi-Fi？要 Linux？）。<br />
+        ② 再按<b>内存 / 存储</b>排，把"装不下"的先淘汰——这一列最先把方案否掉。<br />
+        ③ 然后看<b>总线数量</b>：UART/SPI/I2C 各几路，决定你能同时接几个外设。<br />
+        ④ 最后看<b>主频 / CoreMark</b>：控制类应用 48 MHz 就够，做图像、音频、加密才需要往上堆。<br />
+        ⑤ 拿不准的字段表里写的是「未确认」——那不是没填，是确实没有可比的公开数据。
+      </p>
+    </section>
+  </main>
+
+  <script src="../../../../assets/page.js"></script>
+</body>
+</html>

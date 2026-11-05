@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 190" width="300" height="190" role="img" aria-label="ATmega328P 封装示意">
+  <style>
+    .bg{fill:#0f0e12}.body{fill:#2a2530;stroke:#c9a86a;stroke-width:1.4}
+    .pin{stroke:#8a7348;stroke-width:2.2}.dot{fill:#c9a86a}
+    .t{fill:#e6d7b8;font-family:Consolas,monospace}.m{fill:#a89878;font-family:Consolas,monospace;font-size:9px}
+  </style>
+  <rect class="bg" width="300" height="190" rx="10"/>
+  <circle cx="14" cy="14" r="3" class="dot"/>
+  <line x1="74" y1="40.0" x2="86" y2="40.0" class="pin"/><line x1="182" y1="40.0" x2="194" y2="40.0" class="pin"/><line x1="92.0" y1="22" x2="92.0" y2="34" class="pin"/><line x1="92.0" y1="130" x2="92.0" y2="142" class="pin"/><line x1="74" y1="52.0" x2="86" y2="52.0" class="pin"/><line x1="182" y1="52.0" x2="194" y2="52.0" class="pin"/><line x1="104.0" y1="22" x2="104.0" y2="34" class="pin"/><line x1="104.0" y1="130" x2="104.0" y2="142" class="pin"/><line x1="74" y1="64.0" x2="86" y2="64.0" class="pin"/><line x1="182" y1="64.0" x2="194" y2="64.0" class="pin"/><line x1="116.0" y1="22" x2="116.0" y2="34" class="pin"/><line x1="116.0" y1="130" x2="116.0" y2="142" class="pin"/><line x1="74" y1="76.0" x2="86" y2="76.0" class="pin"/><line x1="182" y1="76.0" x2="194" y2="76.0" class="pin"/><line x1="128.0" y1="22" x2="128.0" y2="34" class="pin"/><line x1="128.0" y1="130" x2="128.0" y2="142" class="pin"/><line x1="74" y1="88.0" x2="86" y2="88.0" class="pin"/><line x1="182" y1="88.0" x2="194" y2="88.0" class="pin"/><line x1="140.0" y1="22" x2="140.0" y2="34" class="pin"/><line x1="140.0" y1="130" x2="140.0" y2="142" class="pin"/><line x1="74" y1="100.0" x2="86" y2="100.0" class="pin"/><line x1="182" y1="100.0" x2="194" y2="100.0" class="pin"/><line x1="152.0" y1="22" x2="152.0" y2="34" class="pin"/><line x1="152.0" y1="130" x2="152.0" y2="142" class="pin"/><line x1="74" y1="112.0" x2="86" y2="112.0" class="pin"/><line x1="182" y1="112.0" x2="194" y2="112.0" class="pin"/><line x1="164.0" y1="22" x2="164.0" y2="34" class="pin"/><line x1="164.0" y1="130" x2="164.0" y2="142" class="pin"/><line x1="74" y1="124.0" x2="86" y2="124.0" class="pin"/><line x1="182" y1="124.0" x2="194" y2="124.0" class="pin"/><line x1="176.0" y1="22" x2="176.0" y2="34" class="pin"/><line x1="176.0" y1="130" x2="176.0" y2="142" class="pin"/>
+  <rect class="body" x="86" y="34" width="96" height="96" rx="4"/>
+  <text class="t" x="134" y="78" text-anchor="middle" font-size="11">ATmega328P</text>
+  <text class="t" x="134" y="94" text-anchor="middle" font-size="9">TQFP32</text>
+  <text class="m" x="14" y="176">封装示意 · TQFP32 · 32 pin</text>
+  <text class="m" x="14" y="34">主控</text>
+</svg>

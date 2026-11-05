@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>开发板查询 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../../../";</script>
+  <link rel="stylesheet" href="../../../../../assets/style.css" />
+  <style>
+    .bd-lead { margin: 0 0 10px; font-size: 14.5px; line-height: 1.9; }
+    .bd-rule { margin: 14px 0 0; padding: 12px 14px; border-radius: 10px; font-size: 12.5px; line-height: 1.85;
+      color: var(--text-muted); background: rgba(201, 168, 106, 0.045); border: 1px dashed rgba(201, 168, 106, 0.28); }
+    .bd-rule b { color: var(--gold); }
+
+    .bd-tools { position: sticky; top: 0; z-index: 6; padding: 10px 0 10px; margin: -8px 0 2px;
+      background: linear-gradient(180deg, rgba(11, 11, 13, 0.97) 76%, rgba(11, 11, 13, 0)); }
+    .bd-search { width: 100%; padding: 10px 15px; background: rgba(201, 168, 106, 0.05);
+      border: 1px solid rgba(201, 168, 106, 0.3); border-radius: 999px; color: var(--text);
+      font-family: inherit; font-size: 13px; letter-spacing: 0.5px; outline: none; }
+    .bd-search::placeholder { color: rgba(168, 152, 120, 0.85); }
+    .bd-search:focus { border-color: rgba(201, 168, 106, 0.62); }
+
+    .bd-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .bd-chip { padding: 5px 13px; border-radius: 999px; border: 1px solid rgba(201, 168, 106, 0.28);
+      background: transparent; color: var(--text-muted); font-family: inherit; font-size: 12px;
+      letter-spacing: 0.5px; cursor: pointer; transition: all 0.18s; }
+    .bd-chip:hover { border-color: rgba(201, 168, 106, 0.55); color: var(--text); }
+    .bd-chip.on { background: var(--gold); border-color: var(--gold); color: #0b0b0d; font-weight: 600; }
+    .bd-chip .n { margin-left: 6px; font-size: 10px; opacity: 0.7; }
+
+    .bd-count { margin: 10px 0 6px; font-size: 12px; color: var(--text-muted); letter-spacing: 0.5px; }
+
+    .bd-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table.bd { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 720px; }
+    table.bd th { position: relative; padding: 9px 8px; text-align: right; white-space: nowrap;
+      color: var(--gold); font-weight: 600; letter-spacing: 0.5px; cursor: pointer;
+      border-bottom: 1px solid rgba(201, 168, 106, 0.32); user-select: none; }
+    table.bd th:first-child, table.bd th:nth-child(2) { text-align: left; }
+    table.bd th.no-sort { cursor: default; color: var(--text-muted); }
+    table.bd th .ar { margin-left: 4px; font-size: 10px; opacity: 0.45; }
+    table.bd th.sorted .ar { opacity: 1; color: var(--gold); }
+    table.bd td { padding: 8px; border-bottom: 1px solid rgba(201, 168, 106, 0.1); vertical-align: middle; }
+    table.bd td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    table.bd tr.bd-row { cursor: pointer; }
+    table.bd tr.bd-row:hover { background: rgba(201, 168, 106, 0.06); }
+    table.bd tr.bd-row.open { background: rgba(201, 168, 106, 0.09); }
+
+    .bd-name { color: var(--text); font-size: 13px; }
+    .bd-sub { margin-top: 3px; font-size: 11px; color: var(--text-muted); letter-spacing: 0.3px; }
+    .bd-fam { display: inline-block; margin-right: 6px; padding: 1px 7px; border-radius: 5px;
+      font-size: 10px; letter-spacing: 0.5px; color: #0b0b0d; font-weight: 700; }
+    .bd-unknown { color: rgba(168, 152, 120, 0.75); font-size: 11px; }
+
+    .bd-detail td { background: rgba(0, 0, 0, 0.28); border-bottom: 1px solid rgba(201, 168, 106, 0.16); }
+    .bd-detail-in { display: grid; grid-template-columns: 300px 340px minmax(0, 1fr); gap: 16px; padding: 12px 6px 14px; }
+    .bd-fig { margin: 0; }
+    .bd-fig img { display: block; width: 100%; height: auto; border: 1px solid rgba(201, 168, 106, 0.22);
+      border-radius: 8px; background: #0f0e12; }
+    .bd-fig figcaption { margin-top: 6px; font-size: 11px; color: var(--text-muted); letter-spacing: 0.4px; }
+    .bd-spec { font-size: 12px; line-height: 1.9; color: var(--text-muted); }
+    .bd-spec b { color: var(--text); font-weight: 500; }
+    .bd-spec a { color: var(--gold); border-bottom: 1px solid rgba(201, 168, 106, 0.45); text-decoration: none; }
+    .bd-spec .u { color: #d1495b; }
+
+    @media (max-width: 900px) {
+      .bd-detail-in { grid-template-columns: 1fr 1fr; }
+      .bd-spec { grid-column: 1 / -1; }
+    }
+    @media (max-width: 640px) {
+      .bd-detail-in { grid-template-columns: 1fr; }
+      table.bd { min-width: 640px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">开发板查询</h1>
+    <p class="page-subtitle">资料分享 · 机械与控制 · 嵌入式模块</p>
+
+    <section class="card">
+      <p class="bd-lead">34 款主流开发板，四个系列：ESP32 8 款、STM32 9 款、Arduino 9 款、树莓派 8 款。</p>
+      <p class="bd-lead">点表头按该列排序（再点一次反向），点任意一行展开：主控封装示意、最小系统板示意、完整规格、数据出处。</p>
+      <div class="bd-rule">
+        <b>口径</b>：主频 / 内存（SRAM）/ 存储（Flash）/ GPIO 数量 / 总线数量（UART+SPI+I2C）全部取自厂商 datasheet 或产品页，逐行给了链接。<br />
+        <b>运算能力</b>写的是「估算 CoreMark」＝ 主频 × 该内核的 CoreMark/MHz（ARM 官方口径量级）× 核数，<b>不是实测值</b>；Xtensa / RISC-V / AVR / Linux 板子没有可比口径，一律写「未确认」。<br />
+        <b>扩展性评分</b>是本站自定口径，便于横向排：引脚分 min(4, GPIO÷10) + 总线分 min(4, 总线数÷2) + 生态分（标准 Shield/HAT/面包板生态 1 分、板载无线 1 分），满分 10。<br />
+        拿不准的字段直接写「未确认」，没有用估值糊过去。
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="bd-tools">
+        <input type="search" id="bdSearch" class="bd-search" autocomplete="off" spellcheck="false"
+               placeholder="搜索型号 / 主控 / 系列（按 / 聚焦）" aria-label="搜索开发板" />
+        <div class="bd-chips" id="bdChips"></div>
+        <p class="bd-count" id="bdCount"></p>
+      </div>
+      <div class="bd-wrap">
+        <table class="bd" id="bdTable">
+          <thead>
+            <tr>
+              <th class="no-sort">型号 / 主控</th>
+              <th data-k="fam" class="no-sort">系列</th>
+              <th data-k="mhz">主频<span class="ar">↕</span></th>
+              <th data-k="sram">内存<span class="ar">↕</span></th>
+              <th data-k="flash">存储<span class="ar">↕</span></th>
+              <th data-k="gpio">GPIO<span class="ar">↕</span></th>
+              <th data-k="bus">总线<span class="ar">↕</span></th>
+              <th data-k="cm">CoreMark<span class="ar">↕</span></th>
+              <th data-k="ext">扩展性<span class="ar">↕</span></th>
+            </tr>
+          </thead>
+          <tbody id="bdBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>window.__BOARDS__ = [{"id":"esp32-wroom32","fam":"esp32","n":"ESP32-DevKitC（WROOM-32）","mcu":"ESP32-D0WDQ6","core":"Xtensa LX6 双核","cores":2,"mhz":240,"sram":520,"flash":4096,"gpio":34,"bus":{"uart":3,"spi":4,"i2c":2},"adc":18,"radio":"Wi-Fi 4 + BT 4.2","cm":null,"src":"https://www.espressif.com/sites/default/files/documentation/esp32_datasheet_en.pdf","note":"模组版 Flash 4 MB，板载 USB 转串口供电；34 个 GPIO 中部分在启动时被占用。"},{"id":"esp32-s2","fam":"esp32","n":"ESP32-S2（Saola-1）","mcu":"ESP32-S2","core":"Xtensa LX7 单核","cores":1,"mhz":240,"sram":320,"flash":4096,"gpio":43,"bus":{"uart":2,"spi":4,"i2c":2},"adc":20,"radio":"Wi-Fi 4（无蓝牙）","cm":null,"src":"https://www.espressif.com/sites/default/files/documentation/esp32-s2_datasheet_en.pdf","note":"原生 USB OTG，没有蓝牙；外设比 S3 少，适合纯 Wi-Fi + USB 场景。"},{"id":"esp32-s3","fam":"esp32","n":"ESP32-S3-DevKitC-1","mcu":"ESP32-S3","core":"Xtensa LX7 双核","cores":2,"mhz":240,"sram":512,"flash":8192,"gpio":45,"bus":{"uart":3,"spi":4,"i2c":2},"adc":20,"radio":"Wi-Fi 4 + BLE 5","cm":null,"src":"https://www.espressif.com/sites/default/files/documentation/esp32-s3_datasheet_en.pdf","note":"带 AI 指令与向量扩展；开发板通常 8 MB Flash、可选 8 MB PSRAM（PSRAM 不计入 SRAM）。"},{"id":"esp32-c3","fam":"esp32","n":"ESP32-C3-DevKitM-1","mcu":"ESP32-C3","core":"RISC-V 单核","cores":1,"mhz":160,"sram":400,"flash":4096,"gpio":22,"bus":{"uart":2,"spi":3,"i2c":1},"adc":6,"radio":"Wi-Fi 4 + BLE 5","cm":null,"src":"https://www.espressif.com/sites/default/files/documentation/esp32-c3_datasheet_en.pdf","note":"引脚少、价格低，适合只做联网控制；外设数量明显低于 S3。"},{"id":"esp32-c6","fam":"esp32","n":"ESP32-C6-DevKitC-1","mcu":"ESP32-C6","core":"RISC-V 双核（HP+LP）","cores":2,"mhz":160,"sram":512,"flash":4096,"gpio":30,"bus":{"uart":2,"spi":3,"i2c":1},"adc":7,"radio":"Wi-Fi 6 + BLE 5 + 802.15.4","cm":null,"src":"https://www.espressif.com/sites/default/files/documentation/esp32-c6_datasheet_en.pdf","note":"支持 Wi-Fi 6 与 Thread/Zigbee（802.15.4），低功耗核负责深睡唤醒。"},{"id":"esp32-h2","fam":"esp32","n":"ESP32-H2-DevKitM-1","mcu":"ESP32-H2","core":"RISC-V 单核","cores":1,"mhz":96,"sram":320,"flash":null,"gpio":19,"bus":{"uart":2,"spi":2,"i2c":1},"adc":5,"radio":"BLE 5 + 802.15.4（无 Wi-Fi）","cm":null,"src":"https://www.espressif.com/sites/default/files/documentation/esp32-h2_datasheet_en.pdf","note":"没有 Wi-Fi，只做低功耗组网（Thread/Zigbee/BLE）。"},{"id":"esp32-p4","fam":"esp32","n":"ESP32-P4（开发板）","mcu":"ESP32-P4","core":"RISC-V 双核","cores":2,"mhz":400,"sram":768,"flash":null,"gpio":55,"bus":{"uart":5,"spi":3,"i2c":2},"adc":8,"radio":"无（需外挂 Wi-Fi 模组）","cm":null,"src":"https://www.espressif.com/sites/default/files/documentation/esp32-p4_datasheet_en.pdf","note":"偏应用处理器：带 MIPI-CSI/DSI、以太网 MAC；Flash 需外挂，容量随板而定（未确认）。"},{"id":"esp32-c2","fam":"esp32","n":"ESP32-C2（DevKitM-1）","mcu":"ESP32-C2","core":"RISC-V 单核","cores":1,"mhz":120,"sram":272,"flash":2048,"gpio":14,"bus":{"uart":2,"spi":2,"i2c":1},"adc":5,"radio":"Wi-Fi 4 + BLE 5","cm":null,"src":"https://www.espressif.com/sites/default/files/documentation/esp32-c2_datasheet_en.pdf","note":"最小号的 Wi-Fi + BLE 方案，引脚与内存都很紧。"},{"id":"stm32f103c8","fam":"stm32","n":"STM32F103C8T6（Blue Pill）","mcu":"STM32F103C8T6","core":"Cortex-M3","cores":1,"mhz":72,"sram":20,"flash":64,"gpio":37,"bus":{"uart":3,"spi":2,"i2c":2},"adc":10,"radio":"无","cm":240,"src":"https://www.st.com/resource/en/datasheet/stm32f103c8.pdf","note":"入门最泛用的最小系统板；USB 只能当从机，做 HID 要自己写。"},{"id":"stm32f401cc","fam":"stm32","n":"STM32F401CCU6（Black Pill）","mcu":"STM32F401CCU6","core":"Cortex-M4F","cores":1,"mhz":84,"sram":64,"flash":256,"gpio":36,"bus":{"uart":3,"spi":3,"i2c":3},"adc":10,"radio":"无","cm":287,"src":"https://www.st.com/resource/en/datasheet/stm32f401cc.pdf","note":"带浮点单元，算力和 F103 不在一个量级；无 EEPROM。"},{"id":"stm32f411ce","fam":"stm32","n":"STM32F411CEU6（Black Pill）","mcu":"STM32F411CEU6","core":"Cortex-M4F","cores":1,"mhz":100,"sram":128,"flash":512,"gpio":36,"bus":{"uart":3,"spi":5,"i2c":3},"adc":16,"radio":"无","cm":342,"src":"https://www.st.com/resource/en/datasheet/stm32f411ce.pdf","note":"艺术/音频类小项目常用：512 KB Flash、128 KB RAM，浮点够快。"},{"id":"stm32f407vg","fam":"stm32","n":"STM32F407VGT6（Discovery）","mcu":"STM32F407VGT6","core":"Cortex-M4F","cores":1,"mhz":168,"sram":192,"flash":1024,"gpio":82,"bus":{"uart":6,"spi":3,"i2c":3},"adc":16,"radio":"无","cm":575,"src":"https://www.st.com/resource/en/datasheet/stm32f407vg.pdf","note":"带以太网 MAC、USB OTG HS/FS、DCMI 摄像头接口，做网关/图像常选它。"},{"id":"stm32f429ig","fam":"stm32","n":"STM32F429IGT6","mcu":"STM32F429IGT6","core":"Cortex-M4F","cores":1,"mhz":180,"sram":256,"flash":1024,"gpio":114,"bus":{"uart":8,"spi":6,"i2c":3},"adc":16,"radio":"无","cm":616,"src":"https://www.st.com/resource/en/datasheet/stm32f429ig.pdf","note":"带 LTDC 液晶控制器 + SDRAM 接口，适合做带屏的人机界面。"},{"id":"stm32h743vi","fam":"stm32","n":"STM32H743VIT6","mcu":"STM32H743VIT6","core":"Cortex-M7","cores":1,"mhz":480,"sram":1024,"flash":2048,"gpio":82,"bus":{"uart":8,"spi":6,"i2c":4},"adc":20,"radio":"无","cm":2539,"src":"https://www.st.com/resource/en/datasheet/stm32h743vi.pdf","note":"目前 STM32 里单核算力最强的一档；内存分多块（含 TCM），这里的 1 MB 是总量。"},{"id":"stm32l476rg","fam":"stm32","n":"STM32L476RGT6（Nucleo）","mcu":"STM32L476RGT6","core":"Cortex-M4F","cores":1,"mhz":80,"sram":128,"flash":1024,"gpio":51,"bus":{"uart":5,"spi":3,"i2c":3},"adc":16,"radio":"无","cm":274,"src":"https://www.st.com/resource/en/datasheet/stm32l476rg.pdf","note":"低功耗系列，跑分不如 F4 同频，但待机电流低一个量级。"},{"id":"stm32g431cb","fam":"stm32","n":"STM32G431CBT6","mcu":"STM32G431CBT6","core":"Cortex-M4F","cores":1,"mhz":170,"sram":32,"flash":128,"gpio":39,"bus":{"uart":3,"spi":3,"i2c":3},"adc":11,"radio":"无","cm":581,"src":"https://www.st.com/resource/en/datasheet/stm32g431cb.pdf","note":"带运放与比较器，做电机控制/电源常用；内存偏小。"},{"id":"stm32f030f4","fam":"stm32","n":"STM32F030F4P6","mcu":"STM32F030F4","core":"Cortex-M0","cores":1,"mhz":48,"sram":4,"flash":16,"gpio":15,"bus":{"uart":1,"spi":1,"i2c":1},"adc":9,"radio":"无","cm":115,"src":"https://www.st.com/resource/en/datasheet/stm32f030f4.pdf","note":"最小的 STM32 之一，TSSOP20 直插转接就能焊；只够点灯和简单控制。"},{"id":"uno-r3","fam":"arduino","n":"Arduino Uno R3","mcu":"ATmega328P","core":"AVR 8-bit","cores":1,"mhz":16,"sram":2,"flash":32,"gpio":20,"bus":{"uart":1,"spi":1,"i2c":1},"adc":6,"radio":"无","cm":null,"src":"https://docs.arduino.cc/hardware/uno-rev3/","note":"14 数字 + 6 模拟；5 V 电平，和 3.3 V 模块对接要电平转换。"},{"id":"uno-r4-minima","fam":"arduino","n":"Arduino Uno R4 Minima","mcu":"Renesas RA4M1","core":"Cortex-M4F","cores":1,"mhz":48,"sram":32,"flash":256,"gpio":20,"bus":{"uart":1,"spi":1,"i2c":1},"adc":6,"radio":"无","cm":164,"src":"https://docs.arduino.cc/hardware/uno-r4-minima/","note":"与 R3 同一板型、同排针位置；多了 DAC、CAN，工作电压仍是 5 V。"},{"id":"uno-r4-wifi","fam":"arduino","n":"Arduino Uno R4 WiFi","mcu":"RA4M1 + ESP32-S3","core":"Cortex-M4F + Xtensa","cores":3,"mhz":48,"sram":32,"flash":256,"gpio":20,"bus":{"uart":1,"spi":1,"i2c":1},"adc":6,"radio":"Wi-Fi 4 + BLE 5（ESP32-S3 侧）","cm":null,"src":"https://docs.arduino.cc/hardware/uno-r4-wifi/","note":"主控还是 RA4M1，ESP32-S3 只做联网与 LED 矩阵；两套处理器各算各的。"},{"id":"nano-classic","fam":"arduino","n":"Arduino Nano（经典版）","mcu":"ATmega328P","core":"AVR 8-bit","cores":1,"mhz":16,"sram":2,"flash":32,"gpio":22,"bus":{"uart":1,"spi":1,"i2c":1},"adc":8,"radio":"无","cm":null,"src":"https://docs.arduino.cc/hardware/nano/","note":"面包板直插；8 路模拟输入比 Uno 多两路。"},{"id":"nano-33-ble","fam":"arduino","n":"Arduino Nano 33 BLE","mcu":"Nordic nRF52840","core":"Cortex-M4F","cores":1,"mhz":64,"sram":256,"flash":1024,"gpio":20,"bus":{"uart":1,"spi":1,"i2c":1},"adc":8,"radio":"BLE 5","cm":219,"src":"https://docs.arduino.cc/hardware/nano-33-ble/","note":"3.3 V 板子，不能直接插 5 V 传感器；带九轴 IMU。"},{"id":"nano-esp32","fam":"arduino","n":"Arduino Nano ESP32","mcu":"ESP32-S3","core":"Xtensa LX7 双核","cores":2,"mhz":240,"sram":512,"flash":16384,"gpio":22,"bus":{"uart":3,"spi":4,"i2c":2},"adc":8,"radio":"Wi-Fi 4 + BLE 5","cm":null,"src":"https://docs.arduino.cc/hardware/nano-esp32/","note":"Nano 尺寸里的 ESP32-S3，16 MB Flash；可用 Arduino 或 MicroPython。"},{"id":"mega-2560","fam":"arduino","n":"Arduino Mega 2560 Rev3","mcu":"ATmega2560","core":"AVR 8-bit","cores":1,"mhz":16,"sram":8,"flash":256,"gpio":70,"bus":{"uart":4,"spi":1,"i2c":1},"adc":16,"radio":"无","cm":null,"src":"https://docs.arduino.cc/hardware/mega-2560/","note":"54 数字 + 16 模拟、4 路串口，引脚最多的经典 Arduino。"},{"id":"leonardo","fam":"arduino","n":"Arduino Leonardo","mcu":"ATmega32U4","core":"AVR 8-bit","cores":1,"mhz":16,"sram":2.5,"flash":32,"gpio":20,"bus":{"uart":1,"spi":1,"i2c":1},"adc":12,"radio":"无","cm":null,"src":"https://docs.arduino.cc/hardware/leonardo/","note":"32U4 自带 USB，可以直接模拟键盘/鼠标，不用外挂转换芯片。"},{"id":"micro","fam":"arduino","n":"Arduino Micro","mcu":"ATmega32U4","core":"AVR 8-bit","cores":1,"mhz":16,"sram":2.5,"flash":32,"gpio":20,"bus":{"uart":1,"spi":1,"i2c":1},"adc":12,"radio":"无","cm":null,"src":"https://docs.arduino.cc/hardware/micro/","note":"Leonardo 的小板版，排针间距与面包板兼容。"},{"id":"pi-5","fam":"rpi","n":"Raspberry Pi 5","mcu":"BCM2712","core":"Cortex-A76 四核","cores":4,"mhz":2400,"sram":8192,"flash":null,"gpio":28,"bus":{"uart":1,"spi":2,"i2c":2},"adc":null,"radio":"Wi-Fi 5 + BT 5","cm":null,"src":"https://www.raspberrypi.com/products/raspberry-pi-5/","note":"内存是 LPDDR4X（4/8 GB 可选，这里按 8 GB 记）；系统跑在 microSD 或 NVMe（需 M.2 HAT），无板载 eMMC。"},{"id":"pi-4b","fam":"rpi","n":"Raspberry Pi 4 Model B","mcu":"BCM2711","core":"Cortex-A72 四核","cores":4,"mhz":1500,"sram":8192,"flash":null,"gpio":28,"bus":{"uart":1,"spi":2,"i2c":2},"adc":null,"radio":"Wi-Fi 5 + BT 5","cm":null,"src":"https://www.raspberrypi.com/products/raspberry-pi-4-model-b/","note":"内存 1/2/4/8 GB 可选，按 8 GB 记；双 micro-HDMI、USB 3.0 ×2。"},{"id":"pi-3b-plus","fam":"rpi","n":"Raspberry Pi 3 Model B+","mcu":"BCM2837B0","core":"Cortex-A53 四核","cores":4,"mhz":1400,"sram":1024,"flash":null,"gpio":28,"bus":{"uart":1,"spi":2,"i2c":2},"adc":null,"radio":"Wi-Fi 5 + BT 4.2","cm":null,"src":"https://www.raspberrypi.com/products/raspberry-pi-3-model-b-plus/","note":"1 GB LPDDR2；千兆网口（经 USB 2.0 通道，实测约 300 Mbps）。"},{"id":"pi-zero-2w","fam":"rpi","n":"Raspberry Pi Zero 2 W","mcu":"RP3A0（BCM2710A1）","core":"Cortex-A53 四核","cores":4,"mhz":1000,"sram":512,"flash":null,"gpio":28,"bus":{"uart":1,"spi":2,"i2c":2},"adc":null,"radio":"Wi-Fi 4 + BT 4.2","cm":null,"src":"https://www.raspberrypi.com/products/raspberry-pi-zero-2-w/","note":"65×30 mm 小板，未焊接 40 排针（需自己焊）。"},{"id":"cm4","fam":"rpi","n":"Raspberry Pi Compute Module 4","mcu":"BCM2711","core":"Cortex-A72 四核","cores":4,"mhz":1500,"sram":8192,"flash":null,"gpio":28,"bus":{"uart":1,"spi":2,"i2c":2},"adc":null,"radio":"可选 Wi-Fi 5 + BT 5","cm":null,"src":"https://www.raspberrypi.com/products/compute-module-4/","note":"核心板形态，需要底板；可选 eMMC（8~32 GB）或仅 SD，内存按 8 GB 记。"},{"id":"pico","fam":"rpi","n":"Raspberry Pi Pico","mcu":"RP2040","core":"Cortex-M0+ 双核","cores":2,"mhz":133,"sram":264,"flash":2048,"gpio":26,"bus":{"uart":2,"spi":2,"i2c":2},"adc":3,"radio":"无","cm":null,"src":"https://datasheets.raspberrypi.com/pico/pico-datasheet.pdf","note":"PIO 可编程 IO 是它的特色；26 个 GPIO 里 3 个可做 ADC。"},{"id":"pico-w","fam":"rpi","n":"Raspberry Pi Pico W","mcu":"RP2040 + CYW43439","core":"Cortex-M0+ 双核","cores":2,"mhz":133,"sram":264,"flash":2048,"gpio":26,"bus":{"uart":2,"spi":2,"i2c":2},"adc":3,"radio":"Wi-Fi 4","cm":null,"src":"https://datasheets.raspberrypi.com/picow/pico-w-datasheet.pdf","note":"在 Pico 基础上加 Wi-Fi；蓝牙在 Pico W 上不可用（Pico 2 W 才有）。"},{"id":"pico-2","fam":"rpi","n":"Raspberry Pi Pico 2","mcu":"RP2350","core":"Cortex-M33 双核","cores":2,"mhz":150,"sram":520,"flash":4096,"gpio":26,"bus":{"uart":2,"spi":2,"i2c":2},"adc":3,"radio":"无","cm":1002,"src":"https://datasheets.raspberrypi.com/pico/pico-2-datasheet.pdf","note":"可在 M33 与 RISC-V Hazard3 之间选启动架构；4 MB Flash。"}];</script>
+  <script>
+    (function () {
+      'use strict';
+      var DATA = window.__BOARDS__ || [];
+      var FAM_LABEL = {"esp32":"ESP32","stm32":"STM32","arduino":"Arduino","rpi":"树莓派"};
+      var FAM_COLOR = {"esp32":"#d1495b","stm32":"#8fd0ef","arduino":"#e0b25c","rpi":"#a8e8b4"};
+      var body = document.getElementById('bdBody');
+      var countEl = document.getElementById('bdCount');
+      var searchEl = document.getElementById('bdSearch');
+      var chipsEl = document.getElementById('bdChips');
+      var table = document.getElementById('bdTable');
+      var state = { fam: 'all', q: '', key: '', dir: -1 };
+
+      function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+        });
+      }
+      function busOf(b) { return (b.bus.uart || 0) + (b.bus.spi || 0) + (b.bus.i2c || 0); }
+      function extOf(b) {
+        var pin = Math.min(4, (b.gpio || 0) / 10);
+        var bus = Math.min(4, busOf(b) / 2);
+        var eco = 0;
+        if (b.fam === 'rpi' || b.fam === 'arduino') eco += 1;    // 标准 HAT / Shield 生态
+        else if (b.gpio >= 20) eco += 1;                          // 面包板直插
+        if (b.radio && b.radio.indexOf('无') !== 0) eco += 1;     // 板载无线
+        return Math.round(Math.min(10, pin + bus + eco) * 10) / 10;
+      }
+      function val(b, k) {
+        if (k === 'bus') return busOf(b);
+        if (k === 'ext') return extOf(b);
+        if (k === 'cm') return b.cm == null ? null : b.cm;
+        return b[k] == null ? null : b[k];
+      }
+      function fmt(v, k) {
+        if (v == null) return '<span class="bd-unknown">未确认</span>';
+        if (k === 'mhz') return v + ' MHz';
+        if (k === 'sram' || k === 'flash') return v + ' KB';
+        return String(v);
+      }
+      function unknownList(b) {
+        var out = [];
+        if (b.mhz == null) out.push('主频');
+        if (b.sram == null) out.push('内存');
+        if (b.flash == null) out.push('存储');
+        if (b.gpio == null) out.push('GPIO');
+        if (b.bus.uart == null || b.bus.spi == null || b.bus.i2c == null) out.push('总线');
+        if (b.adc == null) out.push('ADC 通道');
+        if (b.cm == null) out.push('CoreMark（内核无可比口径）');
+        return out;
+      }
+      function hay(b) {
+        return [b.n, b.mcu, b.core, FAM_LABEL[b.fam], b.note].join(' ').toLowerCase();
+      }
+
+      function visible() {
+        var q = state.q.trim().toLowerCase();
+        var list = DATA.filter(function (b) {
+          if (state.fam !== 'all' && b.fam !== state.fam) return false;
+          if (q && hay(b).indexOf(q) < 0) return false;
+          return true;
+        });
+        if (state.key) {
+          list = list.slice().sort(function (x, y) {
+            var a = val(x, state.key), b2 = val(y, state.key);
+            if (a == null && b2 == null) return 0;
+            if (a == null) return 1;          // 未确认永远排在后面
+            if (b2 == null) return -1;
+            return (a - b2) * state.dir;
+          });
+        }
+        return list;
+      }
+
+      function detail(b) {
+        var unk = unknownList(b);
+        return '<div class="bd-detail-in">' +
+          '<figure class="bd-fig"><img src="img/' + b.id + '-chip.svg" alt="' + esc(b.mcu) + ' 封装示意" loading="lazy"/>' +
+          '<figcaption>主控封装示意 · ' + esc(b.mcu) + '（本站按 datasheet 引脚数量绘制，非实物照片）</figcaption></figure>' +
+          '<figure class="bd-fig"><img src="img/' + b.id + '-board.svg" alt="' + esc(b.n) + ' 板型示意" loading="lazy"/>' +
+          '<figcaption>最小系统板示意 · 外形尺寸按官方板图，非实物照片</figcaption></figure>' +
+          '<div class="bd-spec">' +
+            '<div><b>内核</b> ' + esc(b.core) + ' · <b>核数</b> ' + (b.cores || '未确认') + '</div>' +
+            '<div><b>主频</b> ' + fmt(b.mhz, 'mhz') + ' · <b>SRAM</b> ' + fmt(b.sram, 'sram') + ' · <b>Flash</b> ' + fmt(b.flash, 'flash') + '</div>' +
+            '<div><b>GPIO</b> ' + fmt(b.gpio) + ' · <b>UART/SPI/I2C</b> ' + b.bus.uart + '/' + b.bus.spi + '/' + b.bus.i2c +
+              ' · <b>ADC</b> ' + (b.adc == null ? '<span class="bd-unknown">未确认</span>' : b.adc + ' 通道') + '</div>' +
+            '<div><b>无线</b> ' + esc(b.radio) + ' · <b>扩展性评分</b> ' + extOf(b) + ' / 10</div>' +
+            '<div><b>备注</b> ' + esc(b.note) + '</div>' +
+            (unk.length ? '<div class="u"><b>未确认</b> ' + esc(unk.join('、')) + '</div>' : '') +
+            '<div><b>数据出处</b> <a href="' + esc(b.src) + '" target="_blank" rel="noopener">' + esc(b.src.replace(/^https?:\/\//, '')) + '</a></div>' +
+          '</div></div>';
+      }
+
+      function render() {
+        var list = visible();
+        var metricLabel = { mhz: '主频', sram: '内存', flash: '存储', gpio: 'GPIO', bus: '总线', cm: 'CoreMark', ext: '扩展性' }[state.key];
+        countEl.textContent = '显示 ' + list.length + ' / ' + DATA.length + ' 款' +
+          (metricLabel ? ' · 按' + metricLabel + (state.dir === -1 ? '从高到低' : '从低到高') : ' · 默认按系列排列');
+
+        var html = '';
+        list.forEach(function (b) {
+          html += '<tr class="bd-row" data-id="' + b.id + '">' +
+            '<td><div class="bd-name">' + esc(b.n) + '</div><div class="bd-sub">' + esc(b.mcu) + ' · ' + esc(b.core) + '</div></td>' +
+            '<td><span class="bd-fam" style="background:' + (FAM_COLOR[b.fam] || '#888') + '">' + esc(FAM_LABEL[b.fam]) + '</span></td>' +
+            '<td class="num">' + fmt(b.mhz, 'mhz') + '</td>' +
+            '<td class="num">' + fmt(b.sram, 'sram') + '</td>' +
+            '<td class="num">' + fmt(b.flash, 'flash') + '</td>' +
+            '<td class="num">' + fmt(b.gpio) + '</td>' +
+            '<td class="num">' + b.bus.uart + '/' + b.bus.spi + '/' + b.bus.i2c + '</td>' +
+            '<td class="num">' + (b.cm == null ? '<span class="bd-unknown">未确认</span>' : b.cm) + '</td>' +
+            '<td class="num">' + extOf(b) + '</td>' +
+            '</tr>';
+          html += '<tr class="bd-detail" data-for="' + b.id + '" style="display:none"><td colspan="9">' + detail(b) + '</td></tr>';
+        });
+        body.innerHTML = html || '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:24px 0">没有匹配的开发板</td></tr>';
+      }
+
+      // 芯片筛选
+      var fams = ['all'].concat(Object.keys(FAM_LABEL));
+      fams.forEach(function (f) {
+        var n = f === 'all' ? DATA.length : DATA.filter(function (b) { return b.fam === f; }).length;
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'bd-chip' + (f === 'all' ? ' on' : '');
+        btn.setAttribute('data-fam', f);
+        btn.innerHTML = (f === 'all' ? '全部' : FAM_LABEL[f]) + '<span class="n">' + n + '</span>';
+        chipsEl.appendChild(btn);
+      });
+
+      chipsEl.addEventListener('click', function (e) {
+        var b = e.target.closest ? e.target.closest('.bd-chip') : null;
+        if (!b) return;
+        state.fam = b.getAttribute('data-fam');
+        Array.prototype.forEach.call(chipsEl.children, function (c) { c.classList.toggle('on', c === b); });
+        render();
+      });
+
+      table.querySelector('thead').addEventListener('click', function (e) {
+        var th = e.target.closest ? e.target.closest('th') : null;
+        if (!th || th.className.indexOf('no-sort') >= 0) return;
+        var k = th.getAttribute('data-k');
+        if (!k) return;
+        if (state.key === k) state.dir = -state.dir;
+        else { state.key = k; state.dir = -1; }
+        Array.prototype.forEach.call(table.querySelectorAll('th'), function (x) {
+          x.classList.toggle('sorted', x === th);
+          var ar = x.querySelector('.ar');
+          if (ar) ar.textContent = x === th ? (state.dir === -1 ? '↓' : '↑') : '↕';
+        });
+        render();
+      });
+
+      body.addEventListener('click', function (e) {
+        var tr = e.target.closest ? e.target.closest('tr.bd-row') : null;
+        if (!tr) return;
+        var id = tr.getAttribute('data-id');
+        var det = body.querySelector('tr.bd-detail[data-for="' + id + '"]');
+        if (!det) return;
+        var open = det.style.display !== 'none';
+        det.style.display = open ? 'none' : 'table-row';
+        tr.classList.toggle('open', !open);
+      });
+
+      searchEl.addEventListener('input', function () { state.q = searchEl.value; render(); });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === '/' && document.activeElement !== searchEl) { e.preventDefault(); searchEl.focus(); }
+        if (e.key === 'Escape' && document.activeElement === searchEl) { searchEl.value = ''; state.q = ''; render(); searchEl.blur(); }
+      });
+
+      render();
+    })();
+  </script>
+  <script src="../../../../../assets/page.js"></script>
+</body>
+</html>
