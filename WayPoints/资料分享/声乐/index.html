@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>声乐 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../";</script>
+  <link rel="stylesheet" href="../../../assets/style.css" />
+  <style>
+    .sy-card { display: block; margin: 14px 0 0; padding: 16px 18px; border: 1px solid rgba(201, 168, 106, 0.24);
+      border-radius: 12px; background: rgba(201, 168, 106, 0.035); text-decoration: none; transition: border-color 0.2s, background 0.2s; }
+    .sy-card:hover { border-color: rgba(201, 168, 106, 0.6); background: rgba(201, 168, 106, 0.07); }
+    .sy-card h3 { margin: 0 0 6px; font-size: 15px; color: var(--gold); letter-spacing: 1px; font-weight: 600; }
+    .sy-card p { margin: 0; font-size: 13px; line-height: 1.75; color: var(--text-muted); }
+    .sy-card .go { display: inline-block; margin-top: 8px; font-size: 12.5px; color: var(--gold); }
+    .sy-tip { margin: 14px 0 0; padding: 12px 14px; border-radius: 10px; font-size: 12.5px; line-height: 1.85;
+      color: var(--text-muted); background: rgba(201, 168, 106, 0.045); border: 1px dashed rgba(201, 168, 106, 0.28); }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">声乐</h1>
+    <p class="page-subtitle">资料分享 · 声乐</p>
+
+    <section class="card">
+      <p>声音这件事，一旦把频率轴拉长到 0.001 Hz ~ 1 GHz，人耳能听见的那一小段（20 Hz ~ 20 kHz）就只是中间一条缝。这一栏先放一张把整条轴画出来的地图：颜色编码频率，点一段看一段。</p>
+      <a class="sy-card" href="声音地图/index.html">
+        <h3>声音的完整地图</h3>
+        <p>从次声波到超声波：21 个频段的频率 / 波长 / 典型来源 / 生物效应 / 人耳感知，横向对数频谱色带 + 悬停卡 + 点击详情 + 频率探测器（输入任意频率，算出音名、波长、所属频段、能不能听到），另有动物与乐器听觉范围对比层。</p>
+        <span class="go">打开声音地图 →</span>
+      </a>
+    </section>
+
+    <section class="card">
+      <h2>这一页怎么读</h2>
+      <p class="sy-tip">
+        ① 横轴是<b>对数频率</b>，不是线性的——所以 20 Hz 到 200 Hz 的宽度和 200 Hz 到 2 kHz 一样宽，这样低端才看得见。<br />
+        ② 声速按 20 °C 空气取 <b>343 m/s</b>，波长 λ = 343 / f，表里的波长都是按这个算的。<br />
+        ③ 颜色不是装饰：暗紫→暗红→橙→黄绿→绿→青蓝→深紫→亮紫，对应"听不见的低端 → 最敏感的中频 → 听不见的高端"。<br />
+        ④ 想查某个具体频率（比如 392 Hz），用页面里的探测器直接输数字。
+      </p>
+    </section>
+  </main>
+
+  <script src="../../../assets/page.js"></script>
+</body>
+</html>

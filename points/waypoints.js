@@ -140,33 +140,22 @@ window.BG5FNH_WAYPOINTS = {
 
           { path: '资料分享/B站视频', name: 'B站视频', pos: [-1.85, -1.1], url: '资料分享/B站视频/index.html' },
 
+          // 机械与控制：不套宇宙，直接在星图里往下分叉，点一下就到内容
+          { path: '资料分享/机械与控制', name: '机械与控制', pos: [0, -1.95], scale: 0.95, url: '资料分享/机械与控制/index.html' },
+          { path: '资料分享/机械与控制/机械模块', name: '机械模块', pos: [-1.15, -2.85], scale: 0.78, labelScale: 0.9, url: '资料分享/机械与控制/机械模块/index.html' },
+          { path: '资料分享/机械与控制/机械模块/结构与传动', name: '结构与传动', pos: [-2.05, -3.65], scale: 0.58, labelScale: 0.82, url: '资料分享/机械与控制/机械模块/结构与传动/index.html' },
+          { path: '资料分享/机械与控制/嵌入式模块', name: '嵌入式模块', pos: [1.15, -2.85], scale: 0.78, labelScale: 0.9, url: '资料分享/机械与控制/嵌入式模块/index.html' },
+          { path: '资料分享/机械与控制/嵌入式模块/开发板查询', name: '开发板查询', pos: [2.05, -3.65], scale: 0.58, labelScale: 0.82, url: '资料分享/机械与控制/嵌入式模块/开发板查询/index.html' },
+
           {
-            // 机械与控制：机械（结构/传动）+ 控制（嵌入式）两半，各自还能再往下分
-            path: '资料分享/机械与控制',
-            name: '机械与控制',
-            pos: [0, -1.95],
+            // 声乐：单层宇宙，里面就是这张声音地图（不再往里套宇宙）
+            path: '资料分享/声乐',
+            name: '声乐',
+            pos: [-2.9, -0.15],
             universe: true,
-            universeColor: '#b58fd0',
+            universeColor: '#e8b45c',
             universePoints: [
-              { key: 'mc', path: 'mc', name: '机械与控制', pos: [0, 0], scale: 1.0, url: '资料分享/机械与控制/index.html' },
-
-              {
-                key: 'mech', path: 'mech', name: '机械模块', pos: [-1.55, -1.15], scale: 0.9,
-                universe: true, universeColor: '#d8c39a',
-                universePoints: [
-                  { key: 'mech-hub', path: 'mech-hub', name: '机械模块', pos: [0, 0], scale: 0.95, url: '资料分享/机械与控制/机械模块/index.html' },
-                  { key: 'trans', path: 'trans', name: '结构与传动', pos: [0, -1.6], scale: 0.8, url: '资料分享/机械与控制/机械模块/结构与传动/index.html' }
-                ]
-              },
-
-              {
-                key: 'emb', path: 'emb', name: '嵌入式模块', pos: [1.55, -1.15], scale: 0.9,
-                universe: true, universeColor: '#8fd0ef',
-                universePoints: [
-                  { key: 'emb-hub', path: 'emb-hub', name: '嵌入式模块', pos: [0, 0], scale: 0.95, url: '资料分享/机械与控制/嵌入式模块/index.html' },
-                  { key: 'boards', path: 'boards', name: '开发板查询', pos: [0, -1.75], scale: 0.85, url: '资料分享/机械与控制/嵌入式模块/开发板查询/index.html' }
-                ]
-              }
+              { key: 'sm', path: 'sm', name: '声音地图', pos: [0, 0], scale: 1.0, url: '资料分享/声乐/声音地图/index.html' }
             ]
           }
         ]

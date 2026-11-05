@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>声音的完整地图 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../../";</script>
+  <link rel="stylesheet" href="../../../../assets/style.css" />
+  <style>
+    .sm-lead { margin: 0 0 10px; font-size: 14.5px; line-height: 1.9; }
+    .sm-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 0 4px; }
+    .sm-stat { padding: 12px 10px; text-align: center; border: 1px solid rgba(201, 168, 106, 0.22);
+      border-radius: 10px; background: rgba(201, 168, 106, 0.04); }
+    .sm-stat b { display: block; font-size: 17px; color: var(--gold); letter-spacing: 0.5px; }
+    .sm-stat span { display: block; margin-top: 5px; font-size: 11px; color: var(--text-muted); letter-spacing: 0.4px; }
+
+    /* ---------- 频谱轴 ---------- */
+    .sm-axis-wrap { position: relative; margin: 16px 0 6px; }
+    .sm-axis { position: relative; height: 72px; border-radius: 8px; overflow: hidden;
+      border: 1px solid rgba(201, 168, 106, 0.25); background: #0a0810; cursor: crosshair; }
+    .sm-band { position: absolute; top: 0; bottom: 0; transition: filter 0.15s, opacity 0.15s; }
+    .sm-axis:hover .sm-band { opacity: 0.82; }
+    .sm-band.on { filter: brightness(1.35); outline: 1px solid rgba(255, 255, 255, 0.75); outline-offset: -1px; z-index: 3; }
+
+    .sm-ticks { position: relative; height: 34px; margin-top: 2px; }
+    .sm-tick { position: absolute; top: 0; width: 1px; height: 6px; background: rgba(201, 168, 106, 0.45); }
+    .sm-tick span { position: absolute; top: 8px; left: 0; transform: translateX(-50%);
+      font-size: 10px; color: rgba(168, 152, 120, 0.9); white-space: nowrap; letter-spacing: 0.3px; }
+
+    .sm-anchors { position: relative; height: 46px; }
+    .sm-anchor { position: absolute; left: 0; top: 0; transform: translateX(-50%); text-align: center; }
+    .sm-anchor i { display: block; width: 1px; height: 8px; margin: 0 auto; background: var(--gold); }
+    .sm-anchor span { display: block; font-size: 10px; color: var(--gold); white-space: nowrap; letter-spacing: 0.3px; }
+
+    .sm-tip { position: absolute; z-index: 9; min-width: 180px; max-width: 260px; padding: 9px 11px;
+      border: 1px solid rgba(201, 168, 106, 0.5); border-radius: 9px; background: rgba(12, 11, 14, 0.97);
+      font-size: 11.5px; line-height: 1.7; color: var(--text); pointer-events: none;
+      box-shadow: 0 8px 26px rgba(0, 0, 0, 0.6); display: none; }
+    .sm-tip b { color: var(--gold); display: block; margin-bottom: 3px; font-size: 12.5px; }
+    .sm-tip em { font-style: normal; color: var(--text-muted); }
+
+    /* ---------- 详情卡 ---------- */
+    .sm-detail { margin-top: 12px; border: 1px solid rgba(201, 168, 106, 0.25); border-radius: 12px;
+      overflow: hidden; background: rgba(201, 168, 106, 0.03); }
+    .sm-detail-head { display: flex; align-items: center; gap: 10px; padding: 11px 14px;
+      border-bottom: 1px solid rgba(201, 168, 106, 0.18); }
+    .sm-detail-head .sw { width: 26px; height: 26px; border-radius: 7px; flex: 0 0 auto;
+      border: 1px solid rgba(255, 255, 255, 0.25); }
+    .sm-detail-head h3 { margin: 0; font-size: 14px; color: var(--gold); letter-spacing: 1px; font-weight: 600; }
+    .sm-detail-head span { font-size: 11.5px; color: var(--text-muted); letter-spacing: 0.4px; }
+    .sm-detail-body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 18px; padding: 12px 14px; }
+    .sm-row { font-size: 12.5px; line-height: 1.75; }
+    .sm-row i { font-style: normal; color: var(--text-muted); display: inline-block; min-width: 62px; }
+    .sm-row.full { grid-column: 1 / -1; }
+
+    /* ---------- 探测器 ---------- */
+    .sm-input-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .sm-input { flex: 1 1 200px; min-width: 0; padding: 11px 15px; background: rgba(201, 168, 106, 0.05);
+      border: 1px solid rgba(201, 168, 106, 0.3); border-radius: 999px; color: var(--text);
+      font-family: inherit; font-size: 13px; outline: none; }
+    .sm-input:focus { border-color: rgba(201, 168, 106, 0.62); }
+    .sm-btn { padding: 11px 20px; border-radius: 999px; border: 1px solid var(--gold);
+      background: rgba(201, 168, 106, 0.1); color: var(--gold); font-family: inherit; font-size: 13px;
+      letter-spacing: 1px; cursor: pointer; transition: background 0.2s; }
+    .sm-btn:hover { background: rgba(201, 168, 106, 0.22); }
+    .sm-out { margin-top: 12px; font-size: 12.5px; line-height: 1.8; color: var(--text-muted); min-height: 20px; }
+    .sm-out b { color: var(--text); font-weight: 500; }
+    .sm-out .warn { color: #d1495b; }
+
+    /* ---------- 对比条 ---------- */
+    .sm-cmp-row { display: grid; grid-template-columns: 108px minmax(0, 1fr); gap: 10px;
+      align-items: center; margin: 7px 0; }
+    .sm-cmp-row .lb { font-size: 11.5px; color: var(--text-muted); letter-spacing: 0.3px; text-align: right; }
+    .sm-cmp-track { position: relative; height: 12px; border-radius: 6px; background: rgba(201, 168, 106, 0.08);
+      border: 1px solid rgba(201, 168, 106, 0.12); }
+    .sm-cmp-bar { position: absolute; top: 0; bottom: 0; border-radius: 6px; }
+
+    /* ---------- 数据表 ---------- */
+    .sm-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table.sm-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 660px; }
+    table.sm-table th { padding: 9px 8px; text-align: left; color: var(--gold); font-weight: 600;
+      white-space: nowrap; border-bottom: 1px solid rgba(201, 168, 106, 0.3); letter-spacing: 0.4px; }
+    table.sm-table td { padding: 8px; vertical-align: top; line-height: 1.65;
+      border-bottom: 1px solid rgba(201, 168, 106, 0.09); }
+    table.sm-table tr:last-child td { border-bottom: 0; }
+    table.sm-table td.nm { white-space: nowrap; }
+    table.sm-table td.nm i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 7px; }
+    table.sm-table td.f { white-space: nowrap; color: var(--text); }
+    table.sm-table td.mono { font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--text-muted); }
+
+    .sm-note { margin: 14px 0 0; padding: 12px 14px; border-radius: 10px; font-size: 12px; line-height: 1.85;
+      color: var(--text-muted); background: rgba(201, 168, 106, 0.04); border: 1px dashed rgba(201, 168, 106, 0.26); }
+
+    @media (max-width: 720px) {
+      .sm-stats { grid-template-columns: 1fr; }
+      .sm-detail-body { grid-template-columns: 1fr; }
+      .sm-axis { height: 56px; }
+      .sm-tick span { font-size: 9px; }
+      .sm-anchor span { font-size: 9px; }
+      .sm-cmp-row { grid-template-columns: 78px minmax(0, 1fr); gap: 6px; }
+      .sm-cmp-row .lb { font-size: 10.5px; }
+      /* 表格转卡片，彻底不要横向滚动 */
+      .sm-table-wrap { overflow: visible; }
+      table.sm-table { min-width: 0; display: block; }
+      table.sm-table thead { display: none; }
+      table.sm-table tbody, table.sm-table tr, table.sm-table td { display: block; }
+      table.sm-table tr { padding: 10px 0; border-bottom: 1px solid rgba(201, 168, 106, 0.14); }
+      table.sm-table td { border: 0; padding: 2px 0; white-space: normal; }
+      table.sm-table td::before { content: attr(data-l) ' '; color: rgba(168, 152, 120, 0.85); font-size: 10.5px; }
+      table.sm-table td.nm { font-size: 13px; color: var(--gold); }
+      table.sm-table td.nm::before { content: ''; }
+    }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">声音的完整地图</h1>
+    <p class="page-subtitle">资料分享 · 声乐 · 从次声波到超声波</p>
+
+    <section class="card">
+      <p class="sm-lead">一屏纵览 <b>0.001 Hz ~ 1 GHz</b> 的完整声音频谱：颜色编码频率，交互揭示每个频段的来源、生物效应与人耳感知。</p>
+      <div class="sm-stats">
+        <div class="sm-stat"><b>0.001 Hz – 1 GHz</b><span>本页覆盖范围（10 个数量级）</span></div>
+        <div class="sm-stat"><b>20 Hz – 20 kHz</b><span>人耳可听区，只占中间一小段</span></div>
+        <div class="sm-stat"><b>343 m/s</b><span>20 °C 空气声速，λ = 343 / f</span></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>频谱色带</h2>
+      <p class="sm-lead" style="font-size:13px;color:var(--text-muted)">横轴为对数频率。悬停看摘要，点一下看详情。</p>
+      <div class="sm-axis-wrap" id="smAxisWrap">
+        <div class="sm-axis" id="smAxis"></div>
+        <div class="sm-ticks" id="smTicks"></div>
+        <div class="sm-anchors" id="smAnchors"></div>
+        <div class="sm-tip" id="smTip"></div>
+      </div>
+
+      <div class="sm-detail" id="smDetail"></div>
+    </section>
+
+    <section class="card">
+      <h2>频率探测器</h2>
+      <p class="sm-lead" style="font-size:13px;color:var(--text-muted)">输入任意频率，直接算给你：音名、波长、落在哪一段、能不能听到。支持 <code>392</code>、<code>440Hz</code>、<code>1k</code>、<code>2.5k</code>、<code>17.4 kHz</code>、<code>1e6</code>。</p>
+      <div class="sm-input-row">
+        <input class="sm-input" id="smInput" type="text" inputmode="text" placeholder="例如 392" aria-label="输入频率" />
+        <button class="sm-btn" id="smGo" type="button">定位</button>
+      </div>
+      <div class="sm-out" id="smOut"></div>
+    </section>
+
+    <section class="card">
+      <h2>对比层：谁听得见什么</h2>
+      <p class="sm-lead" style="font-size:13px;color:var(--text-muted)">同一根对数轴上叠几段区间，长短一眼可比。数据全部来自本页数据表。</p>
+      <div id="smCmp"></div>
+      <p class="sm-note">注：人耳按「青年听阈」20 Hz–20 kHz；狗的上限约 45 kHz（只给上限，没有可靠下限，所以画成标记而不是区间）；大象取表中 1–5 Hz 次声交流所在的 <b>1–20 Hz</b> 次声区。</p>
+    </section>
+
+    <section class="card">
+      <h2>完整频谱数据表</h2>
+      <p class="sm-lead" style="font-size:13px;color:var(--text-muted)">20 个频段，波长按 λ = 343 / f 计算。</p>
+      <div class="sm-table-wrap">
+        <table class="sm-table" id="smTable">
+          <thead>
+            <tr><th>频段</th><th>频率范围</th><th>波长范围</th><th>典型来源 / 现象</th><th>生物 · 应用效应</th><th>人耳感知</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>关键参照点速查</h2>
+      <div class="sm-table-wrap">
+        <table class="sm-table" id="smRef">
+          <thead><tr><th>参照</th><th>频率</th><th>波长</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="sm-note">声速取 343 m/s（20 °C 干空气）。温度每升高 1 °C，声速约 +0.6 m/s；湿度也会让声速略微变大，所以波长是个近似值。</p>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+      var FMIN = 0.001, FMAX = 1e9;
+      var logMin = Math.log10(FMIN), logMax = Math.log10(FMAX), logSpan = logMax - logMin;
+
+      function pct(f) { return (Math.log10(f) - logMin) / logSpan * 100; }
+      function fmtHz(f) {
+        if (f >= 1e9) return (f / 1e9).toFixed(f % 1e9 ? 1 : 0) + ' GHz';
+        if (f >= 1e6) return (f / 1e6).toFixed(f % 1e6 ? 1 : 0) + ' MHz';
+        if (f >= 1e3) return (f / 1e3).toFixed(f % 1e3 ? 1 : 0) + ' kHz';
+        if (f >= 1) return (Math.round(f * 100) / 100) + ' Hz';
+        return f + ' Hz';
+      }
+      function fmtWave(f) {
+        var w = 343 / f;
+        if (w >= 1000) return (w / 1000).toFixed(w >= 10000 ? 0 : 1) + ' km';
+        if (w >= 1) return (Math.round(w * 100) / 100) + ' m';
+        if (w >= 0.001) return (w * 1000).toFixed(1) + ' mm';
+        return (w * 1e6).toFixed(1) + ' µm';
+      }
+      function rangeText(a, b) { return a === b ? fmtHz(a) : fmtHz(a) + ' – ' + fmtHz(b); }
+
+      // ---------------- 频段数据 ----------------
+      var BANDS = [
+        { name: '超次声波', f1: 0.001, f2: 0.01, c1: '#1a0a2e', c2: '#241335',
+          src: '地球自由振荡、大气潮汐', bio: '周期数分钟到数十分钟，无听觉意义', hear: '完全不可听' },
+        { name: '次声波 ①', f1: 0.01, f2: 0.1, c1: '#241335', c2: '#2d1b4e',
+          src: '地震面波、火山活动', bio: '远距离传播，用于地震监测', hear: '完全不可听' },
+        { name: '次声波 ②', f1: 0.1, f2: 1, c1: '#2d1b4e', c2: '#3a1f5e',
+          src: '地震 P 波、海啸', bio: '海啸预警、核爆监测', hear: '完全不可听' },
+        { name: '次声波 ③', f1: 1, f2: 5, c1: '#3a1f5e', c2: '#46164a',
+          src: '大象交流、鲸歌低频成分、建筑共振', bio: '大象可远距交流；人体胸腔共振 ≈ 4–8 Hz 引起胸闷', hear: '完全不可听（但可「感觉」到）' },
+        { name: '次声波 ④', f1: 5, f2: 20, c1: '#46164a', c2: '#4a0e3f',
+          src: '次声武器研究、管风琴最低音（16 Hz）、雷暴', bio: '胃共振 ≈ 2–5 Hz，肠共振 ≈ 4–8 Hz；可致恶心、不安', hear: '临界：20 Hz 附近少数人可微弱感知' },
+        { name: '超低音', f1: 20, f2: 60, c1: '#4a0e3f', c2: '#6b1a4a',
+          src: '雷声、爆炸、大鼓、贝斯', bio: '身体感受强烈，音响系统「低音炮」核心区', hear: '低沉、有压迫感' },
+        { name: '低音', f1: 60, f2: 250, c1: '#8b1a1a', c2: '#c0392b',
+          src: '男声基频（85–180 Hz）、贝斯吉他（E1 ≈ 41 Hz 起）、大提琴', bio: '音乐节奏与和声根基', hear: '饱满、厚实' },
+        { name: '中低音', f1: 250, f2: 500, c1: '#d35400', c2: '#e67e22',
+          src: '女声基频（165–255 Hz）、电话频段下限、小提琴低音区', bio: '语音基础清晰度', hear: '温暖' },
+        { name: '中音', f1: 500, f2: 2000, c1: '#f1c40f', c2: '#a3d900',
+          src: '人声主要能量区、钢琴中音区、外耳道共振（≈ 2–4 kHz 最敏感）', bio: '语音可懂度核心；1–2 kHz 人耳最敏感', hear: '明亮、突出' },
+        { name: '中高音', f1: 2000, f2: 4000, c1: '#2ecc71', c2: '#27ae60',
+          src: '婴儿啼哭（≈ 2–4 kHz）、齿音、钹的「咬合」', bio: '进化上最敏感区（婴儿哭声易引起注意）', hear: '尖锐、刺耳' },
+        { name: '高音', f1: 4000, f2: 8000, c1: '#1abc9c', c2: '#3498db',
+          src: '小提琴高把位、长笛泛音、鸟鸣', bio: '音色「空气感」与细节', hear: '清脆' },
+        { name: '超高音', f1: 8000, f2: 12000, c1: '#2c3e50', c2: '#4a3a6a',
+          src: '钹的泛音、三角铁、部分昆虫鸣叫', bio: '高频细节，年龄增长后最先衰退', hear: '纤细、缥缈' },
+        { name: '极高频', f1: 12000, f2: 16000, c1: '#4a3a6a', c2: '#5b2c6f',
+          src: '部分乐器泛音、电子合成器', bio: '多数成年人听阈已开始下降', hear: '极细、几不可闻' },
+        { name: '人耳上限', f1: 16000, f2: 20000, c1: '#5b2c6f', c2: '#6d3b7f',
+          src: '蚊音（17.4 kHz）、部分蝙蝠叫声下限', bio: '年轻人可听到；随年龄快速衰退', hear: '临界，多数成人听不到' },
+        { name: '超声波 ①', f1: 20000, f2: 50000, c1: '#9b59b6', c2: '#a86bc0',
+          src: '蝙蝠回声定位、狗哨（≈ 23 kHz）、海豚', bio: '蝙蝠导航与捕食；狗可听到约 45 kHz', hear: '完全不可听' },
+        { name: '超声波 ②', f1: 50000, f2: 100000, c1: '#a86bc0', c2: '#b57dca',
+          src: '医学超声浅表成像、无损检测', bio: '组织成像、裂纹检测', hear: '完全不可听' },
+        { name: '超声波 ③', f1: 1e5, f2: 1e6, c1: '#b57dca', c2: '#c793d8',
+          src: '高频超声、声化学、清洗机（40–120 kHz）', bio: '空化效应清洗、促进化学反应', hear: '完全不可听' },
+        { name: '超声波 ④', f1: 1e6, f2: 1e7, c1: '#c793d8', c2: '#d8aae4',
+          src: '医学超声诊断（2–18 MHz）、声学显微镜', bio: '深层组织成像、细胞级观察', hear: '完全不可听' },
+        { name: '超声波 ⑤', f1: 1e7, f2: 1e8, c1: '#d8aae4', c2: '#e3c2ec',
+          src: '超高频超声、声学镊子', bio: '单细胞操作、微纳操控', hear: '完全不可听' },
+        { name: '超高频声', f1: 1e8, f2: 1e9, c1: '#e3c2ec', c2: '#e8daef',
+          src: '声子学、量子声学、表面声波器件', bio: '手机滤波器、量子声学实验', hear: '完全不可听' }
+      ];
+
+      // ---------------- 轴 ----------------
+      var axis = document.getElementById('smAxis');
+      BANDS.forEach(function (b, i) {
+        var d = document.createElement('div');
+        d.className = 'sm-band';
+        d.style.left = pct(b.f1) + '%';
+        d.style.width = Math.max(0.35, pct(b.f2) - pct(b.f1)) + '%';
+        d.style.background = 'linear-gradient(90deg,' + b.c1 + ',' + b.c2 + ')';
+        d.setAttribute('data-i', i);
+        axis.appendChild(d);
+      });
+
+      // 刻度：每个数量级
+      var ticks = document.getElementById('smTicks');
+      for (var e = -3; e <= 9; e++) {
+        var f = Math.pow(10, e);
+        var t = document.createElement('div');
+        t.className = 'sm-tick';
+        t.setAttribute('data-e', e);
+        t.style.left = pct(f) + '%';
+        var lb = document.createElement('span');
+        lb.textContent = fmtHz(f);
+        t.appendChild(lb);
+        ticks.appendChild(t);
+      }
+      // 窄屏（手机）只留每 3 个数量级一个刻度，避免标签糊成一片
+      function layoutTicks() {
+        var narrow = axis.clientWidth < 620;
+        Array.prototype.forEach.call(ticks.children, function (t) {
+          var e = +t.getAttribute('data-e');
+          t.style.display = (!narrow || e % 3 === 0) ? '' : 'none';
+        });
+        Array.prototype.forEach.call(anchors.children, function (a, i) {
+          var sp = a.querySelector('span');
+          sp.textContent = narrow ? ['20 Hz', '440', '20 kHz', '45 kHz'][i] : ['20 Hz 下限', '440 Hz A4', '20 kHz 上限', '45 kHz 狗'][i];
+        });
+      }
+
+      // 锚点
+      var ANCHORS = [
+        { f: 20, t: '20 Hz 下限', dy: 0 },
+        { f: 440, t: '440 Hz A4', dy: 12 },
+        { f: 20000, t: '20 kHz 上限', dy: 0 },
+        { f: 45000, t: '45 kHz 狗', dy: 12 }
+      ];
+      var anchors = document.getElementById('smAnchors');
+      ANCHORS.forEach(function (a) {
+        var d = document.createElement('div');
+        d.className = 'sm-anchor';
+        d.style.left = pct(a.f) + '%';
+        d.style.top = a.dy + 'px';
+        d.innerHTML = '<i></i><span>' + a.t + '</span>';
+        anchors.appendChild(d);
+      });
+
+      // ---------------- 详情 ----------------
+      function bandIndexAt(f) {
+        for (var i = 0; i < BANDS.length; i++) if (f >= BANDS[i].f1 && f < BANDS[i].f2) return i;
+        if (f === FMAX) return BANDS.length - 1;
+        return -1;
+      }
+      function bandIndexAtPct(p) {
+        var logf = logMin + p / 100 * logSpan;
+        return bandIndexAt(Math.pow(10, logf));
+      }
+
+      var detail = document.getElementById('smDetail');
+      function showDetail(i) {
+        var b = BANDS[i];
+        if (!b) return;
+        Array.prototype.forEach.call(axis.children, function (c) { c.classList.toggle('on', +c.getAttribute('data-i') === i); });
+        detail.innerHTML =
+          '<div class="sm-detail-head">' +
+            '<span class="sw" style="background:linear-gradient(135deg,' + b.c1 + ',' + b.c2 + ')"></span>' +
+            '<div><h3>' + b.name + '</h3><span>' + rangeText(b.f1, b.f2) + ' · 波长 ' + rangeText2(b.f1, b.f2) + '</span></div>' +
+          '</div>' +
+          '<div class="sm-detail-body">' +
+            '<div class="sm-row full"><i>典型来源</i>' + b.src + '</div>' +
+            '<div class="sm-row full"><i>生物 · 应用</i>' + b.bio + '</div>' +
+            '<div class="sm-row full"><i>人耳感知</i>' + b.hear + '</div>' +
+          '</div>';
+      }
+      function rangeText2(a, b2) {
+        var w1 = fmtWave(a), w2 = fmtWave(b2);
+        return a === b2 ? w1 : w1 + ' – ' + w2;
+      }
+
+      // hover
+      var tip = document.getElementById('smTip'), wrap = document.getElementById('smAxisWrap');
+      axis.addEventListener('mousemove', function (ev) {
+        var r = axis.getBoundingClientRect();
+        var p = (ev.clientX - r.left) / r.width * 100;
+        var i = bandIndexAtPct(p);
+        if (i < 0) { tip.style.display = 'none'; return; }
+        var b = BANDS[i];
+        tip.innerHTML = '<b>' + b.name + '</b>' + rangeText(b.f1, b.f2) +
+          '<br><em>波长</em> ' + rangeText2(b.f1, b.f2) +
+          '<br><em>感知</em> ' + b.hear;
+        tip.style.display = 'block';
+        var wr = wrap.getBoundingClientRect();
+        var x = ev.clientX - wr.left + 14;
+        if (x + 270 > wr.width) x = wr.width - 270;
+        tip.style.left = Math.max(0, x) + 'px';
+        tip.style.top = (ev.clientY - wr.top + 16) + 'px';
+      });
+      axis.addEventListener('mouseleave', function () { tip.style.display = 'none'; });
+      axis.addEventListener('click', function (ev) {
+        var r = axis.getBoundingClientRect();
+        var i = bandIndexAtPct((ev.clientX - r.left) / r.width * 100);
+        if (i >= 0) showDetail(i);
+      });
+      axis.addEventListener('touchstart', function (ev) {
+        var r = axis.getBoundingClientRect();
+        var x = ev.touches[0].clientX - r.left;
+        var i = bandIndexAtPct(x / r.width * 100);
+        if (i >= 0) showDetail(i);
+      }, { passive: true });
+
+      showDetail(8);   // 默认展示中音区
+      layoutTicks();
+      window.addEventListener('resize', layoutTicks);
+
+      // ---------------- 探测器 ----------------
+      var NOTE = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+      function parseFreq(str) {
+        var s = String(str).trim().toLowerCase().replace(/\s+/g, '');
+        if (!s) return null;
+        var m = s.match(/^([\d.]+)(e[+-]?\d+)?(hz|khz|mhz|ghz|k|m|g)?$/);
+        if (!m) return null;
+        var v = parseFloat(m[1]);
+        if (isNaN(v) || v <= 0) return null;
+        if (m[2]) v *= Math.pow(10, parseInt(m[2].slice(1), 10));
+        var u = m[3] || 'hz';
+        if (u === 'k') u = 'khz';
+        if (u === 'm') u = 'mhz';
+        if (u === 'g') u = 'ghz';
+        if (u === 'khz') v *= 1e3;
+        if (u === 'mhz') v *= 1e6;
+        if (u === 'ghz') v *= 1e9;
+        return v;
+      }
+      function noteOf(f) {
+        if (f < 8.175 || f > 12543) return null;
+        var midi = 69 + 12 * Math.log2(f / 440);
+        var n = Math.round(midi);
+        var cents = Math.round((midi - n) * 100);
+        var name = NOTE[((n % 12) + 12) % 12] + (Math.floor(n / 12) - 1);
+        return name + (Math.abs(cents) <= 3 ? '' : '（偏 ' + cents + ' 音分）');
+      }
+      function audibility(f) {
+        if (f < 20) return ['不可听（次声）', 'warn'];
+        if (f <= 20000) return ['可听（人耳范围内）', ''];
+        return ['不可听（超声）', 'warn'];
+      }
+      function detect() {
+        var f = parseFreq(document.getElementById('smInput').value);
+        var out = document.getElementById('smOut');
+        if (!f) { out.innerHTML = '<span class="warn">没看懂这个输入，试试 392 / 440Hz / 1k / 17.4kHz / 1e6。</span>'; return; }
+        var i = bandIndexAt(f);
+        var au = audibility(f);
+        var note = noteOf(f);
+        out.innerHTML =
+          '<b>' + fmtHz(f) + '</b> · 波长 <b>' + fmtWave(f) + '</b><br>' +
+          '音名 <b>' + (note || '超出钢琴音域（A0–C8）') + '</b> · 属于 <b>' + (i >= 0 ? BANDS[i].name : '本页范围外') + '</b> · ' +
+          '<span class="' + au[1] + '">' + au[0] + '</span>' +
+          (i >= 0 ? '<br><span style="color:var(--text-muted)">这一段常见来源：' + BANDS[i].src + '</span>' : '');
+        if (i >= 0) showDetail(i);
+      }
+      document.getElementById('smGo').addEventListener('click', detect);
+      document.getElementById('smInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') detect(); });
+
+      // ---------------- 对比层 ----------------
+      var CMP = [
+        { lb: '人耳（青年）', f1: 20, f2: 20000, c: '#f1c40f' },
+        { lb: '大象次声交流', f1: 1, f2: 20, c: '#b57dca' },
+        { lb: '蝙蝠回声定位', f1: 20000, f2: 100000, c: '#9b59b6' },
+        { lb: '海豚哨声', f1: 500, f2: 200000, c: '#3498db' },
+        { lb: '钢琴', f1: 27.5, f2: 4186, c: '#8fd0ef' },
+        { lb: '男声基频', f1: 85, f2: 180, c: '#e0b25c' },
+        { lb: '女声基频', f1: 165, f2: 255, c: '#d1495b' }
+      ];
+      var cmp = document.getElementById('smCmp');
+      CMP.forEach(function (r) {
+        var row = document.createElement('div');
+        row.className = 'sm-cmp-row';
+        row.innerHTML = '<span class="lb">' + r.lb + '</span>' +
+          '<span class="sm-cmp-track"><span class="sm-cmp-bar" style="left:' + pct(r.f1) + '%;width:' +
+          Math.max(0.6, pct(r.f2) - pct(r.f1)) + '%;background:' + r.c + '"></span></span>';
+        cmp.appendChild(row);
+      });
+
+      // ---------------- 数据表 ----------------
+      var tbody = document.querySelector('#smTable tbody');
+      BANDS.forEach(function (b) {
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td class="nm"><i style="background:' + b.c2 + '"></i>' + b.name + '</td>' +
+          '<td class="f" data-l="频率">' + rangeText(b.f1, b.f2) + '</td>' +
+          '<td class="mono" data-l="波长">' + rangeText2(b.f1, b.f2) + '</td>' +
+          '<td data-l="典型来源">' + b.src + '</td>' +
+          '<td data-l="生物·应用">' + b.bio + '</td>' +
+          '<td data-l="人耳感知">' + b.hear + '</td>';
+        tbody.appendChild(tr);
+      });
+
+      // ---------------- 参照点 ----------------
+      var REFS = [
+        ['标准音 A4', 440], ['中央 C（C4）', 261.63], ['你的盖纳迪全按（G4）', 392],
+        ['钢琴最低音 A0', 27.5], ['钢琴最高音 C8', 4186], ['人耳听阈下限', 20],
+        ['人耳听阈上限（青年）', 20000], ['狗听觉上限', 45000],
+        ['蝙蝠回声定位（下限）', 20000], ['海豚哨声（下限）', 500], ['医学超声（腹部，下限）', 2e6]
+      ];
+      var refBody = document.querySelector('#smRef tbody');
+      REFS.forEach(function (r) {
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<td class="nm">' + r[0] + '</td><td class="f" data-l="频率">' + fmtHz(r[1]) +
+          '</td><td class="mono" data-l="波长">' + fmtWave(r[1]) + '</td>';
+        refBody.appendChild(tr);
+      });
+    })();
+  </script>
+  <script src="../../../../assets/page.js"></script>
+</body>
+</html>
