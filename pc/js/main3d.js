@@ -888,7 +888,8 @@
     var spanV = (maxV - minV) / 2 * unit;
     var pad = unit * 1.2;
     var dist = fitDistance(spanH, spanV, pad);
-    dist = Math.max(20, Math.min(MOBILE_LAYOUT ? 42 : 40, dist));
+    // 手机竖屏可视宽度窄，宇宙一宽就被切边：上限放宽，宁可拉远也不切字
+    dist = Math.max(20, Math.min(MOBILE_LAYOUT ? 64 : 40, dist));
     var c = entry.centerPos;
     if (MOBILE_LAYOUT) {
       // 手机端：pos[1] 落在 -Z，pos[0] 落在 +X

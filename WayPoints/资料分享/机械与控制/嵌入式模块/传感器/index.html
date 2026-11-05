@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>传感器 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../../";</script>
+  <link rel="stylesheet" href="../../../../assets/style.css" />
+  <style>
+    .se-sec { scroll-margin-top: 24px; }
+    .se-tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 10px 0 2px; }
+    .se-tbl th { padding: 7px 8px; text-align: left; color: var(--gold); white-space: nowrap;
+      border-bottom: 1px solid rgba(201,168,106,.3); font-weight: 600; }
+    .se-tbl td { padding: 7px 8px; vertical-align: top; line-height: 1.7; border-bottom: 1px solid rgba(201,168,106,.1); }
+    .se-wrap { overflow-x: auto; }
+    .se-note { margin: 10px 0 0; padding: 10px 12px; border-radius: 10px; font-size: 12px; line-height: 1.8;
+      color: var(--text-muted); background: rgba(201,168,106,.045); border: 1px dashed rgba(201,168,106,.26); }
+    .se-jump { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .se-jump a { padding: 5px 12px; border: 1px solid rgba(201,168,106,.3); border-radius: 999px;
+      font-size: 12px; color: var(--gold); text-decoration: none; }
+    @media (max-width:640px){
+      .se-tbl { display:block; } .se-tbl thead { display:none; }
+      .se-tbl tr { display:block; padding:8px 0; border-bottom:1px solid rgba(201,168,106,.14); }
+      .se-tbl td { display:block; border:0; padding:2px 0; }
+      .se-tbl td::before { content: attr(data-l) ' '; color: rgba(168,152,120,.85); font-size: 10.5px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">传感器</h1>
+    <p class="page-subtitle">资料分享 · 机械与控制 · 嵌入式模块</p>
+
+    <section class="card">
+      <p>传感器选型只看四件事：<b>测什么量</b>、<b>接口是数字还是模拟</b>、<b>量程与精度够不够</b>、<b>要不要标定</b>。下面按最常用的四类分开写，每类给几个常见型号与坑。</p>
+      <div class="se-jump">
+        <a href="#temp">温度</a><a href="#imu">六轴</a><a href="#light">光敏</a><a href="#gas">气体</a>
+      </div>
+    </section>
+
+    <section class="card se-sec" id="temp">
+      <h2>温度</h2>
+      <div class="se-wrap">
+        <table class="se-tbl">
+          <tr><th>型号</th><th>接口</th><th>量程 / 精度</th><th>取舍</th></tr>
+          <tr><td data-l="型号">DS18B20</td><td data-l="接口">单总线（1-Wire）</td><td data-l="量程">−55~+125 °C，±0.5 °C（−10~85）</td><td data-l="取舍">一根线可串多个，线长几米也稳；转换要等（12 位约 750 ms）</td></tr>
+          <tr><td data-l="型号">DHT22 / AM2302</td><td data-l="接口">单总线（私有协议）</td><td data-l="量程">−40~80 °C，±0.5 °C；湿度 ±2%RH</td><td data-l="取舍">温湿一体的便宜方案；采样不能快于 2 s，时序对中断敏感</td></tr>
+          <tr><td data-l="型号">NTC 热敏电阻</td><td data-l="接口">模拟（分压）</td><td data-l="量程">看 B 值与电路，常见 −40~125 °C</td><td data-l="取舍">几毛钱，但要自己换算 + 标定；线性度差</td></tr>
+          <tr><td data-l="型号">热电偶 + MAX6675/31855</td><td data-l="接口">SPI</td><td data-l="量程">0~1024 °C（K 型）</td><td data-l="取舍">高温场合唯一选择；需要冷端补偿，精度不如上面几种</td></tr>
+        </table>
+      </div>
+      <p class="se-note">坑：把 DHT 类传感器放在主控旁边，读到的其实是板子的温度；测环境温度要离开热源、留风道。</p>
+    </section>
+
+    <section class="card se-sec" id="imu">
+      <h2>六轴（加速度 + 陀螺）</h2>
+      <div class="se-wrap">
+        <table class="se-tbl">
+          <tr><th>型号</th><th>接口</th><th>特点</th><th>取舍</th></tr>
+          <tr><td data-l="型号">MPU-6050</td><td data-l="接口">I²C</td><td data-l="特点">3 轴加速度 + 3 轴陀螺，内置 DMP</td><td data-l="取舍">最便宜的入门件；老、假货多，零漂需要静态标定</td></tr>
+          <tr><td data-l="型号">MPU-9250 / ICM-20948</td><td data-l="接口">I²C / SPI</td><td data-l="特点">九轴（加磁力计）</td><td data-l="取舍">能算绝对航向；磁力计极易被电机/喇叭干扰</td></tr>
+          <tr><td data-l="型号">BMI270 / LSM6DS3</td><td data-l="接口">I²C / SPI</td><td data-l="特点">低功耗、噪声小</td><td data-l="取舍">可穿戴/电池设备首选；资料比 MPU 少</td></tr>
+        </table>
+      </div>
+      <p class="se-note">坑：六轴只能算「相对姿态」，长时间积分一定漂；要稳定姿态得上「加速度 + 陀螺」互补滤波或 Kalman，要绝对航向再加磁力计并做椭球标定。</p>
+    </section>
+
+    <section class="card se-sec" id="light">
+      <h2>光敏</h2>
+      <div class="se-wrap">
+        <table class="se-tbl">
+          <tr><th>型号</th><th>接口</th><th>特点</th><th>取舍</th></tr>
+          <tr><td data-l="型号">GL5528（光敏电阻）</td><td data-l="接口">模拟（分压）</td><td data-l="特点">亮阻 ~10 kΩ、暗阻 ~1 MΩ</td><td data-l="取舍">最便宜；响应慢（几十 ms）、一致性差，只适合「亮/暗」判断</td></tr>
+          <tr><td data-l="型号">BH1750</td><td data-l="接口">I²C</td><td data-l="特点">直接输出 lux，量程 1~65535 lx</td><td data-l="取舍">要读数就用它；有窗口/遮光罩影响很大</td></tr>
+          <tr><td data-l="型号">TEMT6000</td><td data-l="接口">模拟</td><td data-l="特点">光电晶体管，近似人眼响应</td><td data-l="取舍">做「环境光自适应背光」够用，仍要标定</td></tr>
+        </table>
+      </div>
+      <p class="se-note">坑：光敏电阻的阻值与照度是对数关系，直接当线性值用会「白天差别不大、晚上跳变」；要分段或取对数。</p>
+    </section>
+
+    <section class="card se-sec" id="gas">
+      <h2>气体</h2>
+      <div class="se-wrap">
+        <table class="se-tbl">
+          <tr><th>型号</th><th>测什么</th><th>接口</th><th>取舍</th></tr>
+          <tr><td data-l="型号">MQ-2</td><td data-l="气体">可燃气体（LPG/丙烷/氢气/烟雾）</td><td data-l="接口">模拟 + 数字阈值</td><td data-l="取舍">便宜、灵敏度高；<b>不能给浓度</b>，只能做报警阈值，需预热</td></tr>
+          <tr><td data-l="型号">MQ-135</td><td data-l="气体">空气质量（CO₂/NH₃/苯等综合）</td><td data-l="接口">模拟</td><td data-l="取舍">同上，输出是「相对变化」，不是 ppm</td></tr>
+          <tr><td data-l="型号">SGP30 / SGP40</td><td data-l="气体">TVOC / eCO₂（算法估算）</td><td data-l="接口">I²C</td><td data-l="取舍">数字输出、体积小；eCO₂ 是估算值，不是真实 CO₂ 浓度</td></tr>
+          <tr><td data-l="型号">MH-Z19</td><td data-l="气体">CO₂（NDIR 真测）</td><td data-l="接口">UART / PWM</td><td data-l="取舍">能出 ppm；贵、体积大、需要定期基线校准</td></tr>
+        </table>
+      </div>
+      <p class="se-note">坑：半导体气体传感器（MQ 系）对温湿度极敏感，读数会随季节漂；要么做温湿度补偿，要么只用它做「有没有」的判断。真要 ppm，选 NDIR 或电化学。</p>
+    </section>
+  </main>
+
+  <script src="../../../../assets/page.js"></script>
+</body>
+</html>

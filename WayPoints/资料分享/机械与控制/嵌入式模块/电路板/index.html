@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>电路板 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../../../";</script>
+  <link rel="stylesheet" href="../../../../../assets/style.css" />
+  <style>
+    .pc-list { display: grid; gap: 10px; margin: 14px 0 0; }
+    .pc-item { padding: 12px 14px; border: 1px solid rgba(201,168,106,.2); border-radius: 10px; background: rgba(201,168,106,.03); }
+    .pc-item h3 { margin: 0 0 6px; font-size: 14px; color: var(--gold); font-weight: 600; letter-spacing: .5px; }
+    .pc-item p { margin: 4px 0; font-size: 13px; line-height: 1.75; }
+    .pc-item .k { color: var(--text-muted); font-size: 12px; }
+    .pc-note { margin: 14px 0 0; padding: 11px 13px; border-radius: 10px; font-size: 12px; line-height: 1.85;
+      color: var(--text-muted); background: rgba(201,168,106,.045); border: 1px dashed rgba(201,168,106,.26); }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">电路板</h1>
+    <p class="page-subtitle">资料分享 · 机械与控制 · 嵌入式模块</p>
+
+    <section class="card">
+      <p>从「一块开发板」到自己的一块板，中间隔的不是画图，而是<b>四件确定的事</b>：叠几层、用什么工艺、怎么焊、怎么测。下面按这四件排。</p>
+    </section>
+
+    <section class="card">
+      <h2>1. 层数与用途</h2>
+      <div class="pc-list">
+        <div class="pc-item"><h3>单面板 / 双面板</h3>
+          <p>单面只有一面走线，双面可过孔换层。打样最便宜，适合转接板、模块底板。</p>
+          <p class="k">注意：单面板跳线多，走不通就升双面，别硬绕。</p></div>
+        <div class="pc-item"><h3>四层板</h3>
+          <p>典型叠层：信号 / GND / 电源 / 信号。有一整层地之后，回流路径短，EMC 和串扰明显好于双面。</p>
+          <p class="k">什么时候值得上四层：有高速信号（SPI 几十 MHz 以上）、有射频、或者板子要过认证。</p></div>
+        <div class="pc-item"><h3>六层以上</h3>
+          <p>多用于 BGA（如 STM32H7、i.MX、FPGA）：需要扇出、需要多组电源平面、需要阻抗控制。</p>
+          <p class="k">BGA 器件基本逼着你上多层 + 阻抗控制，打样成本会跳一个台阶。</p></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>2. 打样时要写清楚的那几项</h2>
+      <div class="pc-list">
+        <div class="pc-item"><h3>板厚与铜厚</h3>
+          <p>常见 1.6 mm 板厚、1 oz 铜。大电流走线要加铜厚或开窗堆锡。</p></div>
+        <div class="pc-item"><h3>最小线宽 / 线距</h3>
+          <p>常规工艺 6/6 mil 很稳；要更细就得加钱，而且良率下降。</p></div>
+        <div class="pc-item"><h3>阻焊与丝印颜色</h3>
+          <p>只影响观感与返修难度（黑油最难看清走线），不影响电气性能。</p></div>
+        <div class="pc-item"><h3>表面处理</h3>
+          <p>有铅/无铅喷锡最便宜；沉金适合细间距与长期存放；OSP 平但怕反复加热。</p></div>
+      </div>
+      <p class="pc-note">
+        一个常被忽略的点：<b>板厂给的是「工艺能力」，不是「保证」</b>。设计时按厂家的最小能力留 20% 余量，
+        比照着极限值画要稳得多。
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>3. 焊接：先分清封装</h2>
+      <div class="pc-list">
+        <div class="pc-item"><h3>通孔（DIP / 排针 / 连接器）</h3>
+          <p>手工烙铁最友好；焊盘要大一点，孔径比引脚大 0.2–0.3 mm 好插。</p></div>
+        <div class="pc-item"><h3>贴片（0603 / 0805 / SOP / QFP）</h3>
+          <p>手焊可行，QFP 要拖焊 + 助焊剂；QFN/BGA 建议热风或回流。</p></div>
+        <div class="pc-item"><h3>QFN / BGA</h3>
+          <p>底部焊盘看不见，靠钢网 + 回流；返修要预热台。新手别一上来就做。</p></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>4. 上电前的检查顺序</h2>
+      <p>① 目视：连锡、虚焊、元件方向（二极管、钽电容、IC 一号脚）。<br>
+         ② 万用表蜂鸣档：电源与地是否短路。<br>
+         ③ 限流电源上电：先设小电流（如 100 mA），看电流是否异常。<br>
+         ④ 测关键点电压：3.3 V / 5 V 是否正常，再插下载器。<br>
+         ⑤ 最后才接外设——顺序反了，烧的是主控。</p>
+    </section>
+  </main>
+
+  <script src="../../../../../assets/page.js"></script>
+</body>
+</html>

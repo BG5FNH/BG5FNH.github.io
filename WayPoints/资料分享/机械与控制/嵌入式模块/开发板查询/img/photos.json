@@ -1,0 +1,17 @@
+{
+    "nano-classic":  {
+                         "license":  "CC BY 2.0",
+                         "page":  "https://commons.wikimedia.org/wiki/File:Arduino_Nano.jpg",
+                         "credit":  "Wikimedia Commons 用户 / Wikimedia Commons"
+                     },
+    "uno-r3":  {
+                   "license":  "CC BY-SA",
+                   "page":  "https://commons.wikimedia.org/wiki/File:Arduino_Uno_R3_development_board_(1).jpg",
+                   "credit":  "Wikimedia Commons 用户 / Wikimedia Commons"
+               },
+    "stm32f103c8":  {
+                        "license":  "CC BY-SA 4.0",
+                        "page":  "https://commons.wikimedia.org/wiki/File:Blue_Pill.jpg",
+                        "credit":  "Wikimedia Commons 用户 / Wikimedia Commons"
+                    }
+}
