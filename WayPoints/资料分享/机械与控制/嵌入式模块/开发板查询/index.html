@@ -68,7 +68,21 @@
     }
     @media (max-width: 640px) {
       .bd-detail-in { grid-template-columns: 1fr; }
-      table.bd { min-width: 640px; font-size: 12px; }
+      /* 手机上表格整个变成卡片，彻底不用左右滑 */
+      .bd-wrap { overflow: visible; }
+      table.bd { min-width: 0; display: block; font-size: 12px; }
+      table.bd thead { display: none; }
+      table.bd tbody, table.bd tr, table.bd td { display: block; }
+      table.bd tr.bd-row { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px;
+        padding: 10px 12px; margin-bottom: 8px; border: 1px solid rgba(201, 168, 106, 0.18);
+        border-left: 3px solid rgba(201, 168, 106, 0.4); border-radius: 10px; }
+      table.bd td { border: 0; padding: 1px 0; text-align: left; }
+      table.bd td.c-name { grid-column: 1 / -1; margin-bottom: 4px; }
+      table.bd td.c-fam { grid-column: 1 / -1; margin-bottom: 4px; }
+      table.bd td.num::before { content: attr(data-l) ' '; color: rgba(168, 152, 120, 0.8); font-size: 10.5px; }
+      table.bd td.num { font-size: 12px; }
+      table.bd tr.bd-detail { display: block; margin: -4px 0 10px; }
+      table.bd tr.bd-detail td { display: block; }
     }
   </style>
 </head>
@@ -227,15 +241,15 @@
         var html = '';
         list.forEach(function (b) {
           html += '<tr class="bd-row" data-id="' + b.id + '">' +
-            '<td><div class="bd-name">' + esc(b.n) + '</div><div class="bd-sub">' + esc(b.mcu) + ' · ' + esc(b.core) + '</div></td>' +
-            '<td><span class="bd-fam" style="background:' + (FAM_COLOR[b.fam] || '#888') + '">' + esc(FAM_LABEL[b.fam]) + '</span></td>' +
-            '<td class="num">' + fmt(b.mhz, 'mhz') + '</td>' +
-            '<td class="num">' + fmt(b.sram, 'sram') + '</td>' +
-            '<td class="num">' + fmt(b.flash, 'flash') + '</td>' +
-            '<td class="num">' + fmt(b.gpio) + '</td>' +
-            '<td class="num">' + b.bus.uart + '/' + b.bus.spi + '/' + b.bus.i2c + '</td>' +
-            '<td class="num">' + (b.cm == null ? '<span class="bd-unknown">未确认</span>' : b.cm) + '</td>' +
-            '<td class="num">' + extOf(b) + '</td>' +
+            '<td class="c-name"><div class="bd-name">' + esc(b.n) + '</div><div class="bd-sub">' + esc(b.mcu) + ' · ' + esc(b.core) + '</div></td>' +
+            '<td class="c-fam" data-l="系列"><span class="bd-fam" style="background:' + (FAM_COLOR[b.fam] || '#888') + '">' + esc(FAM_LABEL[b.fam]) + '</span></td>' +
+            '<td class="num" data-l="主频">' + fmt(b.mhz, 'mhz') + '</td>' +
+            '<td class="num" data-l="内存">' + fmt(b.sram, 'sram') + '</td>' +
+            '<td class="num" data-l="存储">' + fmt(b.flash, 'flash') + '</td>' +
+            '<td class="num" data-l="GPIO">' + fmt(b.gpio) + '</td>' +
+            '<td class="num" data-l="UART/SPI/I2C">' + b.bus.uart + '/' + b.bus.spi + '/' + b.bus.i2c + '</td>' +
+            '<td class="num" data-l="CoreMark">' + (b.cm == null ? '<span class="bd-unknown">未确认</span>' : b.cm) + '</td>' +
+            '<td class="num" data-l="扩展性">' + extOf(b) + '</td>' +
             '</tr>';
           html += '<tr class="bd-detail" data-for="' + b.id + '" style="display:none"><td colspan="9">' + detail(b) + '</td></tr>';
         });
