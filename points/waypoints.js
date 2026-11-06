@@ -140,7 +140,8 @@ window.BG5FNH_WAYPOINTS = {
 
           { path: '资料分享/B站视频', name: 'B站视频', pos: [-1.85, -1.1], url: '资料分享/B站视频/index.html' },
 
-          // 机械与控制：一棵可以一层层钻进去的树（机械 / 嵌入式 / 传感器 各自再展开）
+          // 机械与控制：一个宇宙，里面是一棵辐射状的树。
+          // 关键：不再套子宇宙——所有节点都是这个宇宙里的光点，靠 parent 连成树。
           {
             path: '资料分享/机械与控制',
             name: '机械与控制',
@@ -150,41 +151,29 @@ window.BG5FNH_WAYPOINTS = {
             universePoints: [
               { key: 'mc', path: 'mc', name: '机械与控制', pos: [0, 0], scale: 1.0, url: '资料分享/机械与控制/index.html' },
 
-              {
-                key: 'mech', path: 'mech', name: '机械模块', pos: [-1.95, -1.1], scale: 0.9,
-                universe: true, universeColor: '#d8c39a',
-                universePoints: [
-                  { key: 'mech-hub', path: 'mech-hub', name: '机械模块', pos: [0, 0], scale: 0.95, url: '资料分享/机械与控制/机械模块/index.html' },
-                  { key: 'sg', path: 'sg', name: '舵机种类', pos: [-1.7, -1.1], scale: 0.82, url: '资料分享/机械与控制/机械模块/舵机种类/index.html' },
-                  { key: 'st', path: 'st', name: '步进电机', pos: [0, -1.95], scale: 0.82, url: '资料分享/机械与控制/机械模块/步进电机/index.html' },
-                  { key: 'tr', path: 'tr', name: '结构与传动', pos: [1.7, -1.1], scale: 0.82, url: '资料分享/机械与控制/机械模块/结构与传动/index.html' }
-                ]
-              },
+              // —— 左枝：机械 ——
+              { key: 'mech', path: 'mech', parent: 'mc', name: '机械模块', pos: [-1.5, -1.1], scale: 0.88, url: '资料分享/机械与控制/机械模块/index.html' },
+              { key: 'sg', path: 'sg', parent: 'mech', name: '舵机种类', pos: [-2.5, -1.9], scale: 0.7, labelScale: 0.9, url: '资料分享/机械与控制/机械模块/舵机种类/index.html' },
+              { key: 'st', path: 'st', parent: 'mech', name: '步进电机', pos: [-2.1, -2.7], scale: 0.7, labelScale: 0.9, url: '资料分享/机械与控制/机械模块/步进电机/index.html' },
+              { key: 'tr', path: 'tr', parent: 'mech', name: '结构与传动', pos: [-1.1, -2.5], scale: 0.7, labelScale: 0.9, url: '资料分享/机械与控制/机械模块/结构与传动/index.html' },
 
-              {
-                key: 'emb', path: 'emb', name: '嵌入式模块', pos: [1.95, -1.1], scale: 0.9,
-                universe: true, universeColor: '#8fd0ef',
-                universePoints: [
-                  { key: 'emb-hub', path: 'emb-hub', name: '嵌入式模块', pos: [0, 0], scale: 0.95, url: '资料分享/机械与控制/嵌入式模块/index.html' },
-                  { key: 'boards', path: 'boards', name: '开发板查询', pos: [0, 2.15], scale: 0.85, url: '资料分享/机械与控制/嵌入式模块/开发板查询/index.html' },
-                  { key: 'esp32', path: 'esp32', name: 'ESP32', pos: [-2.1, 1.2], scale: 0.72, url: '资料分享/机械与控制/嵌入式模块/开发板查询/index.html?fam=esp32' },
-                  { key: 'stm32', path: 'stm32', name: 'STM32', pos: [-2.6, 0], scale: 0.72, url: '资料分享/机械与控制/嵌入式模块/开发板查询/index.html?fam=stm32' },
-                  { key: 'arduino', path: 'arduino', name: 'Arduino', pos: [-2.1, -1.2], scale: 0.72, url: '资料分享/机械与控制/嵌入式模块/开发板查询/index.html?fam=arduino' },
-                  { key: 'rpi', path: 'rpi', name: '树莓派', pos: [2.1, -1.2], scale: 0.72, url: '资料分享/机械与控制/嵌入式模块/开发板查询/index.html?fam=rpi' },
-                  { key: 'pcb', path: 'pcb', name: '电路板', pos: [2.6, 0], scale: 0.72, url: '资料分享/机械与控制/嵌入式模块/电路板/index.html' },
-                  {
-                    key: 'sens', path: 'sens', name: '传感器', pos: [2.1, 1.2], scale: 0.78,
-                    universe: true, universeColor: '#a8c8a0',
-                    universePoints: [
-                      { key: 'sens-hub', path: 'sens-hub', name: '传感器', pos: [0, 0], scale: 0.95, url: '资料分享/机械与控制/嵌入式模块/传感器/index.html' },
-                      { key: 'temp', path: 'temp', name: '温度', pos: [-1.7, 0.75], scale: 0.8, url: '资料分享/机械与控制/嵌入式模块/传感器/index.html#temp' },
-                      { key: 'imu', path: 'imu', name: '六轴', pos: [-0.95, -1.55], scale: 0.8, url: '资料分享/机械与控制/嵌入式模块/传感器/index.html#imu' },
-                      { key: 'light', path: 'light', name: '光敏', pos: [0.95, -1.55], scale: 0.8, url: '资料分享/机械与控制/嵌入式模块/传感器/index.html#light' },
-                      { key: 'gas', path: 'gas', name: '气体', pos: [1.7, 0.75], scale: 0.8, url: '资料分享/机械与控制/嵌入式模块/传感器/index.html#gas' }
-                    ]
-                  }
-                ]
-              }
+              // —— 右枝：嵌入式 ——
+              { key: 'emb', path: 'emb', parent: 'mc', name: '嵌入式模块', pos: [1.5, -1.1], scale: 0.88, url: '资料分享/机械与控制/嵌入式模块/index.html' },
+
+              // 开发板这一支再分叉：总表 + 四个系列
+              { key: 'boards', path: 'boards', parent: 'emb', name: '开发板', pos: [1.0, -2.0], scale: 0.8, url: '资料分享/机械与控制/嵌入式模块/开发板查询/index.html' },
+              { key: 'esp32', path: 'esp32', parent: 'boards', name: 'ESP32', pos: [0.1, -2.8], scale: 0.62, labelScale: 0.88, url: '资料分享/机械与控制/嵌入式模块/开发板查询/index.html?fam=esp32' },
+              { key: 'stm32', path: 'stm32', parent: 'boards', name: 'STM32', pos: [0.9, -3.2], scale: 0.62, labelScale: 0.88, url: '资料分享/机械与控制/嵌入式模块/开发板查询/index.html?fam=stm32' },
+              { key: 'arduino', path: 'arduino', parent: 'boards', name: 'Arduino', pos: [1.8, -3.2], scale: 0.62, labelScale: 0.88, url: '资料分享/机械与控制/嵌入式模块/开发板查询/index.html?fam=arduino' },
+              { key: 'rpi', path: 'rpi', parent: 'boards', name: '树莓派', pos: [2.6, -2.8], scale: 0.62, labelScale: 0.88, url: '资料分享/机械与控制/嵌入式模块/开发板查询/index.html?fam=rpi' },
+
+              // 电路板与传感器各自成支
+              { key: 'pcb', path: 'pcb', parent: 'emb', name: '电路板', pos: [2.4, -1.6], scale: 0.7, labelScale: 0.9, url: '资料分享/机械与控制/嵌入式模块/电路板/index.html' },
+              { key: 'sens', path: 'sens', parent: 'emb', name: '传感器', pos: [2.3, -0.4], scale: 0.8, url: '资料分享/机械与控制/嵌入式模块/传感器/index.html' },
+              { key: 'temp', path: 'temp', parent: 'sens', name: '温度', pos: [3.2, -1.0], scale: 0.6, labelScale: 0.86, url: '资料分享/机械与控制/嵌入式模块/传感器/index.html#temp' },
+              { key: 'imu', path: 'imu', parent: 'sens', name: '六轴', pos: [3.5, -0.2], scale: 0.6, labelScale: 0.86, url: '资料分享/机械与控制/嵌入式模块/传感器/index.html#imu' },
+              { key: 'light', path: 'light', parent: 'sens', name: '光敏', pos: [3.5, 0.6], scale: 0.6, labelScale: 0.86, url: '资料分享/机械与控制/嵌入式模块/传感器/index.html#light' },
+              { key: 'gas', path: 'gas', parent: 'sens', name: '气体', pos: [3.2, 1.3], scale: 0.6, labelScale: 0.86, url: '资料分享/机械与控制/嵌入式模块/传感器/index.html#gas' }
             ]
           },
 
