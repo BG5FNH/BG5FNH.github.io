@@ -201,7 +201,7 @@ window.BG5FNH_WAYPOINTS = {
             universeBg: '#06101a',
             universePoints: [
               { key: 'ptron', path: 'ptron', name: '感知机', pos: [0.00, 0.00], scale: 1.15, labelScale: 1, color: '#e8f7fd', lineColor: '#7fb8cf', url: '资料分享/机器学习/perceptron.html' },
-              { key: 'mlp', path: 'mlp', parent: 'act', name: '多层感知机', pos: [7.20, -13.42], scale: 1.15, labelScale: 1, color: '#7fd4ef', lineColor: '#4f8ea8', url: '资料分享/机器学习/b-found.html#mlp' },
+              { key: 'mlp', path: 'mlp', parent: 'act', name: '多层感知机', pos: [7.20, -13.42], scale: 1.15, labelScale: 1, color: '#7fd4ef', lineColor: '#4f8ea8', url: '资料分享/机器学习/mlp.html' },
               { key: 'linear', path: 'linear', parent: 'mlp', name: '线性层', pos: [10.80, 0.00], scale: 0.78, labelScale: 0.9, color: '#7fd4ef', lineColor: '#4f8ea8', url: '资料分享/机器学习/b-found.html#linear' },
               { key: 'act', path: 'act', parent: 'ptron', name: '激活函数', pos: [3.60, -21.01], scale: 0.78, labelScale: 0.9, color: '#7fd4ef', lineColor: '#4f8ea8', url: '资料分享/机器学习/b-found.html#act' },
               { key: 'relu', path: 'relu', parent: 'act', name: 'ReLU', pos: [7.20, -28.16], scale: 0.78, labelScale: 0.9, color: '#7fd4ef', lineColor: '#4f8ea8', url: '资料分享/机器学习/b-found.html#relu' },
