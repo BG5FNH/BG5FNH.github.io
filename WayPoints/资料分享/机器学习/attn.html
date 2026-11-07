@@ -3,26 +3,52 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>自注意力 · 谁在看谁 - BG5FNH</title>
+  <title>自注意力 · 一片会升降的柱林 - BG5FNH</title>
   <script>window.BG5FNH_ROOT = "../../../../";</script>
   <link rel="stylesheet" href="../../../../assets/style.css" />
   <style>
     .at-lead { margin: 0 0 10px; font-size: 14px; line-height: 1.9; }
     .at-wrap { position: relative; margin-top: 12px; border-radius: 12px; overflow: hidden;
       border: 1px solid rgba(244, 166, 192, .28);
-      background: radial-gradient(circle at 50% 0%, #1a1420, #08070c 80%); }
-    #atStage { display: block; width: 100%; height: 470px; }
-    .at-ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; font-size: 12.5px; color: var(--text-muted); }
-    .at-chip { font: inherit; font-size: 13px; padding: 6px 14px; border-radius: 999px; cursor: pointer;
-      color: #f4c6d8; background: rgba(244,166,192,.1); border: 1px solid rgba(244,166,192,.45); }
-    .at-chip.on { background: rgba(244,166,192,.34); color: #fff; border-color: #f4a6c0; }
+      background: radial-gradient(circle at 50% 0%, #1b1220, #07070c 82%); }
+    #atStage { display: block; width: 100%; height: 540px; touch-action: none; cursor: grab; }
+    #atStage.dragging { cursor: grabbing; }
+    .at-hud { position: absolute; left: 10px; top: 10px; font-size: 11.5px; line-height: 1.75;
+      color: #f6d7e2; background: rgba(22, 8, 16, .8); border: 1px solid rgba(244, 166, 192, .3);
+      border-radius: 8px; padding: 8px 10px; pointer-events: none; }
+    .at-hud b { color: #fff; }
+    .at-hud .r { color: #ffd9a0; }
+    .at-tag { position: absolute; font-size: 11px; color: rgba(246, 215, 226, .72); pointer-events: none; }
+    .at-tip { position: absolute; right: 10px; bottom: 10px; font-size: 11px; color: rgba(246,215,226,.75);
+      background: rgba(22,8,16,.72); border-radius: 8px; padding: 5px 9px; pointer-events: none; }
+    .at-gate { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 4px; font-size: 13px; letter-spacing: 1px; color: rgba(246,215,226,.78);
+      background: radial-gradient(circle at 50% 40%, rgba(34,18,30,.9), rgba(7,7,12,.96));
+      cursor: pointer; transition: opacity .4s; }
+    .at-gate span { font-size: 11px; opacity: .7; letter-spacing: 0; }
+    .at-ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px;
+      font-size: 12.5px; color: var(--text-muted); }
+    .at-ctrl button, .at-chip { font: inherit; font-size: 12.5px; padding: 7px 13px; border-radius: 999px; cursor: pointer;
+      color: #f4c6d8; background: rgba(244,166,192,.08); border: 1px solid rgba(244,166,192,.45); }
+    .at-ctrl button.on, .at-chip.on { background: rgba(244,166,192,.3); border-color: #f4a6c0; color: #fff; }
+    .at-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
     .at-eq { display: block; margin: 10px 0 0; padding: 9px 12px; border-radius: 8px; font-size: 12.5px;
-      color: #ffe4ef; background: rgba(26, 8, 18, .6); border-left: 2px solid rgba(244,166,192,.7);
+      color: #ffe4ef; background: rgba(26,8,18,.55); border-left: 2px solid rgba(244,166,192,.7);
       overflow-x: auto; white-space: nowrap; }
     .at-note { margin: 10px 0 0; padding: 11px 13px; border-radius: 10px; font-size: 12.5px; line-height: 1.85;
       color: var(--text-muted); background: rgba(244,166,192,.05); border: 1px dashed rgba(244,166,192,.3); }
     .at-note b { color: #f4a6c0; }
-    @media (max-width: 640px) { #atStage { height: 400px; } }
+    .at-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+    .at-card { padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(244,166,192,.22);
+      background: rgba(244,166,192,.04); }
+    .at-card h3 { margin: 0 0 6px; font-size: 13.5px; color: #f4c6d8; }
+    .at-card p { margin: 4px 0; font-size: 12.5px; line-height: 1.8; color: var(--text-muted); }
+    @media (max-width: 640px) {
+      #atStage { height: 420px; }
+      .at-two { grid-template-columns: 1fr; }
+      .at-hud { font-size: 10.5px; padding: 6px 8px; }
+      .at-chip { font-size: 12px; padding: 6px 10px; }
+    }
   </style>
 </head>
 <body>
@@ -36,222 +62,322 @@
 
   <main class="page">
     <h1 class="page-title">自注意力</h1>
-    <p class="page-subtitle">机器学习 · Transformer · 一句话里，每个词都在看别的词</p>
+    <p class="page-subtitle">机器学习 · Transformer · 六根柱子看六根柱子</p>
 
     <section class="card">
-      <p class="at-lead">一句话进门，每个词先把自己拆成三样东西：<b>Query</b>（我想找什么）、<b>Key</b>（我有什么特征）、<b>Value</b>（我实际携带的信息）。然后拿当前词的 Q 去和所有词的 K 点积——越像分越高，就是左边那张热度表。</p>
-      <p class="at-lead" style="font-size:12.5px;color:var(--text-muted)">点下面的词换个"查询者"，看它一整行怎么打分、怎么归一化、最后怎么把别人的 Value 混进自己身上。</p>
+      <p class="at-lead">句子「我们在这读这页」进门，六个词各自提出一个 Query、亮出一个 Key。拿某个词的 Q 去和所有词的 K 点积，就得到一排分数——<b>下面这片柱林里的一整行</b>。分数可以是负的，所以柱子会沉到地面以下；softmax 之后它们全部变成正数，而且加起来等于 1，这一行就成了一组"注意力分配"。</p>
+      <p class="at-lead">点下面的词换个查询者：被选中的那一行会整排升起，其余行压暗、压低，方便你只看这一排。切到「打分 Q·Kᵀ」能看到原始分数（有正有负），切回「softmax 权重」就是归一化之后的高度。</p>
 
       <div class="at-wrap">
         <canvas id="atStage"></canvas>
+        <div class="at-gate" id="atGate">正在准备三维场景…<span>首次加载三维库约 0.6MB，只加载这一次</span></div>
+        <div class="at-hud" id="atHud"></div>
+        <div class="at-tag" style="left:40%;top:8%">行 = 查询者，列 = 被看的词</div>
+        <div class="at-tip">左键拖动旋转 · 滚轮缩放</div>
       </div>
 
-      <div class="at-ctrl" id="atChips"></div>
+      <div class="at-chips" id="atChips"></div>
+
+      <div class="at-ctrl">
+        <button id="atPlay" class="on">暂停</button>
+        <button id="atMode0" class="on">softmax 权重</button>
+        <button id="atMode1">打分 Q·Kᵀ</button>
+        <button id="atReset">重置视角</button>
+      </div>
 
       <span class="at-eq">Attention(Q,K,V) = softmax( Q·Kᵀ / √d_k ) · V</span>
     </section>
 
     <section class="card">
-      <h2>三张表分别在说什么</h2>
-      <p class="at-lead"><b>① 打分明细</b>（左）：一行是一个查询词，一列是被看的词。颜色越亮，说明这两个词的 Q 和 K 越对得上。这里把点积放大了一点，不然 softmax 之后几乎全是均匀的，看不出重点。</p>
-      <p class="at-lead"><b>② 注意力权重</b>（中）：把这一行做 softmax，变成加起来等于 1 的权重，就是"该看谁多一点"。真实模型里，这一行常常出现一两个很亮的峰。</p>
-      <p class="at-lead"><b>③ 新的表示</b>（右）：按权重把所有词的 Value 加权求和。于是"读"这个词的新向量里，混进了"这页"和"我们"的信息——这就是上下文。</p>
-      <p class="at-note"><b>为什么除 √d_k：</b>维度越高，点积的方差越大（大概是 d_k 倍），softmax 会被推成几乎 one-hot，梯度随之消失。除以 √d_k 把方差拉回 1 量级，注意力才"看得见多个词"。<br>
-      <b>为什么能并行：</b>上面三张表对所有词是同时算的，不像 RNN 要一个词一个词往后传。这就是 Transformer 能吃下整个序列、把 GPU 喂饱的根本原因。</p>
-      <p style="margin-top:12px"><a href="b-tfm.html" style="color:#a9e4f7">← 回到 Transformer 分支</a>　·　<a href="index.html" style="color:#a9e4f7">机器学习总览</a></p>
+      <h2>三件事，一层层加上去</h2>
+      <div class="at-two">
+        <div class="at-card">
+          <h3>① 打分：谁和谁对得上</h3>
+          <p>Q 和 K 的点积衡量"我想要的"和"你有的"有多匹配。维度 d_k 越高，点积方差越大，所以要除 √d_k 把尺度拉回 1 附近，不然 softmax 会被推成几乎 one-hot。</p>
+        </div>
+        <div class="at-card">
+          <h3>② 归一化：把分数变成预算</h3>
+          <p>一行做 softmax，得到一组加起来等于 1 的权重。这就是"这个词打算把多少注意力分给谁"——柱子高度直接就是这批预算。</p>
+        </div>
+        <div class="at-card">
+          <h3>③ 加权求和：把别人的信息搬过来</h3>
+          <p>按权重把各个词的 Value 加起来，得到这个词的新向量。于是"读"这个字里混进了"这页"的信息——这就是上下文进入表示的方式。</p>
+        </div>
+        <div class="at-card">
+          <h3>为什么要多头</h3>
+          <p>一套 QKV 只能表达一种"看谁"的模式。多头让模型同时用几套，各自关注不同的关系（指代、语法、位置），最后拼起来。这里画的是其中一头的柱林。</p>
+        </div>
+      </div>
+      <p class="at-note"><b>对比 RNN：</b>RNN 必须一个词一个词往后传，第 6 个词才知道第 1 个词说了什么；注意力是一次矩阵乘法，六个词同时互相看。这就是 Transformer 能把 GPU 喂饱、能吃下整段上下文的原因。</p>
+      <p style="margin-top:12px"><a href="b-tfm.html" style="color:#f4a6c0">← Transformer 分支</a>　·　<a href="index.html" style="color:#a9e4f7">机器学习总览</a></p>
     </section>
   </main>
 
   <script>
   (function () {
     'use strict';
-    var cv = document.getElementById('atStage');
-    if (!cv) return;
-    var ctx = cv.getContext('2d');
+    var host = document.getElementById('atStage');
+    if (!host) return;
+    var hud = document.getElementById('atHud');
+    var btnPlay = document.getElementById('atPlay');
+    var btnReset = document.getElementById('atReset');
+    var modeBtns = [document.getElementById('atMode0'), document.getElementById('atMode1')];
     var chipBox = document.getElementById('atChips');
 
     var TOK = ['我', '们', '在', '读', '这', '页'];
-    var LOC = ['我', '们', '在', '读', '这', '页'];
-    var n = 6, dk = 4;
+    var n = 6, dk = 4, GAP = 3.4;
+    var mode = 0;                  // 0 = softmax 权重，1 = 原始打分
+    var qIdx = 3;
 
-    // 固定随机向量（可复现），让每一列都有不同"性格"
-    var Q = [], K = [], V = [];
+    var Q = [], K = [];
     (function () {
       function vec(i, salt) {
         var out = [];
-        for (var d = 0; d < dk; d++) out.push(Math.sin((i + 1) * (d + 1) * 1.7 + salt) * 1.0);
+        for (var d = 0; d < dk; d++) out.push(Math.sin((i + 1) * (d + 1) * 1.7 + salt));
         return out;
       }
-      for (var i = 0; i < n; i++) { Q.push(vec(i, 0.3)); K.push(vec(i, 1.9)); V.push(vec(i, 3.1)); }
-      // 让"这"和"页"天然更相关，读起来像个真句子
-      K[5] = Q[3].map(function (v) { return v * 0.55 + 0.22; });
-      V[5] = Q[3].map(function (v) { return -v * 0.8 + 0.2; });
+      for (var i = 0; i < n; i++) { Q.push(vec(i, 0.3)); K.push(vec(i, 1.9)); }
+      K[5] = Q[3].map(function (v) { return v * 0.55 + 0.22; });     // 「页」天然更像「读」要找的
     })();
 
-    var st = { q: 3, t0: performance.now(), playing: true };
-
-    function score(i, j) {
+    function raw(i, j) {
       var s = 0;
       for (var d = 0; d < dk; d++) s += Q[i][d] * K[j][d];
       return s / Math.sqrt(dk);
     }
-    function softmaxRow(i) {
-      var raw = [], mx = -1e9;
-      for (var j = 0; j < n; j++) { var s = score(i, j) * 1.5; raw.push(s); if (s > mx) mx = s; }
-      var ex = raw.map(function (v) { return Math.exp(v - mx); });
+    function softRow(i) {
+      var r = [], mx = -1e9;
+      for (var j = 0; j < n; j++) { var v = raw(i, j) * 1.5; r.push(v); if (v > mx) mx = v; }
+      var ex = r.map(function (v) { return Math.exp(v - mx); });
       var sum = ex.reduce(function (a, b) { return a + b; }, 0);
       return ex.map(function (v) { return v / sum; });
     }
-    function outVec(i) {
-      var w = softmaxRow(i), o = [];
-      for (var d = 0; d < dk; d++) {
-        var s = 0;
-        for (var j = 0; j < n; j++) s += w[j] * V[j][d];
-        o.push(s);
-      }
-      return o;
-    }
 
-    // 词片
     TOK.forEach(function (t, i) {
       var b = document.createElement('button');
-      b.className = 'at-chip' + (i === st.q ? ' on' : '');
+      b.className = 'at-chip' + (i === qIdx ? ' on' : '');
       b.textContent = t;
       b.addEventListener('click', function () {
-        st.q = i; st.t0 = performance.now();
+        qIdx = i;
         [].slice.call(chipBox.children).forEach(function (c, k) { c.classList.toggle('on', k === i); });
+        if (window.__atSetQuery) window.__atSetQuery(i);
       });
       chipBox.appendChild(b);
     });
 
-    function fit() {
-      var dpr = Math.min(window.devicePixelRatio || 1, 2);
-      var w = cv.clientWidth, h = cv.clientHeight;
-      if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
-        cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var started = false, vis = true, bootTimer = 0;
+
+    function boot3D() {
+      if (started) return;
+      started = true;
+      var gate = document.getElementById('atGate');
+      if (gate) gate.firstChild.nodeValue = '正在载入三维库…';
+      var sc = document.createElement('script');
+      sc.src = '../../../../pc/js/three.min.js';
+      sc.async = true;
+      sc.onload = function () {
+        if (gate) { gate.style.opacity = '0'; setTimeout(function () { gate.style.display = 'none'; }, 400); }
+        initScene();
+      };
+      sc.onerror = function () { if (gate) gate.firstChild.nodeValue = '三维库没加载出来，点一下重试'; started = false; };
+      document.head.appendChild(sc);
+    }
+
+    function initScene() {
+      var renderer = new THREE.WebGLRenderer({ canvas: host, antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      var scene = new THREE.Scene();
+      var camera = new THREE.PerspectiveCamera(42, 1, 0.1, 2000);
+
+      scene.add(new THREE.AmbientLight(0x9a8ba8, 0.7));
+      var l1 = new THREE.DirectionalLight(0xffe6f2, 0.85); l1.position.set(-30, 70, 45); scene.add(l1);
+      var l2 = new THREE.DirectionalLight(0x7fd4ef, 0.4); l2.position.set(50, 30, -45); scene.add(l2);
+
+      var cam = { yaw: 0.06, pitch: 0.56, dist: 40 };
+      var target = new THREE.Vector3(0, 1.6, 0);
+      function updateCamera() {
+        var sp = Math.sin(cam.pitch), cp = Math.cos(cam.pitch);
+        camera.position.set(target.x + cam.dist * cp * Math.sin(cam.yaw),
+                            target.y + cam.dist * sp,
+                            target.z + cam.dist * cp * Math.cos(cam.yaw));
+        camera.lookAt(target);
       }
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, w, h);
-      return { w: w, h: h };
-    }
 
-    function heat(v) {
-      // 深紫 → 亮玫红
-      var t = Math.max(0, Math.min(1, v));
-      var r = Math.round(40 + 210 * t), g = Math.round(20 + 120 * t), b = Math.round(60 + 130 * t);
-      return 'rgb(' + r + ',' + g + ',' + b + ')';
-    }
+      var grid = new THREE.GridHelper(60, 12, 0x3a2536, 0x241a26);
+      grid.position.y = -0.02;
+      scene.add(grid);
 
-    function draw() {
-      var g = fit(), w = g.w, h = g.h;
-      var top = 34;
-      var cell = Math.min(38, Math.floor((h - top - 150) / n));
-      cell = Math.max(10, cell);
-      var m = 16;
-      var mx = m + 20, my = top + 66;          // 矩阵
-      var bx = mx + cell * n + 64;             // 条形
-      var barW = Math.max(90, Math.min(170, w * 0.2));
-      var ox = bx + barW + 84;                 // 输出向量
+      var planeGeo = new THREE.PlaneGeometry(n * GAP + 2, n * GAP + 2);
+      var plane = new THREE.Mesh(planeGeo, new THREE.MeshBasicMaterial({
+        color: 0xf4a6c0, transparent: true, opacity: 0.05, side: THREE.DoubleSide, depthWrite: false
+      }));
+      plane.rotation.x = -Math.PI / 2;
+      scene.add(plane);
 
-      var weights = softmaxRow(st.q);
-      var tEl = st.playing ? (performance.now() - st.t0) : 1e9;
-      var scan = Math.floor(tEl / 260) % (n + 3);   // 扫描到第几列
+      var rowBar = new THREE.Mesh(
+        new THREE.BoxGeometry((n - 1) * GAP + 2.2, 0.10, 1.5),
+        new THREE.MeshBasicMaterial({ color: 0xffd0e2, transparent: true, opacity: 0.16, depthWrite: false })
+      );
+      scene.add(rowBar);
 
-      // ---- 说话人 / 查询者 ----
-      ctx.fillStyle = 'rgba(255,228,239,.9)';
-      ctx.font = '13px system-ui, sans-serif';
-      ctx.fillText('查询者：' + LOC[st.q] + '　（点下面的词可以换）', m, 22);
+      var boxGeo = new THREE.BoxGeometry(0.72, 1, 0.72);
+      boxGeo.translate(0, 0.5, 0);
+      var mesh = new THREE.InstancedMesh(boxGeo, new THREE.MeshPhongMaterial({ shininess: 60, specular: 0x443355 }), n * n);
+      scene.add(mesh);
 
-      // ---- 矩阵 ----
-      ctx.fillStyle = 'rgba(244,166,192,.75)';
-      ctx.font = '11px system-ui, sans-serif';
-      ctx.fillText('Q·Kᵀ/√d 得分', mx, my - 34);
-      for (var i = 0; i < n; i++) {
-        for (var j = 0; j < n; j++) {
-          var s = score(i, j) * 1.5;
-          var v = Math.max(0, Math.min(1, (s + 3) / 6));
-          var isRow = (i === st.q);
-          ctx.fillStyle = isRow ? heat(v) : heat(v * 0.45);
-          ctx.fillRect(mx + j * cell, my + i * cell, cell - 2, cell - 2);
-          if (isRow && j === scan) {
-            ctx.strokeStyle = '#fff6e6'; ctx.lineWidth = 2;
-            ctx.strokeRect(mx + j * cell - 1, my + i * cell - 1, cell, cell);
+      var m4 = new THREE.Matrix4(), col = new THREE.Color();
+      var heights = new Float32Array(n * n);
+      var targets = new Float32Array(n * n);
+      var colors = [];
+      for (var c0 = 0; c0 < n * n; c0++) colors.push(new THREE.Color());
+
+      function computeTargets() {
+        var rows = [];
+        for (var i = 0; i < n; i++) rows.push(softRow(i));
+        for (var i2 = 0; i2 < n; i2++) {
+          for (var j = 0; j < n; j++) {
+            var k = i2 * n + j;
+            var h = mode === 0 ? rows[i2][j] * 13 : raw(i2, j) * 2.6;
+            var selected = (i2 === qIdx);
+            if (!selected) h *= 0.28;
+            targets[k] = h;
+            var t = mode === 0 ? Math.min(1, rows[i2][j] * 2.6) : Math.min(1, Math.abs(raw(i2, j)) / 1.6);
+            if (selected) {
+              if (mode === 1 && raw(i2, j) < 0) col.setRGB(0.30 + 0.1 * t, 0.60 + 0.2 * t, 0.86);
+              else col.setRGB(0.72 + 0.26 * t, 0.42 + 0.34 * t, 0.58 + 0.3 * t);
+            } else {
+              col.setRGB(0.14 + 0.12 * t, 0.14 + 0.12 * t, 0.22 + 0.14 * t);
+            }
+            colors[k].copy(col);
           }
         }
-        // 行标签
-        ctx.fillStyle = i === st.q ? '#fff' : 'rgba(255,228,239,.55)';
-        ctx.font = (i === st.q ? 'bold ' : '') + '12px system-ui, sans-serif';
-        ctx.textAlign = 'right';
-        ctx.fillText(LOC[i], mx - 6, my + i * cell + cell * 0.65);
-        ctx.textAlign = 'left';
-      }
-      // 列标签
-      for (var j2 = 0; j2 < n; j2++) {
-        ctx.fillStyle = j2 === scan ? '#fff6e6' : 'rgba(255,228,239,.5)';
-        ctx.font = '11px system-ui, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(LOC[j2], mx + j2 * cell + cell / 2, my - 10);
-        ctx.textAlign = 'left';
       }
 
-      // ---- softmax 条形 ----
-      ctx.fillStyle = 'rgba(244,166,192,.75)';
-      ctx.font = '11px system-ui, sans-serif';
-      ctx.fillText('softmax 权重（加起来 = 1）', bx, my - 34);
-      for (var j3 = 0; j3 < n; j3++) {
-        var y = my + j3 * cell;
-        var wv = weights[j3];
-        ctx.fillStyle = 'rgba(255,255,255,.06)';
-        ctx.fillRect(bx, y + cell * 0.18, barW, cell * 0.6);
-        var gd = ctx.createLinearGradient(bx, 0, bx + barW * wv, 0);
-        gd.addColorStop(0, 'rgba(244,166,192,.9)');
-        gd.addColorStop(1, 'rgba(255,226,160,.95)');
-        ctx.fillStyle = gd;
-        ctx.fillRect(bx, y + cell * 0.18, barW * Math.min(1, wv * 2.2), cell * 0.6);
-        ctx.fillStyle = 'rgba(255,246,230,.9)';
-        ctx.font = '11px Consolas, monospace';
-        ctx.fillText((wv * 100).toFixed(1) + '%', bx + barW + 6, y + cell * 0.62);
-        ctx.fillStyle = 'rgba(255,228,239,.6)';
-        ctx.font = '11px system-ui, sans-serif';
-        ctx.fillText(LOC[j3], bx - 26 + 0, y + cell * 0.62);
+      function putAll() {
+        for (var i = 0; i < n; i++) {
+          for (var j = 0; j < n; j++) {
+            var k = i * n + j;
+            var h = heights[k];
+            var y = h >= 0 ? 0 : h;
+            m4.makeScale(1, Math.max(0.0015, Math.abs(h)), 1);
+            m4.setPosition((j - (n - 1) / 2) * GAP, y, (i - (n - 1) / 2) * GAP);
+            mesh.setMatrixAt(k, m4);
+            mesh.setColorAt(k, colors[k]);
+          }
+        }
+        mesh.instanceMatrix.needsUpdate = true;
+        mesh.instanceColor.needsUpdate = true;
       }
 
-      // ---- 输出向量 ----
-      var o = outVec(st.q);
-      ctx.fillStyle = 'rgba(244,166,192,.75)';
-      ctx.font = '11px system-ui, sans-serif';
-      ctx.fillText('新的表示 = Σ 权重 · V', ox, my - 34);
-      var maxAbs = 1.2;
-      for (var d = 0; d < dk; d++) {
-        var y2 = my + d * (cell * 1.3) + cell * 0.2;
-        var val = o[d] / maxAbs;
-        var half = 46;
-        ctx.fillStyle = 'rgba(255,255,255,.06)';
-        ctx.fillRect(ox, y2, half * 2, cell * 0.5);
-        ctx.fillStyle = val >= 0 ? 'rgba(127,212,239,.9)' : 'rgba(244,166,192,.9)';
-        var ww = Math.max(2, Math.min(half, Math.abs(val) * half));
-        ctx.fillRect(val >= 0 ? ox + half : ox + half - ww, y2, ww, cell * 0.5);
-        ctx.fillStyle = 'rgba(255,246,230,.75)';
-        ctx.font = '10px Consolas, monospace';
-        ctx.fillText('d' + d, ox - 22, y2 + cell * 0.4);
+      computeTargets();
+      heights.set(targets);
+      putAll();
+
+      rowBar.position.set(0, 0.04, (qIdx - (n - 1) / 2) * GAP);
+      var dirty = true, playing = true;
+      window.__atSetQuery = function (i) {
+        qIdx = i;
+        computeTargets();
+        rowBar.position.set(0, 0.04, (qIdx - (n - 1) / 2) * GAP);
+        dirty = true;
+      };
+
+      var dragging = false, lx = 0, ly = 0;
+      host.addEventListener('pointerdown', function (e) {
+        if (e.button !== 0) return;
+        dragging = true; lx = e.clientX; ly = e.clientY;
+        host.classList.add('dragging');
+        if (host.setPointerCapture) host.setPointerCapture(e.pointerId);
+      });
+      host.addEventListener('pointermove', function (e) {
+        if (!dragging) return;
+        cam.yaw -= (e.clientX - lx) * 0.008;
+        cam.pitch = Math.max(-0.1, Math.min(1.4, cam.pitch + (e.clientY - ly) * 0.006));
+        lx = e.clientX; ly = e.clientY;
+        updateCamera(); dirty = true;
+      });
+      host.addEventListener('pointerup', function () { dragging = false; host.classList.remove('dragging'); });
+      host.addEventListener('pointercancel', function () { dragging = false; host.classList.remove('dragging'); });
+      host.addEventListener('wheel', function (e) {
+        e.preventDefault();
+        cam.dist = Math.max(22, Math.min(110, cam.dist + e.deltaY * 0.05));
+        updateCamera(); dirty = true;
+      }, { passive: false });
+
+      btnPlay.addEventListener('click', function () {
+        playing = !playing;
+        btnPlay.textContent = playing ? '暂停' : '继续';
+        btnPlay.classList.toggle('on', playing);
+      });
+      btnReset.addEventListener('click', function () {
+        cam.yaw = 0.06; cam.pitch = 0.56; cam.dist = 40;
+        updateCamera(); dirty = true;
+      });
+      modeBtns.forEach(function (b, i) {
+        b.addEventListener('click', function () {
+          mode = i;
+          modeBtns.forEach(function (b2) { b2.classList.remove('on'); });
+          b.classList.add('on');
+          computeTargets(); dirty = true;
+        });
+      });
+
+      function updHud() {
+        var row = softRow(qIdx), best = 0;
+        for (var j = 1; j < n; j++) if (row[j] > row[best]) best = j;
+        hud.innerHTML = '查询者：<b>' + TOK[qIdx] + '</b>　显示：<b>' +
+          (mode === 0 ? 'softmax 权重' : '原始打分') + '</b><br>' +
+          '最看：<b class="r">' + TOK[best] + '</b>（' + (row[best] * 100).toFixed(0) + '%）<br>' +
+          '这一行权重和 = 1（实测 ' + row.reduce(function (a, b) { return a + b; }, 0).toFixed(2) + '）<br>' +
+          '点下面的词换查询者；拖动可绕柱林旋转';
       }
 
-      // ---- 底部一句话总结 ----
-      var top1 = weights.indexOf(Math.max.apply(null, weights));
-      ctx.fillStyle = 'rgba(255,228,239,.7)';
-      ctx.font = '12px system-ui, sans-serif';
-      ctx.fillText('「' + LOC[st.q] + '」最看「' + LOC[top1] + '」（' + (weights[top1] * 100).toFixed(0) + '%），其次「' + LOC[weights.indexOf(Math.max.apply(null, weights.map(function (v, k) { return k === top1 ? -1 : v; })))] + '」', m, h - 22);
-    }
+      function resize() {
+        var w = host.clientWidth || 900, h = host.clientHeight || 540;
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        dirty = true;
+      }
+      window.addEventListener('resize', resize);
 
-    var last = 0;
-    function loop(now) {
+      function loop() {
+        requestAnimationFrame(loop);
+        if (playing && vis) {
+          var moving = false;
+          for (var k = 0; k < n * n; k++) {
+            var d = targets[k] - heights[k];
+            if (Math.abs(d) > 0.004) { heights[k] += d * 0.18; moving = true; }
+            else heights[k] = targets[k];
+          }
+          if (moving) { putAll(); dirty = true; }
+        }
+        if (dirty && vis) { updHud(); renderer.render(scene, camera); dirty = false; }
+      }
+
+      resize(); updateCamera(); updHud();
       requestAnimationFrame(loop);
-      if (now - last < 50) return;
-      last = now;
-      draw();
+
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (es) { vis = es[0].isIntersecting; }, { threshold: 0.02 }).observe(host);
+      }
     }
-    window.addEventListener('resize', draw);
-    requestAnimationFrame(loop);
+
+    // 进入视口后延迟 0.9s 再拉 three.js
+    (function () {
+      var gate = document.getElementById('atGate');
+      if (gate) gate.addEventListener('click', function () { if (!started) boot3D(); });
+      var rc = host.getBoundingClientRect();
+      if (rc.top < (window.innerHeight || 800) + 240 && rc.bottom > -240) bootTimer = setTimeout(boot3D, 900);
+      if (!('IntersectionObserver' in window)) { if (!bootTimer) setTimeout(boot3D, 900); return; }
+      var io = new IntersectionObserver(function (es) {
+        es.forEach(function (e) {
+          if (e.isIntersecting) { if (!bootTimer) bootTimer = setTimeout(function () { boot3D(); io.disconnect(); }, 900); }
+          else if (bootTimer && !started) { clearTimeout(bootTimer); bootTimer = 0; }
+        });
+      }, { rootMargin: '240px' });
+      io.observe(host);
+    })();
   })();
   </script>
   <script src="../../../../assets/page.js"></script>
