@@ -34,14 +34,23 @@
     <section class="card">
       <p>同一套技术在不同领域长出不同方法论：视觉、语言、语音、推荐、科学计算。</p>
       <p class="ml-back">← 回到 <a href="index.html" style="color:#a9e4f7">机器学习总览</a></p>
-        <div class="ml-node main" id="app"><h3>应用方向</h3><p>同一套技术，在不同领域长出不同的方法论。</p></div>
-        <div class="ml-node main" id="cv"><h3>CV</h3><p>分类、检测、分割、生成、3D。</p></div>
-        <div class="ml-node main" id="nlp"><h3>NLP</h3><p>翻译、问答、摘要、对话——现在几乎被 Transformer 统一。</p></div>
-        <div class="ml-node leaf" id="asr"><h3>语音</h3><p>声学模型 + 语言模型，现在端到端。</p></div>
-        <div class="ml-node main" id="rec"><h3>推荐系统</h3><p>召回 + 排序 + 重排，双塔与序列模型是主力。</p></div>
-        <div class="ml-node main" id="bio"><h3>科学计算</h3><p>AlphaFold 类工作；图网络与几何深度学习。</p></div>
+        <div class="ml-node main" id="app"><h3>应用方向</h3><div class="ml-demo" data-demo="flow" data-args='{"items":["数据","模型","部署"]}'></div><p>同一套技术，在不同领域长出不同的方法论。</p></div>
+        <div class="ml-node main" id="cv"><h3>CV</h3><div class="ml-demo" data-demo="grid" data-args='{"n":7,"win":2,"caption":"视觉：分类/检测/分割"}'></div><p>分类、检测、分割、生成、3D。</p></div>
+        <div class="ml-node main" id="nlp"><h3>NLP</h3><div class="ml-demo" data-demo="tokens" data-args='{"words":["分","词","句","义"]}'></div><p>翻译、问答、摘要、对话——现在几乎被 Transformer 统一。</p></div>
+        <div class="ml-node leaf" id="asr"><h3>语音</h3><div class="ml-demo" data-demo="bars" data-args='{"caption":"语音识别：声波 → 文字"}'></div><p>声学模型 + 语言模型，现在端到端。</p></div>
+        <div class="ml-node main" id="rec"><h3>推荐系统</h3><div class="ml-demo" data-demo="matrix" data-args='{"n":6,"seed":9,"caption":"用户 × 物品 的偏好矩阵"}'></div><p>召回 + 排序 + 重排，双塔与序列模型是主力。</p></div>
+        <div class="ml-node main" id="bio"><h3>科学计算</h3><div class="ml-demo" data-demo="graph" data-args='{"n":6,"caption":"分子结构图"}'></div><p>AlphaFold 类工作；图网络与几何深度学习。</p></div>
     </section>
   </main>
+
+    <style>
+      .ml-demo { margin: 8px 0 2px; border-radius: 8px; overflow: hidden;
+        border: 1px solid rgba(127,212,239,.16); background: #060b12; }
+      .ml-jump { margin: 6px 0 2px; font-size: 12px; }
+      .ml-jump a { color: #a9e4f7; text-decoration: none; }
+      .ml-jump a:hover { text-decoration: underline; }
+    </style>
+    <script src="../../../../assets/mldemo.js"></script>
   <script src="../../../../assets/page.js"></script>
 </body>
 </html>

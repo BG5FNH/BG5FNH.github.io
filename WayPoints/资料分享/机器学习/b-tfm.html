@@ -34,26 +34,35 @@
     <section class="card">
       <p>2017 年之后几乎所有进展都在这棵子树上：自注意力 → 多头 → 位置编码 → 预训练范式 → 大模型 → 对齐与高效微调。</p>
       <p class="ml-back">← 回到 <a href="index.html" style="color:#a9e4f7">机器学习总览</a></p>
-        <div class="ml-node core" id="tfm"><h3>Transformer <span class="tag">核心</span></h3><p>只用注意力，不用循环：并行、可堆深、能吃海量数据。</p><p class="k">出处：Vaswani et al., NeurIPS 2017</p></div>
-        <div class="ml-node core" id="selfattn"><h3>自注意力 <a href="attn.html" style="font-size:11px;color:#f4a6c0;margin-left:8px">▶ 看谁在看谁</a> <span class="tag">核心</span></h3><p>Attention(Q,K,V)=softmax(QKᵀ/√d)V，任意两位置直连。</p></div>
-        <div class="ml-node main" id="mha"><h3>多头注意力</h3><p>多组 QKV 并行，学不同的关系子空间。</p></div>
-        <div class="ml-node main" id="pos"><h3>位置编码</h3><p>注意力本身无序，位置信息要显式加进去（正弦 / RoPE）。</p></div>
-        <div class="ml-node main" id="bert"><h3>BERT</h3><p>双向掩码预训练，NLP 进入“预训练 + 微调”时代。</p><p class="k">出处：Devlin et al., 2018</p></div>
-        <div class="ml-node core" id="gpt"><h3>GPT 系列 <span class="tag">核心</span></h3><p>自回归预测下一个 token，规模上去后涌现出通用能力。</p><p class="k">出处：Brown et al., 2020</p></div>
-        <div class="ml-node leaf" id="t5"><h3>T5</h3><p>把所有任务统一成 text-to-text。</p></div>
-        <div class="ml-node main" id="vit"><h3>ViT</h3><p>图像切 patch 当 token，数据够多就能打过 CNN。</p><p class="k">出处：Dosovitskiy et al., ICLR 2021</p></div>
-        <div class="ml-node leaf" id="swin"><h3>Swin</h3><p>窗口注意力 + 层次结构，兼顾分辨率与速度。</p></div>
-        <div class="ml-node main" id="clip"><h3>CLIP</h3><p>图文对比学习，把两种模态映射到同一空间。</p><p class="k">出处：Radford et al., 2021</p></div>
-        <div class="ml-node leaf" id="whisper"><h3>Whisper</h3><p>弱监督大规模语音识别。</p></div>
-        <div class="ml-node core" id="llm"><h3>LLM <span class="tag">核心</span></h3><p>十亿到万亿参数，规模 + 数据 + 对齐共同决定能力。</p></div>
-        <div class="ml-node main" id="sft"><h3>指令微调 SFT</h3><p>用指令-回答数据把“续写器”变成“助手”。</p></div>
-        <div class="ml-node main" id="rlhf"><h3>RLHF</h3><p>用人类偏好对齐输出；DPO 省掉奖励模型。</p><p class="k">出处：Ouyang et al., 2022</p></div>
-        <div class="ml-node main" id="lora"><h3>LoRA <a href="lora.html" style="font-size:11px;color:#9be7c4;margin-left:8px">▶ 看低秩旁路</a></h3><p>只训练低秩旁路，显存降一个量级。</p><p class="k">出处：Hu et al., 2021</p></div>
-        <div class="ml-node main" id="rag"><h3>RAG</h3><p>外挂知识库，把“记不住”变成“查得到”。</p></div>
-        <div class="ml-node main" id="moe"><h3>MoE 混合专家 <a href="moe.html" style="font-size:11px;color:#7fd4ef;margin-left:8px">▶ 看路由</a></h3><p>每个 token 只激活部分专家，参数大但算力省。</p></div>
-        <div class="ml-node leaf" id="longctx"><h3>KV 缓存</h3><p>位置外推、稀疏注意力、KV 压缩，都是为了让上下文更长。</p></div>
+        <div class="ml-node core" id="tfm"><h3>Transformer <span class="tag">核心</span></h3><div class="ml-demo" data-demo="stack" data-args='{"n":6,"caption":"编码器一层层堆叠"}'></div><p>只用注意力，不用循环：并行、可堆深、能吃海量数据。</p><p class="k">出处：Vaswani et al., NeurIPS 2017</p></div>
+        <div class="ml-node core" id="selfattn"><h3>自注意力 <a href="attn.html" style="font-size:11px;color:#f4a6c0;margin-left:8px">▶ 看谁在看谁</a> <span class="tag">核心</span></h3><p class="ml-jump">▶ <a href="attn.html">看完整的三维动画</a></p><p>Attention(Q,K,V)=softmax(QKᵀ/√d)V，任意两位置直连。</p></div>
+        <div class="ml-node main" id="mha"><h3>多头注意力</h3><div class="ml-demo" data-demo="matrix" data-args='{"n":6,"seed":3,"caption":"多头：几套并行注意力"}'></div><p>多组 QKV 并行，学不同的关系子空间。</p></div>
+        <div class="ml-node main" id="pos"><h3>位置编码</h3><div class="ml-demo" data-demo="matrix" data-args='{"n":8,"seed":7,"caption":"位置编码：每一维一个周期"}'></div><p>注意力本身无序，位置信息要显式加进去（正弦 / RoPE）。</p></div>
+        <div class="ml-node main" id="bert"><h3>BERT</h3><div class="ml-demo" data-demo="tokens" data-args='{"words":["我","们","在","读","?"],"mode":"mask","caption":"完形填空式预训练"}'></div><p>双向掩码预训练，NLP 进入“预训练 + 微调”时代。</p><p class="k">出处：Devlin et al., 2018</p></div>
+        <div class="ml-node core" id="gpt"><h3>GPT 系列 <span class="tag">核心</span></h3><div class="ml-demo" data-demo="tokens" data-args='{"words":["我","们","在","读","页"],"mode":"next","caption":"自回归：一个词一个词往外蹦"}'></div><p>自回归预测下一个 token，规模上去后涌现出通用能力。</p><p class="k">出处：Brown et al., 2020</p></div>
+        <div class="ml-node leaf" id="t5"><h3>T5</h3><div class="ml-demo" data-demo="flow" data-args='{"items":["输入","编码","解码","输出"]}'></div><p>把所有任务统一成 text-to-text。</p></div>
+        <div class="ml-node main" id="vit"><h3>ViT</h3><div class="ml-demo" data-demo="grid" data-args='{"n":8,"win":2,"caption":"图像切 patch 当 token"}'></div><p>图像切 patch 当 token，数据够多就能打过 CNN。</p><p class="k">出处：Dosovitskiy et al., ICLR 2021</p></div>
+        <div class="ml-node leaf" id="swin"><h3>Swin</h3><div class="ml-demo" data-demo="grid" data-args='{"n":8,"win":3,"caption":"窗口注意力 + 移位"}'></div><p>窗口注意力 + 层次结构，兼顾分辨率与速度。</p></div>
+        <div class="ml-node main" id="clip"><h3>CLIP</h3><div class="ml-demo" data-demo="tower" data-args='{"left":["图像"],"right":["文本"],"caption":"两种模态映射到同一空间"}'></div><p>图文对比学习，把两种模态映射到同一空间。</p><p class="k">出处：Radford et al., 2021</p></div>
+        <div class="ml-node leaf" id="whisper"><h3>Whisper</h3><div class="ml-demo" data-demo="bars" data-args='{"h":[0.2,0.5,0.9,0.6,0.3,0.7],"caption":"语谱图 → 文本"}'></div><p>弱监督大规模语音识别。</p></div>
+        <div class="ml-node core" id="llm"><h3>LLM <span class="tag">核心</span></h3><div class="ml-demo" data-demo="stack" data-args='{"n":8,"caption":"规模 + 数据 + 对齐"}'></div><p>十亿到万亿参数，规模 + 数据 + 对齐共同决定能力。</p></div>
+        <div class="ml-node main" id="sft"><h3>指令微调 SFT</h3><div class="ml-demo" data-demo="tokens" data-args='{"words":["指令","→","回答"],"mode":"next","caption":"把续写器变成助手"}'></div><p>用指令-回答数据把“续写器”变成“助手”。</p></div>
+        <div class="ml-node main" id="rlhf"><h3>RLHF</h3><div class="ml-demo" data-demo="compare" data-args='{"caption":"偏好对：好答案 vs 差答案"}'></div><p>用人类偏好对齐输出；DPO 省掉奖励模型。</p><p class="k">出处：Ouyang et al., 2022</p></div>
+        <div class="ml-node main" id="lora"><h3>LoRA <a href="lora.html" style="font-size:11px;color:#9be7c4;margin-left:8px">▶ 看低秩旁路</a></h3><p class="ml-jump">▶ <a href="lora.html">看完整的三维动画</a></p><p>只训练低秩旁路，显存降一个量级。</p><p class="k">出处：Hu et al., 2021</p></div>
+        <div class="ml-node main" id="rag"><h3>RAG</h3><div class="ml-demo" data-demo="flow" data-args='{"items":["问题","检索","拼接","回答"]}'></div><p>外挂知识库，把“记不住”变成“查得到”。</p></div>
+        <div class="ml-node main" id="moe"><h3>MoE 混合专家 <a href="moe.html" style="font-size:11px;color:#7fd4ef;margin-left:8px">▶ 看路由</a></h3><p class="ml-jump">▶ <a href="moe.html">看完整的三维动画</a></p><p>每个 token 只激活部分专家，参数大但算力省。</p></div>
+        <div class="ml-node leaf" id="longctx"><h3>KV 缓存</h3><div class="ml-demo" data-demo="decay" data-args='{"k":1.6,"caption":"上下文越长，KV 缓存越贵"}'></div><p>位置外推、稀疏注意力、KV 压缩，都是为了让上下文更长。</p></div>
     </section>
   </main>
+
+    <style>
+      .ml-demo { margin: 8px 0 2px; border-radius: 8px; overflow: hidden;
+        border: 1px solid rgba(127,212,239,.16); background: #060b12; }
+      .ml-jump { margin: 6px 0 2px; font-size: 12px; }
+      .ml-jump a { color: #a9e4f7; text-decoration: none; }
+      .ml-jump a:hover { text-decoration: underline; }
+    </style>
+    <script src="../../../../assets/mldemo.js"></script>
   <script src="../../../../assets/page.js"></script>
 </body>
 </html>

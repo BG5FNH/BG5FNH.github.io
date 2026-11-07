@@ -34,23 +34,32 @@
     <section class="card">
       <p>学分布再采样：自编码器 → VAE → GAN → 扩散。今天的文生图、图生视频都在这条线上。</p>
       <p class="ml-back">← 回到 <a href="index.html" style="color:#a9e4f7">机器学习总览</a></p>
-        <div class="ml-node main" id="gen"><h3>生成模型</h3><p>学数据分布，然后采样出新样本。</p></div>
-        <div class="ml-node main" id="ae"><h3>自编码器</h3><p>编码到低维再重建，学的是压缩表示。</p></div>
-        <div class="ml-node main" id="vae"><h3>VAE <a href="vae.html" style="font-size:11px;color:#9be7c4;margin-left:8px">▶ 看潜空间点云</a></h3><p>潜空间加高斯先验，可采样可插值。</p><p class="k">出处：Kingma & Welling, ICLR 2014</p></div>
-        <div class="ml-node core" id="gan"><h3>GAN  <a href="gan.html" style="font-size:11px;color:#f4a6c0;margin-left:8px">▶ 看两个网络互骗</a><span class="tag">核心</span></h3><p>生成器骗判别器，判别器拆招，对抗中逼近真实分布。</p><p class="k">出处：Goodfellow et al., NIPS 2014</p></div>
-        <div class="ml-node leaf" id="dcgan"><h3>DCGAN</h3><p>把卷积塞进 GAN，训练稳定下来。</p></div>
-        <div class="ml-node leaf" id="wgan"><h3>WGAN / 梯度惩罚</h3><p>用 Wasserstein 距离替代 JS 散度，缓解模式崩塌。</p></div>
-        <div class="ml-node main" id="stylegan"><h3>StyleGAN</h3><p>风格分层控制，人脸生成的分水岭。</p></div>
-        <div class="ml-node leaf" id="cyclegan"><h3>CycleGAN</h3><p>无配对图像翻译（马↔斑马）。</p></div>
-        <div class="ml-node core" id="diff"><h3>扩散模型  <a href="diffusion.html" style="font-size:11px;color:#a9e4f7;margin-left:8px">▶ 看噪声怎么洗掉</a><span class="tag">核心</span></h3><p>学着一步步去噪，从纯噪声还原出数据。</p><p class="k">出处：Ho et al., NeurIPS 2020</p></div>
-        <div class="ml-node main" id="ddpm"><h3>DDPM</h3><p>前向加噪 + 反向去噪，训练目标化简成预测噪声。</p></div>
-        <div class="ml-node leaf" id="ddim"><h3>DDIM</h3><p>少步采样，把几百步压到几十步。</p></div>
-        <div class="ml-node main" id="ldm"><h3>Latent Diffusion</h3><p>在潜空间扩散，算力降一个量级，文生图爆发点。</p></div>
-        <div class="ml-node leaf" id="controlnet"><h3>ControlNet</h3><p>用边缘、姿态、深度图精确控制生成结果。</p></div>
-        <div class="ml-node leaf" id="flow"><h3>归一化流</h3><p>用可逆变换做精确似然估计。</p></div>
-        <div class="ml-node leaf" id="tts"><h3>声码器</h3><p>从文本或特征生成波形。</p></div>
+        <div class="ml-node main" id="gen"><h3>生成模型</h3><div class="ml-demo" data-demo="points" data-args='{"n":30,"clusters":2,"caption":"学分布，再采样"}'></div><p>学数据分布，然后采样出新样本。</p></div>
+        <div class="ml-node main" id="ae"><h3>自编码器</h3><div class="ml-demo" data-demo="tower" data-args='{"left":["输入"],"right":["重建"],"caption":"压缩再还原"}'></div><p>编码到低维再重建，学的是压缩表示。</p></div>
+        <div class="ml-node main" id="vae"><h3>VAE <a href="vae.html" style="font-size:11px;color:#9be7c4;margin-left:8px">▶ 看潜空间点云</a></h3><p class="ml-jump">▶ <a href="vae.html">看完整的三维动画</a></p><p>潜空间加高斯先验，可采样可插值。</p><p class="k">出处：Kingma & Welling, ICLR 2014</p></div>
+        <div class="ml-node core" id="gan"><h3>GAN  <a href="gan.html" style="font-size:11px;color:#f4a6c0;margin-left:8px">▶ 看两个网络互骗</a><span class="tag">核心</span></h3><p class="ml-jump">▶ <a href="gan.html">看完整的三维动画</a></p><p>生成器骗判别器，判别器拆招，对抗中逼近真实分布。</p><p class="k">出处：Goodfellow et al., NIPS 2014</p></div>
+        <div class="ml-node leaf" id="dcgan"><h3>DCGAN</h3><div class="ml-demo" data-demo="stack" data-args='{"n":5,"caption":"卷积版 GAN"}'></div><p>把卷积塞进 GAN，训练稳定下来。</p></div>
+        <div class="ml-node leaf" id="wgan"><h3>WGAN / 梯度惩罚</h3><div class="ml-demo" data-demo="decay" data-args='{"k":2.2,"caption":"WGAN：梯度不再饱和"}'></div><p>用 Wasserstein 距离替代 JS 散度，缓解模式崩塌。</p></div>
+        <div class="ml-node main" id="stylegan"><h3>StyleGAN</h3><div class="ml-demo" data-demo="bars" data-args='{"caption":"风格分层注入"}'></div><p>风格分层控制，人脸生成的分水岭。</p></div>
+        <div class="ml-node leaf" id="cyclegan"><h3>CycleGAN</h3><div class="ml-demo" data-demo="tower" data-args='{"left":["A"],"right":["B"],"caption":"来回翻译，不需要成对数据"}'></div><p>无配对图像翻译（马↔斑马）。</p></div>
+        <div class="ml-node core" id="diff"><h3>扩散模型  <a href="diffusion.html" style="font-size:11px;color:#a9e4f7;margin-left:8px">▶ 看噪声怎么洗掉</a><span class="tag">核心</span></h3><p class="ml-jump">▶ <a href="diffusion.html">看完整的三维动画</a></p><p>学着一步步去噪，从纯噪声还原出数据。</p><p class="k">出处：Ho et al., NeurIPS 2020</p></div>
+        <div class="ml-node main" id="ddpm"><h3>DDPM</h3><div class="ml-demo" data-demo="curve" data-args='{"fn":"exp","caption":"噪声时间表 ᾱ"}'></div><p>前向加噪 + 反向去噪，训练目标化简成预测噪声。</p></div>
+        <div class="ml-node leaf" id="ddim"><h3>DDIM</h3><div class="ml-demo" data-demo="decay" data-args='{"k":1.4,"caption":"DDIM：跳步采样"}'></div><p>少步采样，把几百步压到几十步。</p></div>
+        <div class="ml-node main" id="ldm"><h3>Latent Diffusion</h3><div class="ml-demo" data-demo="flow" data-args='{"items":["图像","编码","扩散","解码"]}'></div><p>在潜空间扩散，算力降一个量级，文生图爆发点。</p></div>
+        <div class="ml-node leaf" id="controlnet"><h3>ControlNet</h3><div class="ml-demo" data-demo="tower" data-args='{"left":["条件"],"right":["生成"],"caption":"给扩散加个方向盘"}'></div><p>用边缘、姿态、深度图精确控制生成结果。</p></div>
+        <div class="ml-node leaf" id="flow"><h3>归一化流</h3><div class="ml-demo" data-demo="curve" data-args='{"fn":"sigmoid","caption":"可逆变换：密度搬运"}'></div><p>用可逆变换做精确似然估计。</p></div>
+        <div class="ml-node leaf" id="tts"><h3>声码器</h3><div class="ml-demo" data-demo="bars" data-args='{"caption":"声码器：频谱 → 波形"}'></div><p>从文本或特征生成波形。</p></div>
     </section>
   </main>
+
+    <style>
+      .ml-demo { margin: 8px 0 2px; border-radius: 8px; overflow: hidden;
+        border: 1px solid rgba(127,212,239,.16); background: #060b12; }
+      .ml-jump { margin: 6px 0 2px; font-size: 12px; }
+      .ml-jump a { color: #a9e4f7; text-decoration: none; }
+      .ml-jump a:hover { text-decoration: underline; }
+    </style>
+    <script src="../../../../assets/mldemo.js"></script>
   <script src="../../../../assets/page.js"></script>
 </body>
 </html>
