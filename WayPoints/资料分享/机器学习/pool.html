@@ -322,27 +322,86 @@
           '这一块的胜出格：<b class="r">(' + (st.win ? st.win[0] : '-') + ', ' + (st.win ? st.win[1] : '-') + ')</b>　值 ' + (st.win ? st.win[2].toFixed(2) : '—') + '（亮框标出）';
       }
 
-      var dragging = false, lx = 0, ly = 0, dirty = true;
-      host.addEventListener('pointerdown', function (e) {
-        if (e.button !== 0) return;
-        dragging = true; lx = e.clientX; ly = e.clientY;
+      var dirty = true;
+    // ---- 手势：单指旋转；双指捏合缩放，同时拖动能继续转 ----
+    var baseDist = cam.dist;            // 以进入时的镜头距离为基准，限制缩放范围
+    var pointers = new Map();
+    var lastDist = 0, lastMid = null, lastX = 0, lastY = 0;
+    function ptrList() {
+      var out = [];
+      pointers.forEach(function (p) { out.push(p); });
+      return out;
+    }
+    function pinchDist() {
+      var a = ptrList();
+      if (a.length < 2) return 0;
+      return Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y);
+    }
+    function pinchMid() {
+      var a = ptrList();
+      return { x: (a[0].x + a[1].x) / 2, y: (a[0].y + a[1].y) / 2 };
+    }
+
+    host.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;   // 鼠标只认左键，触屏不受影响
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (host.setPointerCapture) { try { host.setPointerCapture(e.pointerId); } catch (err) {} }
+      if (pointers.size === 1) {
+        lastX = e.clientX; lastY = e.clientY;
         host.classList.add('dragging');
-        if (host.setPointerCapture) host.setPointerCapture(e.pointerId);
-      });
-      host.addEventListener('pointermove', function (e) {
-        if (!dragging) return;
-        cam.yaw -= (e.clientX - lx) * 0.008;
-        cam.pitch = Math.max(0.1, Math.min(1.45, cam.pitch + (e.clientY - ly) * 0.006));
-        lx = e.clientX; ly = e.clientY;
+      } else if (pointers.size === 2) {
+        lastDist = pinchDist();
+        lastMid = pinchMid();
+      }
+    });
+
+    host.addEventListener('pointermove', function (e) {
+      if (!pointers.has(e.pointerId)) return;
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (pointers.size === 1) {
+        var dx = e.clientX - lastX, dy = e.clientY - lastY;
+        lastX = e.clientX; lastY = e.clientY;
+        cam.yaw -= dx * 0.008;
+        cam.pitch = Math.max(0.10, Math.min(1.45, cam.pitch + dy * 0.006));
         updateCamera(); dirty = true;
-      });
-      host.addEventListener('pointerup', function () { dragging = false; host.classList.remove('dragging'); });
-      host.addEventListener('pointercancel', function () { dragging = false; host.classList.remove('dragging'); });
-      host.addEventListener('wheel', function (e) {
-        e.preventDefault();
-        cam.dist = Math.max(32, Math.min(140, cam.dist + e.deltaY * 0.06));
+      } else if (pointers.size >= 2) {
+        var d = pinchDist();
+        if (lastDist > 0 && d > 0) {
+          var k = lastDist / d;                       // 手指分开 → 镜头拉近
+          cam.dist = Math.max(baseDist * 0.34, Math.min(baseDist * 2.8, cam.dist * (1 + (k - 1) * 0.9)));
+        }
+        lastDist = d;
+        var mid = pinchMid();
+        if (lastMid) {                                // 双指一起挪 = 继续旋转
+          cam.yaw -= (mid.x - lastMid.x) * 0.005;
+          cam.pitch = Math.max(0.10, Math.min(1.45, cam.pitch + (mid.y - lastMid.y) * 0.004));
+        }
+        lastMid = mid;
         updateCamera(); dirty = true;
-      }, { passive: false });
+      }
+    });
+
+    function endPointer(e) {
+      pointers.delete(e.pointerId);
+      if (pointers.size === 1) {
+        var rest = ptrList()[0];
+        lastX = rest.x; lastY = rest.y;               // 从双指回到单指，不跳
+        lastDist = 0; lastMid = null;
+      } else if (pointers.size === 0) {
+        lastDist = 0; lastMid = null;
+        host.classList.remove('dragging');
+      }
+    }
+    host.addEventListener('pointerup', endPointer);
+    host.addEventListener('pointercancel', endPointer);
+
+    host.addEventListener('wheel', function (e) {
+      e.preventDefault();
+      cam.dist = Math.max(baseDist * 0.34, Math.min(baseDist * 2.8, cam.dist + e.deltaY * 0.06));
+      updateCamera(); dirty = true;
+    }, { passive: false });
+
 
       btnPlay.addEventListener('click', function () {
         st.playing = !st.playing;
