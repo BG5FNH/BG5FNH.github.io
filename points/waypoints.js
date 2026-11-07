@@ -221,6 +221,7 @@ window.BG5FNH_WAYPOINTS = {
               { key: 'lr', path: 'lr', parent: 'opt', name: '学习率调度', pos: [33.45, -3.52], scale: 0.5, labelScale: 0.78, color: '#7fd4ef', lineColor: '#4f8ea8', url: '资料分享/机器学习/b-found.html#lr' },
               { key: 'cnn', path: 'cnn', parent: 'mlp', name: 'CNN', pos: [19.62, -5.61], scale: 1.15, labelScale: 1, color: '#8fd9f0', lineColor: '#4f8ea8', url: '资料分享/机器学习/b-cnn.html#cnn' },
               { key: 'conv', path: 'conv', parent: 'cnn', name: '卷积', pos: [24.23, -4.62], scale: 0.78, labelScale: 0.9, color: '#8fd9f0', lineColor: '#4f8ea8', url: '资料分享/机器学习/conv.html' },
+              { key: 'pool', path: 'pool', parent: 'conv', name: '池化', pos: [24.23, -3.55], scale: 0.78, labelScale: 0.9, color: '#f4a6c0', lineColor: '#8e5a70', url: '资料分享/机器学习/pool.html' },
               { key: 'lenet', path: 'lenet', parent: 'conv', name: 'LeNet-5', pos: [28.84, -4.40], scale: 0.5, labelScale: 0.78, color: '#8fd9f0', lineColor: '#4f8ea8', url: '资料分享/机器学习/b-cnn.html#lenet' },
               { key: 'alexnet', path: 'alexnet', parent: 'conv', name: 'AlexNet', pos: [28.84, -4.84], scale: 0.78, labelScale: 0.9, color: '#8fd9f0', lineColor: '#4f8ea8', url: '资料分享/机器学习/b-cnn.html#alexnet' },
               { key: 'vgg', path: 'vgg', parent: 'alexnet', name: 'VGG', pos: [33.45, -4.84], scale: 0.5, labelScale: 0.78, color: '#8fd9f0', lineColor: '#4f8ea8', url: '资料分享/机器学习/b-cnn.html#vgg' },

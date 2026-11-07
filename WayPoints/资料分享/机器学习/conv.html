@@ -23,6 +23,10 @@
       color: rgba(200, 216, 228, .72); pointer-events: none; }
     .cv-legend i { display: inline-block; width: 13px; height: 3px; border-radius: 2px;
       margin-right: 5px; vertical-align: 3px; }
+    .cv-gate { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      font-size: 13px; letter-spacing: 1px; color: rgba(191,232,246,.75);
+      background: radial-gradient(circle at 50% 40%, rgba(18,30,42,.9), rgba(5,8,13,.96));
+      cursor: pointer; transition: opacity .4s; }
     .cv-tag { position: absolute; font-size: 11px; color: rgba(191,232,246,.72); pointer-events: none; letter-spacing: .3px; }
     .cv-tip { position: absolute; right: 10px; bottom: 10px; font-size: 11px; color: rgba(191,232,246,.78);
       background: rgba(6,16,26,.72); border-radius: 8px; padding: 5px 9px; pointer-events: none; }
@@ -70,6 +74,7 @@
 
       <div class="cv-wrap">
         <canvas id="cvStage"></canvas>
+        <div class="cv-gate" id="cvGate">正在准备三维场景…</div>
         <div class="cv-hud" id="cvHud"></div>
         <div class="cv-tag" style="left:27%;top:9%">输入 28×28 · 高度 = 像素亮度</div>
         <div class="cv-tag" style="left:62%;top:9%">特征图 26×26 · 高度 ∝ |Σ|</div>
@@ -121,12 +126,11 @@
     </section>
   </main>
 
-  <script src="../../../../pc/js/three.min.js"></script>
   <script>
   (function () {
     'use strict';
     var host = document.getElementById('cvStage');
-    if (!host || !window.THREE) return;
+    if (!host) return;   // three.js 推迟到进入视口后再加载
     var hud = document.getElementById('cvHud');
     var btnPlay = document.getElementById('cvPlay');
     var btnReset = document.getElementById('cvReset');
@@ -176,6 +180,25 @@
 
     var st = { ki: 0, playing: true, filled: -1, curV: 0 };
 
+    var started = false, vis = true, bootTimer = 0;
+
+    function boot3D() {
+      if (started) return;
+      started = true;
+      var gate = document.getElementById('cvGate');
+      if (gate) gate.textContent = '正在载入三维库…';
+      var sc = document.createElement('script');
+      sc.src = '../../../../pc/js/three.min.js';
+      sc.async = true;
+      sc.onload = function () {
+        if (gate) { gate.style.opacity = '0'; setTimeout(function () { gate.style.display = 'none'; }, 420); }
+        initScene();
+      };
+      sc.onerror = function () { if (gate) gate.textContent = '三维库没加载出来，点一下重试'; started = false; };
+      document.head.appendChild(sc);
+    }
+
+    function initScene() {
     var renderer = new THREE.WebGLRenderer({ canvas: host, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     var scene = new THREE.Scene();
@@ -365,7 +388,7 @@
     var last = 0;
     function loop(now) {
       requestAnimationFrame(loop);
-      if (st.playing) {
+      if (st.playing && vis) {
         var interval = Math.max(4, Math.round(30 / (+speed.value)));
         if (now - last > interval) {
           last = now;
@@ -374,7 +397,7 @@
           dirty = true;
         }
       }
-      if (dirty) { renderer.render(scene, camera); dirty = false; }
+      if (dirty && vis) { renderer.render(scene, camera); dirty = false; }
     }
 
     buildInput();
@@ -384,6 +407,32 @@
     updateCamera();
     updateHud();
     requestAnimationFrame(loop);
+      // 滚出视口就停：不占 GPU、不烧电
+      var stage = document.getElementById('cvStage');
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (es) { vis = es[0].isIntersecting; }, { threshold: 0.02 }).observe(stage);
+      }
+    }
+
+    // 进入视口后等 0.9s 再下载 three.js：先把文字画出来，别让人干等白屏
+    (function () {
+      var gate = document.getElementById('cvGate');
+      if (gate) gate.addEventListener('click', function () { if (!started) boot3D(); });
+      // 首屏就能看到：直接排一个 0.9s 的延迟加载，先把文字渲染完
+      var rc0 = host.getBoundingClientRect();
+      if (rc0.top < (window.innerHeight || 800) + 240 && rc0.bottom > -240) bootTimer = setTimeout(boot3D, 900);
+      if (!('IntersectionObserver' in window)) { if (!bootTimer) setTimeout(boot3D, 900); return; }
+      var io = new IntersectionObserver(function (es) {
+        es.forEach(function (e) {
+          if (e.isIntersecting) {
+            if (!bootTimer) bootTimer = setTimeout(function () { boot3D(); io.disconnect(); }, 900);
+          } else if (bootTimer && !started) {
+            clearTimeout(bootTimer); bootTimer = 0;      // 还没加载就滚走了，就不加载
+          }
+        });
+      }, { rootMargin: '240px' });
+      io.observe(host);
+    })();
   })();
   </script>
   <script src="../../../../assets/page.js"></script>
