@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>国界线折纸 · 机器学习 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../../";</script>
+  <link rel="stylesheet" href="../../../../assets/style.css" />
+  <style>
+    .fc-lead { margin: 0 0 10px; font-size: 14px; line-height: 1.9; }
+    .fc-wrap { position: relative; margin-top: 12px; border-radius: 12px; overflow: hidden;
+      border: 1px solid rgba(230, 207, 154, .22); background: #070b12; }
+    #fcStage { display: block; width: 100%; height: 560px; }
+    .fc-hud { position: absolute; left: 10px; top: 10px; padding: 8px 11px; border-radius: 8px;
+      font-size: 11.5px; line-height: 1.75; color: #cfe6f2; background: rgba(6, 12, 20, .82);
+      border: 1px solid rgba(127, 212, 239, .22); pointer-events: none; }
+    .fc-hud b { color: #e6cf9a; font-weight: 600; }
+    .fc-hud .r { color: #f4a6c0; }
+    .fc-legend { position: absolute; left: 10px; bottom: 10px; font-size: 11px; line-height: 1.7;
+      color: rgba(200, 216, 228, .72); pointer-events: none; }
+    .fc-legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px;
+      margin-right: 5px; vertical-align: 3px; }
+    .fc-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; align-items: center; }
+    .fc-btns button { font: inherit; font-size: 12.5px; padding: 6px 12px; border-radius: 8px; cursor: pointer;
+      color: #f0dcb4; background: rgba(201, 168, 106, .1); border: 1px solid rgba(201, 168, 106, .42); }
+    .fc-btns button:hover { background: rgba(201, 168, 106, .2); }
+    .fc-btns button.on { background: rgba(201, 168, 106, .28); color: #fff4dc; }
+    .fc-btns label { font-size: 12px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px; }
+    .fc-formula { margin: 10px 0 0; padding: 10px 12px; border-radius: 8px; font-size: 12.5px;
+      line-height: 1.9; color: #d9f4ff; background: rgba(6, 16, 26, .55);
+      border-left: 2px solid rgba(127, 212, 239, .6); overflow-x: auto; white-space: nowrap; }
+    .fc-note { margin: 12px 0 0; padding: 12px 14px; border-radius: 10px; font-size: 12.5px; line-height: 1.85;
+      color: var(--text-muted); background: rgba(230, 207, 154, .06);
+      border: 1px dashed rgba(230, 207, 154, .38); }
+    .fc-note b { color: #e6cf9a; }
+    .fc-steps { margin: 12px 0 0; padding-left: 20px; font-size: 13px; line-height: 1.95; }
+    @media (max-width: 640px) {
+      #fcStage { height: 420px; }
+      .fc-hud { font-size: 10.5px; }
+      .fc-btns button { font-size: 12px; padding: 6px 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">国界线折纸</h1>
+    <p class="page-subtitle">机器学习 · 一张二维的纸，折出乌兹别克斯坦</p>
+
+    <section class="card">
+      <p class="fc-lead">乌兹别克斯坦的国界线很麻烦：费尔干纳谷地那一圈像被谁用指甲掐过，中间还嵌着塔吉克斯坦的<b>飞地</b>。这一页把它的国界当成一条<b>要拟合的曲线</b>——纸是平的，能动的只有折痕。</p>
+      <p class="fc-lead">一开始纸是整块的（全都算"国内"）。每按一次折，就给网络塞一个隐藏单元，也就是多一道折痕：竖折、斜折、横折都行。折痕压在哪，不是随手挑的——程序会拿国界和当前残差做一次相关性搜索，把新折痕压在最缺它的那段国界上。</p>
+
+      <div class="fc-wrap">
+        <canvas id="fcStage"></canvas>
+        <div class="fc-hud" id="fcHud"></div>
+        <div class="fc-legend">
+          <div><i style="background:#f5e3b6"></i>折出来的国界</div>
+          <div><i style="background:#f4a6c0"></i>真实国界（OSM）</div>
+          <div><i style="background:rgba(230,207,154,.5)"></i>折痕</div>
+        </div>
+      </div>
+
+      <div class="fc-btns">
+        <button id="fcLeft">左折一下</button>
+        <button id="fcDiag">斜着折一下</button>
+        <button id="fcBest">折一次（最优）</button>
+        <button id="fcAuto">自动折</button>
+        <button id="fcReset">重新开始</button>
+        <label><input type="checkbox" id="fcBorder" checked /> 真实国界</label>
+        <label><input type="checkbox" id="fcFolds" checked /> 折痕</label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>折一次，到底改了什么</h2>
+      <p>纸面是一张高度图。每个隐藏单元贡献一道折痕，折痕一侧的纸被压出一个坡：</p>
+      <span class="fc-formula">f(x) = b + Σᵢ wᵢ · ReLU(aᵢ·x + cᵢ)　，　判定：f(x) &gt; 0</span>
+      <p>其中 <b>aᵢ</b> 是折痕的法线方向（决定往哪边折），<b>cᵢ</b> 决定折痕压在哪，<b>wᵢ</b> 是这道折痕的"深度"，正负号表示往下压还是往上抬。一串 ReLU 叠起来，f = 0 的那条线就是纸面的折棱——也就是拟合出来的国界线。求解 w 用加权最小二乘（国家只占纸面两成，不配平就会全判"国外"）。</p>
+      <p><b>折痕数 = 隐藏单元数。</b>你每按一次「折一下」，就多一个神经元。加进来之后，所有折痕的「深浅」会整体重解一次——不是一道一道单独调，而是解一个最小二乘方程，让整张纸一起逼近国界线。</p>
+      <p class="fc-note"><b>为什么能折出飞地：</b>只往下压（w 全是负的）只能切出凸形，切不出"国内夹着一块国外"。所以必须允许某些折痕的 w 是正的，把一块地方重新抬起来——一抬一压，纸上就有了坑。这就是 ReLU 网络能表达非凸区域的原因：正负权重混在一起，f = 0 的等值线可以拐弯、可以闭合。自动折到后半段，你会看到中心那块飞地被"抠"出来。</p>
+    </section>
+
+    <section class="card">
+      <h2>三个能看出来的东西</h2>
+      <p class="fc-steps">
+        <b>① 折痕只会贴在直边上。</b>国界里每一段直的边，都能被一道折痕严丝合缝地压住；弯的地方只能靠好几道短折痕拼——折痕越多，等值线越像，这就是分段线性逼近。<br>
+        <b>② 前几折都在抢大轮廓。</b>重叠率从 21% 冲到 60% 很快，剩下的十几个百分点全花在费尔干纳谷地和飞地上——和训练网络时 loss 前快后慢一个脾气。<br>
+        <b>③ 折痕会互相改。</b>新加一道折痕后，老折痕的深浅会跟着变（权重被重新解出来），有的甚至从"往下压"翻成"往上抬"。不是"一刀定终身"，而是所有折痕一起重新分工——这就是拟合在做的事。
+      </p>
+      <p style="margin-top:14px"><a href="mlp.html" style="color:#a9e4f7">← 上一课：多层感知机</a>　
+        <a href="index.html" style="color:#a9e4f7">机器学习总览</a></p>
+    </section>
+  </main>
+
+  <script src="country-data.js"></script>
+  <script>
+  (function () {
+    var D = window.FOLD_COUNTRY;
+    var cv = document.getElementById('fcStage');
+    if (!D || !cv) return;
+    var ctx = cv.getContext('2d');
+    var hud = document.getElementById('fcHud');
+    var btnLeft = document.getElementById('fcLeft');
+    var btnDiag = document.getElementById('fcDiag');
+    var btnBest = document.getElementById('fcBest');
+    var btnAuto = document.getElementById('fcAuto');
+    var btnReset = document.getElementById('fcReset');
+    var chkBorder = document.getElementById('fcBorder');
+    var chkFolds = document.getElementById('fcFolds');
+
+    var MOBILE = window.innerWidth <= 640;
+    var SG = MOBILE ? 96 : 128;         // 采样网格
+    var KMAX = MOBILE ? 30 : 46;        // 最多折多少道
+
+    var rings = D.rings;
+    function ptInRings(x, y) {
+      var inside = false;
+      for (var r = 0; r < rings.length; r++) {
+        var q = rings[r].pts;
+        for (var i = 0, j = q.length - 1; i < q.length; j = i++) {
+          var xi = q[i][0], yi = q[i][1], xj = q[j][0], yj = q[j][1];
+          if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) inside = !inside;
+        }
+      }
+      return inside;
+    }
+
+    var N = SG * SG;
+    var PX = new Float32Array(N), PY = new Float32Array(N), TY = new Float32Array(N);
+    var POS = 0, NEG = 0;
+    (function () {
+      for (var gy = 0; gy < SG; gy++) {
+        for (var gx = 0; gx < SG; gx++) {
+          var k = gy * SG + gx;
+          var x = (gx + 0.5) / SG, y = (gy + 0.5) / SG;
+          PX[k] = x; PY[k] = y;
+          var inside = ptInRings(x, y);
+          TY[k] = inside ? 1 : -1;
+          if (inside) POS++; else NEG++;
+        }
+      }
+    })();
+    // 正负样本加权：国家只占纸面两成，不配平的话拟合会把边界推向"全判国外"
+    var WPOS = N / (2 * (POS || 1)), WNEG = N / (2 * (NEG || 1));
+
+    // ---------- 折痕（隐藏单元）= ReLU 特征 ----------
+    var feats = [];          // { nx, ny, c, col: Float32Array(N) }
+    var W = [];              // 权重（最后一个输出偏置）
+    var F = new Float32Array(N);
+    var iou = 0, rmse = 0;
+
+    function makeColumn(nx, ny, c) {
+      var col = new Float32Array(N);
+      for (var k = 0; k < N; k++) {
+        var v = nx * PX[k] + ny * PY[k] + c;
+        col[k] = v > 0 ? v : 0;
+      }
+      return col;
+    }
+
+    // 加权最小二乘：解 (AᵀWA) w = AᵀWy
+    function solve() {
+      var K = feats.length, M = K + 1;
+      var A = new Float64Array(M * M), b = new Float64Array(M);
+      for (var k = 0; k < N; k++) {
+        var wgt = TY[k] > 0 ? WPOS : WNEG;
+        var yv = TY[k];
+        var row = [];
+        var has = false;
+        for (var i = 0; i < K; i++) { var v = feats[i].col[k]; row.push(v); if (v > 0) has = true; }
+        row.push(1);
+        if (!has && K) { /* 全是 0 的行只剩偏置，照样累加 */ }
+        for (var a = 0; a < M; a++) {
+          var va = row[a];
+          b[a] += wgt * va * yv;
+          for (var c2 = 0; c2 <= a; c2++) A[a * M + c2] += wgt * va * row[c2];
+        }
+      }
+      for (var a2 = 0; a2 < M; a2++) {
+        for (var c3 = 0; c3 < a2; c3++) A[c3 * M + a2] = A[a2 * M + c3];
+        A[a2 * M + a2] += 1e-6 * N;      // 岭正则，防病态
+      }
+      // 高斯消元（列主元）
+      var idx = [];
+      for (var i2 = 0; i2 < M; i2++) idx.push(i2);
+      for (var col = 0; col < M; col++) {
+        var piv = col, best = Math.abs(A[col * M + col]);
+        for (var r2 = col + 1; r2 < M; r2++) {
+          var v2 = Math.abs(A[r2 * M + col]);
+          if (v2 > best) { best = v2; piv = r2; }
+        }
+        if (best < 1e-12) continue;
+        if (piv !== col) {
+          for (var c4 = 0; c4 < M; c4++) {
+            var tmp = A[col * M + c4]; A[col * M + c4] = A[piv * M + c4]; A[piv * M + c4] = tmp;
+          }
+          var tb = b[col]; b[col] = b[piv]; b[piv] = tb;
+        }
+        var d = A[col * M + col];
+        for (var r3 = col + 1; r3 < M; r3++) {
+          var f2 = A[r3 * M + col] / d;
+          if (!f2) continue;
+          for (var c5 = col; c5 < M; c5++) A[r3 * M + c5] -= f2 * A[col * M + c5];
+          b[r3] -= f2 * b[col];
+        }
+      }
+      W = new Array(M);
+      for (var r4 = M - 1; r4 >= 0; r4--) {
+        var sum = b[r4];
+        for (var c6 = r4 + 1; c6 < M; c6++) sum -= A[r4 * M + c6] * W[c6];
+        var dd = A[r4 * M + r4];
+        W[r4] = Math.abs(dd) < 1e-12 ? 0 : sum / dd;
+      }
+      // 算出整张纸的高度场
+      for (var k2 = 0; k2 < N; k2++) {
+        var s2 = K ? 0 : 0;
+        for (var i3 = 0; i3 < K; i3++) s2 += W[i3] * feats[i3].col[k2];
+        F[k2] = s2 + W[K];
+      }
+      measure();
+    }
+
+    function measure() {
+      var inter = 0, uni = 0, se = 0;
+      for (var k = 0; k < N; k++) {
+        var ins = F[k] > 0, t = TY[k] > 0;
+        if (ins && t) inter++;
+        if (ins || t) uni++;
+        var e = F[k] - TY[k];
+        se += e * e;
+      }
+      iou = uni ? inter / uni : 0;
+      rmse = Math.sqrt(se / N);
+    }
+
+    // ---------- 候选折痕 ----------
+    var cands = [];
+    (function () {
+      var seen = {};
+      function push(nx, ny, c, tag) {
+        var len = Math.sqrt(nx * nx + ny * ny) || 1;
+        nx /= len; ny /= len;
+        var key = Math.round((Math.atan2(ny, nx) + Math.PI) / 0.06) + '|' + Math.round(-c / 0.02);
+        if (seen[key]) return;
+        seen[key] = 1;
+        cands.push({ nx: nx, ny: ny, c: c, tag: tag });
+      }
+      // 1) 国界每条边的支撑线（贴着国界走）
+      rings.forEach(function (ring) {
+        var q = ring.pts;
+        for (var i = 0; i < q.length; i++) {
+          var a = q[i], b2 = q[(i + 1) % q.length];
+          var dx = b2[0] - a[0], dy = b2[1] - a[1];
+          var L = Math.sqrt(dx * dx + dy * dy);
+          if (L < 0.007) continue;
+          push(-dy / L, dx / L, (dy / L) * a[0] - (dx / L) * a[1], 'edge');
+        }
+      });
+      // 2) 角度扫描 + 位置扫描（找不到边也能折）
+      for (var ai = 0; ai < 12; ai++) {
+        var ang = ai * Math.PI / 12;
+        var nx = Math.cos(ang), ny = Math.sin(ang);
+        for (var oi = -3; oi <= 3; oi++) {
+          var mx = 0.5 + nx * oi * 0.11, my = 0.5 + ny * oi * 0.11;
+          push(nx, ny, -(nx * mx + ny * my), 'grid');
+        }
+      }
+    })();
+
+    function angleOk(c, mode) {
+      var a = Math.atan2(Math.abs(c.ny), Math.abs(c.nx));   // 0 = 折痕竖直，PI/2 = 折痕水平
+      if (mode === 'left') return a < 0.28 || a > Math.PI / 2 - 0.28;
+      if (mode === 'diag') return a > 0.42 && a < 1.15;
+      return true;
+    }
+
+    // 匹配追踪：挑和当前残差最相关的那条线，加进去以后所有折痕深浅重解一次
+    function addBest(mode) {
+      if (feats.length >= KMAX) return false;
+      var res = new Float32Array(N);
+      for (var k = 0; k < N; k++) res[k] = TY[k] - F[k];
+      var best = null, bestGain = -1, bestCol = null;
+      for (var i = 0; i < cands.length; i++) {
+        var c = cands[i];
+        if (!angleOk(c, mode)) continue;
+        var num = 0, den = 0;
+        for (var k2 = 0; k2 < N; k2++) {
+          var v = c.nx * PX[k2] + c.ny * PY[k2] + c.c;
+          if (v <= 0) continue;
+          var wgt = TY[k2] > 0 ? WPOS : WNEG;
+          num += wgt * res[k2] * v;
+          den += wgt * v * v;
+        }
+        if (den < 1e-9) continue;
+        var gain = num * num / den;
+        if (gain > bestGain) { bestGain = gain; best = c; }
+      }
+      if (!best) return false;
+      var col = makeColumn(best.nx, best.ny, best.c);
+      feats.push({ nx: best.nx, ny: best.ny, c: best.c, col: col, tag: best.tag });
+      solve();
+      return true;
+    }
+
+    function resetAll() {
+      feats.length = 0;
+      F.fill(0);
+      // 没有折痕时：整张纸都在阈值以上（全是国内）
+      for (var k = 0; k < N; k++) F[k] = 1;
+      W = [1];
+      measure();
+    }
+
+    // ---------- 渲染 ----------
+    var off = document.createElement('canvas');
+    off.width = SG; off.height = SG;
+    var offCtx = off.getContext('2d');
+    var img = offCtx.createImageData(SG, SG);
+
+    function drawField() {
+      var data = img.data;
+      var lo = -2.2, hi = 2.2;
+      for (var k = 0; k < N; k++) {
+        var t = Math.max(-1, Math.min(1, (F[k] - 0) / hi));
+        var r, g, b;
+        if (t >= 0) {
+          r = 148 + 100 * t; g = 130 + 92 * t; b = 96 + 64 * t;
+        } else {
+          var u = 1 + t;
+          r = 8 + 22 * u; g = 14 + 34 * u; b = 24 + 48 * u;
+        }
+        var q = k * 4;
+        data[q] = r; data[q + 1] = g; data[q + 2] = b; data[q + 3] = 255;
+      }
+      offCtx.putImageData(img, 0, 0);
+    }
+
+    var cdim = null;
+    function ensureSize() {
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      var w = cv.clientWidth, h = cv.clientHeight;
+      var pw = Math.round(w * dpr), ph = Math.round(h * dpr);
+      if (!cdim || cv.width !== pw || cv.height !== ph) {
+        cv.width = pw; cv.height = ph;
+        cdim = { w: w, h: h, dpr: dpr };
+      }
+      ctx.setTransform(cdim.dpr, 0, 0, cdim.dpr, 0, 0);
+      return cdim;
+    }
+
+    function draw() {
+      var dim = ensureSize();
+      var w = dim.w, h = dim.h;
+      var pad = Math.round(Math.min(w, h) * 0.045);
+      var mapW = Math.min(w - pad * 2, (h - pad * 2) * D.aspect);
+      var mapH = mapW / D.aspect;
+      var ox = (w - mapW) / 2, oy = (h - mapH) / 2;
+      function sx(x) { return ox + x * mapW; }
+      function sy(y) { return oy + (1 - y) * mapH; }
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#070b12';
+      ctx.fillRect(0, 0, w, h);
+
+      drawField();
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(off, ox, oy, mapW, mapH);
+
+      if (chkFolds.checked) {
+        for (var i = 0; i < feats.length; i++) {
+          var un = feats[i];
+          var seg = clipLine(un.nx, un.ny, -un.c);
+          if (!seg) continue;
+          var wt = Math.min(1, Math.abs(W[i] || 0) / 1.6);
+          if (wt < 0.12) continue;                    // 几乎没参与拟合的折痕不画，免得糊成网
+          ctx.beginPath();
+          ctx.moveTo(sx(seg[0][0]), sy(seg[0][1]));
+          ctx.lineTo(sx(seg[1][0]), sy(seg[1][1]));
+          ctx.strokeStyle = 'rgba(230,207,154,' + (0.05 + 0.22 * wt).toFixed(2) + ')';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+
+      ctx.beginPath();
+      traceContour(ox, oy, mapW, mapH);
+      ctx.strokeStyle = '#f5e3b6';
+      ctx.lineWidth = 2.1;
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+
+      if (chkBorder.checked) {
+        ctx.save();
+        ctx.setLineDash([5, 4]);
+        ctx.strokeStyle = 'rgba(244,166,192,.85)';
+        ctx.lineWidth = 1.2;
+        rings.forEach(function (ring) {
+          ctx.beginPath();
+          ring.pts.forEach(function (q, ii) {
+            if (ii === 0) ctx.moveTo(sx(q[0]), sy(q[1]));
+            else ctx.lineTo(sx(q[0]), sy(q[1]));
+          });
+          ctx.closePath();
+          ctx.stroke();
+        });
+        ctx.restore();
+      }
+
+      hud.innerHTML = '折痕（隐藏单元）：<b>' + feats.length + '</b> 道<br>' +
+        '重叠率 IoU：<b class="r">' + (iou * 100).toFixed(1) + '%</b><br>' +
+        '拟合残差 RMSE：<b>' + rmse.toFixed(3) + '</b>';
+    }
+
+    function clipLine(nx, ny, d) {
+      var pts = [];
+      function add(x, y) {
+        if (!isFinite(x) || !isFinite(y)) return;
+        if (x >= -0.002 && x <= 1.002 && y >= -0.002 && y <= 1.002) pts.push([x, y]);
+      }
+      if (Math.abs(nx) > 1e-6) { add(d / nx, 0); add((d - ny) / nx, 1); }
+      if (Math.abs(ny) > 1e-6) { add(0, d / ny); add(1, (d - nx) / ny); }
+      var out = [];
+      for (var i = 0; i < pts.length; i++) {
+        var dup = false;
+        for (var j = 0; j < out.length; j++) {
+          if (Math.abs(pts[i][0] - out[j][0]) < 1e-7 && Math.abs(pts[i][1] - out[j][1]) < 1e-7) dup = true;
+        }
+        if (!dup) out.push(pts[i]);
+      }
+      return out.length >= 2 ? [out[0], out[1]] : null;
+    }
+
+    function traceContour(ox, oy, mapW, mapH) {
+      var Wd = SG, L = 0;
+      function PXX(i) { return ox + i / (Wd - 1) * mapW; }
+      function PYY(j) { return oy + (1 - j / (Wd - 1)) * mapH; }
+      function lerp(a, b, va, vb) { var t = (L - va) / ((vb - va) || 1e-9); return a + (b - a) * t; }
+      for (var gy = 0; gy < Wd - 1; gy++) {
+        for (var gx = 0; gx < Wd - 1; gx++) {
+          var v0 = F[gy * Wd + gx], v1 = F[gy * Wd + gx + 1];
+          var v2 = F[(gy + 1) * Wd + gx + 1], v3 = F[(gy + 1) * Wd + gx];
+          var b0 = v0 > L ? 1 : 0, b1 = v1 > L ? 1 : 0, b2 = v2 > L ? 1 : 0, b3 = v3 > L ? 1 : 0;
+          if (b0 === b1 && b1 === b2 && b2 === b3) continue;
+          var e = [];
+          if (b0 !== b1) e.push([lerp(gx, gx + 1, v0, v1), gy]);
+          if (b1 !== b2) e.push([gx + 1, lerp(gy, gy + 1, v1, v2)]);
+          if (b3 !== b2) e.push([lerp(gx, gx + 1, v3, v2), gy + 1]);
+          if (b0 !== b3) e.push([gx, lerp(gy, gy + 1, v0, v3)]);
+          if (e.length === 2) {
+            ctx.moveTo(PXX(e[0][0]), PYY(e[0][1]));
+            ctx.lineTo(PXX(e[1][0]), PYY(e[1][1]));
+          } else if (e.length === 4) {
+            ctx.moveTo(PXX(e[0][0]), PYY(e[0][1]));
+            ctx.lineTo(PXX(e[1][0]), PYY(e[1][1]));
+            ctx.moveTo(PXX(e[2][0]), PYY(e[2][1]));
+            ctx.lineTo(PXX(e[3][0]), PYY(e[3][1]));
+          }
+        }
+      }
+    }
+
+    // ---------- 交互 ----------
+    var autoOn = false, autoTick = 0;
+    btnLeft.addEventListener('click', function () { addBest('left'); draw(); });
+    btnDiag.addEventListener('click', function () { addBest('diag'); draw(); });
+    btnBest.addEventListener('click', function () { addBest('any'); draw(); });
+    btnReset.addEventListener('click', function () {
+      autoOn = false; btnAuto.classList.remove('on'); btnAuto.textContent = '自动折';
+      resetAll(); draw();
+    });
+    btnAuto.addEventListener('click', function () {
+      autoOn = !autoOn;
+      btnAuto.classList.toggle('on', autoOn);
+      btnAuto.textContent = autoOn ? '停下' : '自动折';
+      autoTick = 0;
+    });
+    chkBorder.addEventListener('change', draw);
+    chkFolds.addEventListener('change', draw);
+    window.addEventListener('resize', draw);
+
+    resetAll();
+
+    window.__fcDebug = function () {
+      return { n: feats.length, iou: iou, rmse: rmse, w: W.slice(0, 6) };
+    };
+
+    var lastDraw = 0;
+    function loop(now) {
+      requestAnimationFrame(loop);
+      if (autoOn && now - autoTick > 320) {
+        autoTick = now;
+        if (!addBest('any') || feats.length >= KMAX) {
+          autoOn = false; btnAuto.classList.remove('on'); btnAuto.textContent = '自动折';
+        }
+      }
+      if (now - lastDraw > 40) { lastDraw = now; draw(); }
+    }
+    requestAnimationFrame(loop);
+  })();
+  </script>
+  
+  <script src="../../../../assets/page.js"></script>
+</body>
+</html>
