@@ -292,8 +292,8 @@
       function placeLabel(el, x, y, z, fade) {
         var w = host.clientWidth, h = host.clientHeight;
         tmpV.set(x, y, z).project(camera);
-        el.style.left = ((tmpV.x * 0.5 + 0.5) * w) + 'px';
-        el.style.top = ((-tmpV.y * 0.5 + 0.5) * h) + 'px';
+        el.style.left = Math.max(18, Math.min(w - 18, (tmpV.x * 0.5 + 0.5) * w)) + 'px';
+        el.style.top = Math.max(12, Math.min(h - 12, (-tmpV.y * 0.5 + 0.5) * h)) + 'px';
         el.style.opacity = (fade === undefined ? 1 : fade);
         el.style.display = (tmpV.z > 1) ? 'none' : 'block';
       }

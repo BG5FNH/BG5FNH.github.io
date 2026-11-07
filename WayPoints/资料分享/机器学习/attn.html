@@ -332,14 +332,14 @@
         for (var i = 0; i < n; i++) {
           // 行标签放在网格左侧
           tmpV.set(-(n * GAP) / 2 - 1.6, 0.4, (i - (n - 1) / 2) * GAP).project(camera);
-          rowLabels[i].style.left = ((tmpV.x * 0.5 + 0.5) * w) + 'px';
-          rowLabels[i].style.top = ((-tmpV.y * 0.5 + 0.5) * h) + 'px';
+          rowLabels[i].style.left = Math.max(18, Math.min(w - 18, (tmpV.x * 0.5 + 0.5) * w)) + 'px';
+          rowLabels[i].style.top = Math.max(12, Math.min(h - 12, (-tmpV.y * 0.5 + 0.5) * h)) + 'px';
           rowLabels[i].style.opacity = (i === qIdx) ? '1' : '0.45';
 
           // 列标签放在网格后方
           tmpV.set((i - (n - 1) / 2) * GAP, 0.4, -(n * GAP) / 2 - 1.6).project(camera);
-          colLabels[i].style.left = ((tmpV.x * 0.5 + 0.5) * w) + 'px';
-          colLabels[i].style.top = ((-tmpV.y * 0.5 + 0.5) * h) + 'px';
+          colLabels[i].style.left = Math.max(18, Math.min(w - 18, (tmpV.x * 0.5 + 0.5) * w)) + 'px';
+          colLabels[i].style.top = Math.max(12, Math.min(h - 12, (-tmpV.y * 0.5 + 0.5) * h)) + 'px';
         }
       }
 
