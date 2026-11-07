@@ -426,8 +426,6 @@
         es.forEach(function (e) {
           if (e.isIntersecting) {
             if (!bootTimer) bootTimer = setTimeout(function () { boot3D(); io.disconnect(); }, 900);
-          } else if (bootTimer && !started) {
-            clearTimeout(bootTimer); bootTimer = 0;      // 还没加载就滚走了，就不加载
           }
         });
       }, { rootMargin: '240px' });
