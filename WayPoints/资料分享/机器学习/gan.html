@@ -110,6 +110,28 @@
       <p class="gn-note"><b>看这张图的顺序：</b>先看后排两个金色峰（真实数据）→ 看前排粉色一开始又宽又平 → 等它贴上左边那个峰 → 注意右边那个峰一直没人管，这就是 mode collapse。</p>
       <p style="margin-top:12px"><a href="diffusion.html" style="color:#a9e4f7">← 扩散模型（另一条路）</a>　·　<a href="b-gen.html" style="color:#f4a6c0">生成模型分支</a></p>
     </section>
+
+    <nav class="concept-nav">
+      <a href="diffusion.html">← 上一个：扩散模型</a>
+      <a href="index.html">机器学习总览</a>
+      <a href="vae.html">下一个：VAE →</a>
+    </nav>
+    <style>
+      .concept-nav { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between;
+        margin-top: 16px; padding-top: 14px; border-top: 1px dashed rgba(127,212,239,.22); }
+      .concept-nav a { font-size: 12.5px; color: #a9e4f7; text-decoration: none; }
+      .concept-nav a:hover { text-decoration: underline; }
+      .concept-nav a:nth-child(2) { color: var(--text-muted); }
+    </style>
+    <script>
+      // 左右方向键翻页（不拦截输入框里的方向键）
+      document.addEventListener('keydown', function (e) {
+        var tag = (e.target && e.target.tagName) || '';
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+        if (e.key === 'ArrowLeft') location.href = 'diffusion.html';
+        if (e.key === 'ArrowRight') location.href = 'vae.html';
+      });
+    </script>
   </main>
 
   <script>
@@ -140,6 +162,14 @@
     }
 
     var started = false, vis = true, bootTimer = 0;
+
+    // 标签页切走 / 窗口最小化：停掉渲染，别在后台空转
+    document.addEventListener('visibilitychange', function () {
+      vis = !document.hidden;
+    });
+    // 系统开了「减少动态效果」：默认停在第一帧，让用户自己点播放
+    var REDUCED = false;
+    try { REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
 
     function boot3D() {
       if (started) return;
@@ -338,7 +368,7 @@
       var gate = document.getElementById('gnGate');
       if (gate) gate.addEventListener('click', function () { if (!started) boot3D(); });
       var rc = host.getBoundingClientRect();
-      if (rc.top < (window.innerHeight || 800) + 240 && rc.bottom > -240) bootTimer = setTimeout(boot3D, 900);
+      if (!REDUCED && rc.top < (window.innerHeight || 800) + 240 && rc.bottom > -240) bootTimer = setTimeout(boot3D, 900);
       if (!('IntersectionObserver' in window)) { if (!bootTimer) setTimeout(boot3D, 900); return; }
       var io = new IntersectionObserver(function (es) {
         es.forEach(function (e) {

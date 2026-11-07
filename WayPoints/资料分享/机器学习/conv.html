@@ -124,6 +124,28 @@
       <p class="cv-note"><b>为什么值得做成三维：</b>二维动图里，"卷积"看起来只是把小方框挪来挪去；把像素值画成高度之后，乘加就变成了"这块地势有多像这个核"，右边那张图也不再是抽象格子，而是同一片地形被另一种眼光重新量了一遍。</p>
       <p style="margin-top:12px"><a href="b-cnn.html" style="color:#a9e4f7">← 回到 CNN 分支</a>　·　<a href="index.html" style="color:#a9e4f7">机器学习总览</a></p>
     </section>
+
+    <nav class="concept-nav">
+      <a href="lora.html">← 上一个：LoRA</a>
+      <a href="index.html">机器学习总览</a>
+      <a href="pool.html">下一个：池化 →</a>
+    </nav>
+    <style>
+      .concept-nav { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between;
+        margin-top: 16px; padding-top: 14px; border-top: 1px dashed rgba(127,212,239,.22); }
+      .concept-nav a { font-size: 12.5px; color: #a9e4f7; text-decoration: none; }
+      .concept-nav a:hover { text-decoration: underline; }
+      .concept-nav a:nth-child(2) { color: var(--text-muted); }
+    </style>
+    <script>
+      // 左右方向键翻页（不拦截输入框里的方向键）
+      document.addEventListener('keydown', function (e) {
+        var tag = (e.target && e.target.tagName) || '';
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+        if (e.key === 'ArrowLeft') location.href = 'lora.html';
+        if (e.key === 'ArrowRight') location.href = 'pool.html';
+      });
+    </script>
   </main>
 
   <script>
@@ -181,6 +203,14 @@
     var st = { ki: 0, playing: true, filled: -1, curV: 0 };
 
     var started = false, vis = true, bootTimer = 0;
+
+    // 标签页切走 / 窗口最小化：停掉渲染，别在后台空转
+    document.addEventListener('visibilitychange', function () {
+      vis = !document.hidden;
+    });
+    // 系统开了「减少动态效果」：默认停在第一帧，让用户自己点播放
+    var REDUCED = false;
+    try { REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
 
     function boot3D() {
       if (started) return;
@@ -420,7 +450,7 @@
       if (gate) gate.addEventListener('click', function () { if (!started) boot3D(); });
       // 首屏就能看到：直接排一个 0.9s 的延迟加载，先把文字渲染完
       var rc0 = host.getBoundingClientRect();
-      if (rc0.top < (window.innerHeight || 800) + 240 && rc0.bottom > -240) bootTimer = setTimeout(boot3D, 900);
+      if (!REDUCED && rc0.top < (window.innerHeight || 800) + 240 && rc0.bottom > -240) bootTimer = setTimeout(boot3D, 900);
       if (!('IntersectionObserver' in window)) { if (!bootTimer) setTimeout(boot3D, 900); return; }
       var io = new IntersectionObserver(function (es) {
         es.forEach(function (e) {

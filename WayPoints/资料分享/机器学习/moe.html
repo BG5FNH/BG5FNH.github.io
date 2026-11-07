@@ -110,6 +110,28 @@
       <p class="me-note"><b>看这张图的顺序：</b>先看八根柱子的高低代表门控分数 → 看只有 top-k 根亮起来 → 看 token 换一个之后，亮的是不是另外几根 → 最后看右边那条"使用次数"统计，专家的被选次数是否均匀。</p>
       <p style="margin-top:12px"><a href="b-tfm.html" style="color:#a9e4f7">← Transformer 分支</a>　·　<a href="lora.html" style="color:#9be7c4">LoRA（下一步：省显存）</a></p>
     </section>
+
+    <nav class="concept-nav">
+      <a href="vae.html">← 上一个：VAE</a>
+      <a href="index.html">机器学习总览</a>
+      <a href="lora.html">下一个：LoRA →</a>
+    </nav>
+    <style>
+      .concept-nav { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between;
+        margin-top: 16px; padding-top: 14px; border-top: 1px dashed rgba(127,212,239,.22); }
+      .concept-nav a { font-size: 12.5px; color: #a9e4f7; text-decoration: none; }
+      .concept-nav a:hover { text-decoration: underline; }
+      .concept-nav a:nth-child(2) { color: var(--text-muted); }
+    </style>
+    <script>
+      // 左右方向键翻页（不拦截输入框里的方向键）
+      document.addEventListener('keydown', function (e) {
+        var tag = (e.target && e.target.tagName) || '';
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+        if (e.key === 'ArrowLeft') location.href = 'vae.html';
+        if (e.key === 'ArrowRight') location.href = 'lora.html';
+      });
+    </script>
   </main>
 
   <script>
@@ -139,6 +161,14 @@
     }
 
     var started = false, vis = true, bootTimer = 0;
+
+    // 标签页切走 / 窗口最小化：停掉渲染，别在后台空转
+    document.addEventListener('visibilitychange', function () {
+      vis = !document.hidden;
+    });
+    // 系统开了「减少动态效果」：默认停在第一帧，让用户自己点播放
+    var REDUCED = false;
+    try { REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
 
     function boot3D() {
       if (started) return;
@@ -369,7 +399,7 @@
       var gate = document.getElementById('meGate');
       if (gate) gate.addEventListener('click', function () { if (!started) boot3D(); });
       var rc = host.getBoundingClientRect();
-      if (rc.top < (window.innerHeight || 800) + 240 && rc.bottom > -240) bootTimer = setTimeout(boot3D, 900);
+      if (!REDUCED && rc.top < (window.innerHeight || 800) + 240 && rc.bottom > -240) bootTimer = setTimeout(boot3D, 900);
       if (!('IntersectionObserver' in window)) { if (!bootTimer) setTimeout(boot3D, 900); return; }
       var io = new IntersectionObserver(function (es) {
         es.forEach(function (e) {

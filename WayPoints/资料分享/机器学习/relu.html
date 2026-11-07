@@ -110,6 +110,28 @@
       <p class="rl-note"><b>看这一页的顺序：</b>先看负的柱子在地面以下 → 看刀扫过去它们塌平 → 再点 Leaky ReLU 重跑一遍，注意地面以下还剩一层薄薄的坡，那就是"没死透"的神经元。</p>
       <p style="margin-top:12px"><a href="conv.html" style="color:#a9e4f7">← 卷积（这些正负值是哪来的）</a>　·　<a href="pool.html" style="color:#f4a6c0">池化（下一步缩图）</a>　·　<a href="b-found.html" style="color:#a9e4f7">基础构件</a></p>
     </section>
+
+    <nav class="concept-nav">
+      <a href="pool.html">← 上一个：池化</a>
+      <a href="index.html">机器学习总览</a>
+      <a href="attn.html">下一个：自注意力 →</a>
+    </nav>
+    <style>
+      .concept-nav { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between;
+        margin-top: 16px; padding-top: 14px; border-top: 1px dashed rgba(127,212,239,.22); }
+      .concept-nav a { font-size: 12.5px; color: #a9e4f7; text-decoration: none; }
+      .concept-nav a:hover { text-decoration: underline; }
+      .concept-nav a:nth-child(2) { color: var(--text-muted); }
+    </style>
+    <script>
+      // 左右方向键翻页（不拦截输入框里的方向键）
+      document.addEventListener('keydown', function (e) {
+        var tag = (e.target && e.target.tagName) || '';
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+        if (e.key === 'ArrowLeft') location.href = 'pool.html';
+        if (e.key === 'ArrowRight') location.href = 'attn.html';
+      });
+    </script>
   </main>
 
   <script>
@@ -158,6 +180,14 @@
     }
 
     var started = false, vis = true, bootTimer = 0;
+
+    // 标签页切走 / 窗口最小化：停掉渲染，别在后台空转
+    document.addEventListener('visibilitychange', function () {
+      vis = !document.hidden;
+    });
+    // 系统开了「减少动态效果」：默认停在第一帧，让用户自己点播放
+    var REDUCED = false;
+    try { REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
 
     function boot3D() {
       if (started) return;
@@ -352,7 +382,7 @@
       var gate = document.getElementById('rlGate');
       if (gate) gate.addEventListener('click', function () { if (!started) boot3D(); });
       var rc = host.getBoundingClientRect();
-      if (rc.top < (window.innerHeight || 800) + 240 && rc.bottom > -240) bootTimer = setTimeout(boot3D, 900);
+      if (!REDUCED && rc.top < (window.innerHeight || 800) + 240 && rc.bottom > -240) bootTimer = setTimeout(boot3D, 900);
       if (!('IntersectionObserver' in window)) { if (!bootTimer) setTimeout(boot3D, 900); return; }
       var io = new IntersectionObserver(function (es) {
         es.forEach(function (e) {
