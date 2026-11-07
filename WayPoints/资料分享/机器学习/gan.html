@@ -13,6 +13,11 @@
       background: radial-gradient(circle at 50% 0%, #1c1220, #06070b 82%); }
     #gnStage { display: block; width: 100%; height: 540px; touch-action: none; cursor: grab; }
     #gnStage.dragging { cursor: grabbing; }
+    .gn-labels { position: absolute; inset: 0; pointer-events: none; }
+    .gn-labels span { position: absolute; font-size: 11px; color: rgba(246,215,226,.8);
+      transform: translate(-50%, -50%); white-space: nowrap; text-shadow: 0 0 6px rgba(0,0,0,.9); }
+    .gn-labels span.real { color: #ffd9a0; }
+    .gn-labels span.fake { color: #f4a6c0; }
     .gn-hud { position: absolute; left: 10px; top: 10px; font-size: 11.5px; line-height: 1.75;
       color: #f6d7e2; background: rgba(22, 8, 16, .8); border: 1px solid rgba(244, 166, 192, .3);
       border-radius: 8px; padding: 8px 10px; pointer-events: none; }
@@ -70,6 +75,7 @@
 
       <div class="gn-wrap">
         <canvas id="gnStage"></canvas>
+        <div class="gn-labels" id="vzLabels"></div>
         <div class="gn-gate" id="gnGate">正在准备三维场景…<span>首次加载三维库约 0.6MB，只加载这一次</span></div>
         <div class="gn-hud" id="gnHud"></div>
         <div class="gn-tag" style="left:32%;top:7%">后排金 = 真实分布　前排粉 = 生成器</div>
@@ -284,6 +290,27 @@
           '覆盖到的区域：<b>' + cover + '/' + N + '</b> 格';
       }
 
+      var labelBox = document.getElementById('vzLabels');
+      var labReal = document.createElement('span'); labReal.className = 'real'; labReal.textContent = '真实分布';
+      var labFake = document.createElement('span'); labFake.className = 'fake'; labFake.textContent = '生成器';
+      labelBox.appendChild(labReal); labelBox.appendChild(labFake);
+
+      var labelBox = document.getElementById('vzLabels');
+      var tmpV = new THREE.Vector3();
+      function placeLabel(el, x, y, z, fade) {
+        var w = host.clientWidth, h = host.clientHeight;
+        tmpV.set(x, y, z).project(camera);
+        el.style.left = ((tmpV.x * 0.5 + 0.5) * w) + 'px';
+        el.style.top = ((-tmpV.y * 0.5 + 0.5) * h) + 'px';
+        el.style.opacity = (fade === undefined ? 1 : fade);
+        el.style.display = (tmpV.z > 1) ? 'none' : 'block';
+      }
+
+      function placeLabels() {
+        placeLabel(labReal, 0, 8.4, Z_REAL);
+        placeLabel(labFake, 0, 8.4, Z_FAKE);
+      }
+
       var dragging = false, lx = 0, ly = 0;
       host.addEventListener('pointerdown', function (e) {
         if (e.button !== 0) return;
@@ -351,7 +378,7 @@
             dirty = true;
           }
         }
-        if (dirty && vis) { renderer.render(scene, camera); dirty = false; }
+        if (dirty && vis) { renderer.render(scene, camera); placeLabels(); dirty = false; }
       }
       var accT = 0;
 
