@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>自注意力 · 谁在看谁 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../../";</script>
+  <link rel="stylesheet" href="../../../../assets/style.css" />
+  <style>
+    .at-lead { margin: 0 0 10px; font-size: 14px; line-height: 1.9; }
+    .at-wrap { position: relative; margin-top: 12px; border-radius: 12px; overflow: hidden;
+      border: 1px solid rgba(244, 166, 192, .28);
+      background: radial-gradient(circle at 50% 0%, #1a1420, #08070c 80%); }
+    #atStage { display: block; width: 100%; height: 470px; }
+    .at-ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; font-size: 12.5px; color: var(--text-muted); }
+    .at-chip { font: inherit; font-size: 13px; padding: 6px 14px; border-radius: 999px; cursor: pointer;
+      color: #f4c6d8; background: rgba(244,166,192,.1); border: 1px solid rgba(244,166,192,.45); }
+    .at-chip.on { background: rgba(244,166,192,.34); color: #fff; border-color: #f4a6c0; }
+    .at-eq { display: block; margin: 10px 0 0; padding: 9px 12px; border-radius: 8px; font-size: 12.5px;
+      color: #ffe4ef; background: rgba(26, 8, 18, .6); border-left: 2px solid rgba(244,166,192,.7);
+      overflow-x: auto; white-space: nowrap; }
+    .at-note { margin: 10px 0 0; padding: 11px 13px; border-radius: 10px; font-size: 12.5px; line-height: 1.85;
+      color: var(--text-muted); background: rgba(244,166,192,.05); border: 1px dashed rgba(244,166,192,.3); }
+    .at-note b { color: #f4a6c0; }
+    @media (max-width: 640px) { #atStage { height: 400px; } }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">自注意力</h1>
+    <p class="page-subtitle">机器学习 · Transformer · 一句话里，每个词都在看别的词</p>
+
+    <section class="card">
+      <p class="at-lead">一句话进门，每个词先把自己拆成三样东西：<b>Query</b>（我想找什么）、<b>Key</b>（我有什么特征）、<b>Value</b>（我实际携带的信息）。然后拿当前词的 Q 去和所有词的 K 点积——越像分越高，就是左边那张热度表。</p>
+      <p class="at-lead" style="font-size:12.5px;color:var(--text-muted)">点下面的词换个"查询者"，看它一整行怎么打分、怎么归一化、最后怎么把别人的 Value 混进自己身上。</p>
+
+      <div class="at-wrap">
+        <canvas id="atStage"></canvas>
+      </div>
+
+      <div class="at-ctrl" id="atChips"></div>
+
+      <span class="at-eq">Attention(Q,K,V) = softmax( Q·Kᵀ / √d_k ) · V</span>
+    </section>
+
+    <section class="card">
+      <h2>三张表分别在说什么</h2>
+      <p class="at-lead"><b>① 打分明细</b>（左）：一行是一个查询词，一列是被看的词。颜色越亮，说明这两个词的 Q 和 K 越对得上。这里把点积放大了一点，不然 softmax 之后几乎全是均匀的，看不出重点。</p>
+      <p class="at-lead"><b>② 注意力权重</b>（中）：把这一行做 softmax，变成加起来等于 1 的权重，就是"该看谁多一点"。真实模型里，这一行常常出现一两个很亮的峰。</p>
+      <p class="at-lead"><b>③ 新的表示</b>（右）：按权重把所有词的 Value 加权求和。于是"读"这个词的新向量里，混进了"这页"和"我们"的信息——这就是上下文。</p>
+      <p class="at-note"><b>为什么除 √d_k：</b>维度越高，点积的方差越大（大概是 d_k 倍），softmax 会被推成几乎 one-hot，梯度随之消失。除以 √d_k 把方差拉回 1 量级，注意力才"看得见多个词"。<br>
+      <b>为什么能并行：</b>上面三张表对所有词是同时算的，不像 RNN 要一个词一个词往后传。这就是 Transformer 能吃下整个序列、把 GPU 喂饱的根本原因。</p>
+      <p style="margin-top:12px"><a href="b-tfm.html" style="color:#a9e4f7">← 回到 Transformer 分支</a>　·　<a href="index.html" style="color:#a9e4f7">机器学习总览</a></p>
+    </section>
+  </main>
+
+  <script>
+  (function () {
+    'use strict';
+    var cv = document.getElementById('atStage');
+    if (!cv) return;
+    var ctx = cv.getContext('2d');
+    var chipBox = document.getElementById('atChips');
+
+    var TOK = ['我', '们', '在', '读', '这', '页'];
+    var LOC = ['我', '们', '在', '读', '这', '页'];
+    var n = 6, dk = 4;
+
+    // 固定随机向量（可复现），让每一列都有不同"性格"
+    var Q = [], K = [], V = [];
+    (function () {
+      function vec(i, salt) {
+        var out = [];
+        for (var d = 0; d < dk; d++) out.push(Math.sin((i + 1) * (d + 1) * 1.7 + salt) * 1.0);
+        return out;
+      }
+      for (var i = 0; i < n; i++) { Q.push(vec(i, 0.3)); K.push(vec(i, 1.9)); V.push(vec(i, 3.1)); }
+      // 让"这"和"页"天然更相关，读起来像个真句子
+      K[5] = Q[3].map(function (v) { return v * 0.55 + 0.22; });
+      V[5] = Q[3].map(function (v) { return -v * 0.8 + 0.2; });
+    })();
+
+    var st = { q: 3, t0: performance.now(), playing: true };
+
+    function score(i, j) {
+      var s = 0;
+      for (var d = 0; d < dk; d++) s += Q[i][d] * K[j][d];
+      return s / Math.sqrt(dk);
+    }
+    function softmaxRow(i) {
+      var raw = [], mx = -1e9;
+      for (var j = 0; j < n; j++) { var s = score(i, j) * 1.5; raw.push(s); if (s > mx) mx = s; }
+      var ex = raw.map(function (v) { return Math.exp(v - mx); });
+      var sum = ex.reduce(function (a, b) { return a + b; }, 0);
+      return ex.map(function (v) { return v / sum; });
+    }
+    function outVec(i) {
+      var w = softmaxRow(i), o = [];
+      for (var d = 0; d < dk; d++) {
+        var s = 0;
+        for (var j = 0; j < n; j++) s += w[j] * V[j][d];
+        o.push(s);
+      }
+      return o;
+    }
+
+    // 词片
+    TOK.forEach(function (t, i) {
+      var b = document.createElement('button');
+      b.className = 'at-chip' + (i === st.q ? ' on' : '');
+      b.textContent = t;
+      b.addEventListener('click', function () {
+        st.q = i; st.t0 = performance.now();
+        [].slice.call(chipBox.children).forEach(function (c, k) { c.classList.toggle('on', k === i); });
+      });
+      chipBox.appendChild(b);
+    });
+
+    function fit() {
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      var w = cv.clientWidth, h = cv.clientHeight;
+      if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
+        cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+      }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+      return { w: w, h: h };
+    }
+
+    function heat(v) {
+      // 深紫 → 亮玫红
+      var t = Math.max(0, Math.min(1, v));
+      var r = Math.round(40 + 210 * t), g = Math.round(20 + 120 * t), b = Math.round(60 + 130 * t);
+      return 'rgb(' + r + ',' + g + ',' + b + ')';
+    }
+
+    function draw() {
+      var g = fit(), w = g.w, h = g.h;
+      var top = 34;
+      var cell = Math.min(38, Math.floor((h - top - 150) / n));
+      cell = Math.max(10, cell);
+      var m = 16;
+      var mx = m + 20, my = top + 66;          // 矩阵
+      var bx = mx + cell * n + 64;             // 条形
+      var barW = Math.max(90, Math.min(170, w * 0.2));
+      var ox = bx + barW + 84;                 // 输出向量
+
+      var weights = softmaxRow(st.q);
+      var tEl = st.playing ? (performance.now() - st.t0) : 1e9;
+      var scan = Math.floor(tEl / 260) % (n + 3);   // 扫描到第几列
+
+      // ---- 说话人 / 查询者 ----
+      ctx.fillStyle = 'rgba(255,228,239,.9)';
+      ctx.font = '13px system-ui, sans-serif';
+      ctx.fillText('查询者：' + LOC[st.q] + '　（点下面的词可以换）', m, 22);
+
+      // ---- 矩阵 ----
+      ctx.fillStyle = 'rgba(244,166,192,.75)';
+      ctx.font = '11px system-ui, sans-serif';
+      ctx.fillText('Q·Kᵀ/√d 得分', mx, my - 34);
+      for (var i = 0; i < n; i++) {
+        for (var j = 0; j < n; j++) {
+          var s = score(i, j) * 1.5;
+          var v = Math.max(0, Math.min(1, (s + 3) / 6));
+          var isRow = (i === st.q);
+          ctx.fillStyle = isRow ? heat(v) : heat(v * 0.45);
+          ctx.fillRect(mx + j * cell, my + i * cell, cell - 2, cell - 2);
+          if (isRow && j === scan) {
+            ctx.strokeStyle = '#fff6e6'; ctx.lineWidth = 2;
+            ctx.strokeRect(mx + j * cell - 1, my + i * cell - 1, cell, cell);
+          }
+        }
+        // 行标签
+        ctx.fillStyle = i === st.q ? '#fff' : 'rgba(255,228,239,.55)';
+        ctx.font = (i === st.q ? 'bold ' : '') + '12px system-ui, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(LOC[i], mx - 6, my + i * cell + cell * 0.65);
+        ctx.textAlign = 'left';
+      }
+      // 列标签
+      for (var j2 = 0; j2 < n; j2++) {
+        ctx.fillStyle = j2 === scan ? '#fff6e6' : 'rgba(255,228,239,.5)';
+        ctx.font = '11px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(LOC[j2], mx + j2 * cell + cell / 2, my - 10);
+        ctx.textAlign = 'left';
+      }
+
+      // ---- softmax 条形 ----
+      ctx.fillStyle = 'rgba(244,166,192,.75)';
+      ctx.font = '11px system-ui, sans-serif';
+      ctx.fillText('softmax 权重（加起来 = 1）', bx, my - 34);
+      for (var j3 = 0; j3 < n; j3++) {
+        var y = my + j3 * cell;
+        var wv = weights[j3];
+        ctx.fillStyle = 'rgba(255,255,255,.06)';
+        ctx.fillRect(bx, y + cell * 0.18, barW, cell * 0.6);
+        var gd = ctx.createLinearGradient(bx, 0, bx + barW * wv, 0);
+        gd.addColorStop(0, 'rgba(244,166,192,.9)');
+        gd.addColorStop(1, 'rgba(255,226,160,.95)');
+        ctx.fillStyle = gd;
+        ctx.fillRect(bx, y + cell * 0.18, barW * Math.min(1, wv * 2.2), cell * 0.6);
+        ctx.fillStyle = 'rgba(255,246,230,.9)';
+        ctx.font = '11px Consolas, monospace';
+        ctx.fillText((wv * 100).toFixed(1) + '%', bx + barW + 6, y + cell * 0.62);
+        ctx.fillStyle = 'rgba(255,228,239,.6)';
+        ctx.font = '11px system-ui, sans-serif';
+        ctx.fillText(LOC[j3], bx - 26 + 0, y + cell * 0.62);
+      }
+
+      // ---- 输出向量 ----
+      var o = outVec(st.q);
+      ctx.fillStyle = 'rgba(244,166,192,.75)';
+      ctx.font = '11px system-ui, sans-serif';
+      ctx.fillText('新的表示 = Σ 权重 · V', ox, my - 34);
+      var maxAbs = 1.2;
+      for (var d = 0; d < dk; d++) {
+        var y2 = my + d * (cell * 1.3) + cell * 0.2;
+        var val = o[d] / maxAbs;
+        var half = 46;
+        ctx.fillStyle = 'rgba(255,255,255,.06)';
+        ctx.fillRect(ox, y2, half * 2, cell * 0.5);
+        ctx.fillStyle = val >= 0 ? 'rgba(127,212,239,.9)' : 'rgba(244,166,192,.9)';
+        var ww = Math.max(2, Math.min(half, Math.abs(val) * half));
+        ctx.fillRect(val >= 0 ? ox + half : ox + half - ww, y2, ww, cell * 0.5);
+        ctx.fillStyle = 'rgba(255,246,230,.75)';
+        ctx.font = '10px Consolas, monospace';
+        ctx.fillText('d' + d, ox - 22, y2 + cell * 0.4);
+      }
+
+      // ---- 底部一句话总结 ----
+      var top1 = weights.indexOf(Math.max.apply(null, weights));
+      ctx.fillStyle = 'rgba(255,228,239,.7)';
+      ctx.font = '12px system-ui, sans-serif';
+      ctx.fillText('「' + LOC[st.q] + '」最看「' + LOC[top1] + '」（' + (weights[top1] * 100).toFixed(0) + '%），其次「' + LOC[weights.indexOf(Math.max.apply(null, weights.map(function (v, k) { return k === top1 ? -1 : v; })))] + '」', m, h - 22);
+    }
+
+    var last = 0;
+    function loop(now) {
+      requestAnimationFrame(loop);
+      if (now - last < 50) return;
+      last = now;
+      draw();
+    }
+    window.addEventListener('resize', draw);
+    requestAnimationFrame(loop);
+  })();
+  </script>
+  <script src="../../../../assets/page.js"></script>
+</body>
+</html>

@@ -31,12 +31,11 @@
   <main class="page">
     <h1 class="page-title">Transformer 与大模型</h1>
     <p class="page-subtitle">机器学习 · 科技树 · 18 个节点</p>
-    <p style="margin:0 0 12px;font-size:12.5px">▶ 先看动图：<a href="viz.html#attn" style="color:#a9e4f7">自注意力</a>　·　<a href="viz.html#posenc" style="color:#a9e4f7">位置编码</a>　（<a href="viz.html" style="color:#a9e4f7">视觉实验室全部</a>）</p>
     <section class="card">
       <p>2017 年之后几乎所有进展都在这棵子树上：自注意力 → 多头 → 位置编码 → 预训练范式 → 大模型 → 对齐与高效微调。</p>
       <p class="ml-back">← 回到 <a href="index.html" style="color:#a9e4f7">机器学习总览</a></p>
         <div class="ml-node core" id="tfm"><h3>Transformer <span class="tag">核心</span></h3><p>只用注意力，不用循环：并行、可堆深、能吃海量数据。</p><p class="k">出处：Vaswani et al., NeurIPS 2017</p></div>
-        <div class="ml-node core" id="selfattn"><h3>自注意力 <span class="tag">核心</span></h3><p>Attention(Q,K,V)=softmax(QKᵀ/√d)V，任意两位置直连。</p></div>
+        <div class="ml-node core" id="selfattn"><h3>自注意力 <a href="attn.html" style="font-size:11px;color:#f4a6c0;margin-left:8px">▶ 看谁在看谁</a> <span class="tag">核心</span></h3><p>Attention(Q,K,V)=softmax(QKᵀ/√d)V，任意两位置直连。</p></div>
         <div class="ml-node main" id="mha"><h3>多头注意力</h3><p>多组 QKV 并行，学不同的关系子空间。</p></div>
         <div class="ml-node main" id="pos"><h3>位置编码</h3><p>注意力本身无序，位置信息要显式加进去（正弦 / RoPE）。</p></div>
         <div class="ml-node main" id="bert"><h3>BERT</h3><p>双向掩码预训练，NLP 进入“预训练 + 微调”时代。</p><p class="k">出处：Devlin et al., 2018</p></div>
