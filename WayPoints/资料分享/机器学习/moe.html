@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>MoE · 八个专家，每次只叫两个 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../../";</script>
+  <link rel="stylesheet" href="../../../../assets/style.css" />
+  <style>
+    .me-lead { margin: 0 0 10px; font-size: 14px; line-height: 1.9; }
+    .me-wrap { position: relative; margin-top: 12px; border-radius: 12px; overflow: hidden;
+      border: 1px solid rgba(127, 212, 239, .28);
+      background: radial-gradient(circle at 50% 0%, #0e1826, #05080c 82%); }
+    #meStage { display: block; width: 100%; height: 520px; touch-action: none; cursor: grab; }
+    #meStage.dragging { cursor: grabbing; }
+    .me-hud { position: absolute; left: 10px; top: 10px; font-size: 11.5px; line-height: 1.75;
+      color: #bfe8f6; background: rgba(6, 16, 26, .8); border: 1px solid rgba(127, 212, 239, .3);
+      border-radius: 8px; padding: 8px 10px; pointer-events: none; }
+    .me-hud b { color: #fff; }
+    .me-hud .r { color: #ffd9a0; }
+    .me-tag { position: absolute; font-size: 11px; color: rgba(191,232,246,.72); pointer-events: none; }
+    .me-tip { position: absolute; right: 10px; bottom: 10px; font-size: 11px; color: rgba(191,232,246,.75);
+      background: rgba(6,16,26,.72); border-radius: 8px; padding: 5px 9px; pointer-events: none; }
+    .me-gate { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 4px; font-size: 13px; letter-spacing: 1px; color: rgba(191,232,246,.78);
+      background: radial-gradient(circle at 50% 40%, rgba(16,28,38,.9), rgba(5,8,12,.96));
+      cursor: pointer; transition: opacity .4s; }
+    .me-gate span { font-size: 11px; opacity: .7; letter-spacing: 0; }
+    .me-ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px;
+      font-size: 12.5px; color: var(--text-muted); }
+    .me-ctrl button { font: inherit; font-size: 12.5px; padding: 7px 13px; border-radius: 999px; cursor: pointer;
+      color: #a9e4f7; background: rgba(127,212,239,.08); border: 1px solid rgba(127,212,239,.45); }
+    .me-ctrl button.on { background: rgba(244,166,192,.26); border-color: #f4a6c0; color: #fff; }
+    .me-ctrl input[type=range] { width: 120px; accent-color: #7fd4ef; }
+    .me-eq { display: block; margin: 10px 0 0; padding: 9px 12px; border-radius: 8px; font-size: 12.5px;
+      color: #d9f4ff; background: rgba(6,16,26,.6); border-left: 2px solid rgba(127,212,239,.6);
+      overflow-x: auto; white-space: nowrap; }
+    .me-note { margin: 10px 0 0; padding: 11px 13px; border-radius: 10px; font-size: 12.5px; line-height: 1.85;
+      color: var(--text-muted); background: rgba(127,212,239,.05); border: 1px dashed rgba(127,212,239,.3); }
+    .me-note b { color: #a9e4f7; }
+    .me-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+    .me-card { padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(127,212,239,.25);
+      background: rgba(127,212,239,.04); }
+    .me-card h3 { margin: 0 0 6px; font-size: 13.5px; color: #a9e4f7; }
+    .me-card p { margin: 4px 0; font-size: 12.5px; line-height: 1.8; color: var(--text-muted); }
+    @media (max-width: 640px) {
+      #meStage { height: 400px; }
+      .me-two { grid-template-columns: 1fr; }
+      .me-hud { font-size: 10.5px; padding: 6px 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">MoE</h1>
+    <p class="page-subtitle">机器学习 · LLM · 八个专家，每个 token 只叫两个</p>
+
+    <section class="card">
+      <p class="me-lead">下面八根柱子是八个专家（各自是一个前馈网络）。一个 token 进来，先由一个很小的<b>门控网络</b>给它打分，分数最高的前两名亮起来——这个 token 只经过这两个专家，其余六个一动不动。</p>
+      <p class="me-lead">所以 MoE 的账要分开算：<b>参数量 = 8 份</b>（模型容量大），<b>每个 token 的算力 = 2 份</b>（推理成本低）。这就是"参数涨十倍、算力只涨一点"的做法，也是 GPT-4、Mixtral 这类模型能塞下巨量参数的原因。</p>
+      <p class="me-lead" style="font-size:12.5px;color:var(--text-muted)">盯着门控分数看：它会变。同一句话里不同 token 走的专家并不一样——"的"和"量子"显然不该用同一套参数。但也要小心右边的失衡：如果少数专家总被选中，其他专家就白养了，所以要加一个负载均衡损失把它们拽平。</p>
+
+      <div class="me-wrap">
+        <canvas id="meStage"></canvas>
+        <div class="me-gate" id="meGate">正在准备三维场景…<span>首次加载三维库约 0.6MB，只加载这一次</span></div>
+        <div class="me-hud" id="meHud"></div>
+        <div class="me-tag" style="left:38%;top:7%">八根柱 = 八个专家，亮的才参与计算</div>
+        <div class="me-tip">左键拖动旋转 · 滚轮缩放</div>
+      </div>
+
+      <div class="me-ctrl">
+        <button id="mePlay" class="on">暂停</button>
+        <span>top-k <input type="range" id="meK" min="1" max="4" step="1" value="2" /></span>
+        <button id="meBal">负载均衡：开</button>
+        <span>速度 <input type="range" id="meSpeed" min="1" max="8" step="1" value="4" /></span>
+        <button id="meReset">重置视角</button>
+      </div>
+
+      <span class="me-eq">y = Σ_{i∈TopK} g_i · Expert_i(x)　　g = softmax(W_g · x)</span>
+    </section>
+
+    <section class="card">
+      <h2>为什么这么做划算</h2>
+      <div class="me-two">
+        <div class="me-card">
+          <h3>参数量和算力解耦</h3>
+          <p>稠密模型：参数 70B，每个 token 都要过 70B 的参数。MoE：总参数 8×，但每个 token 只过 2 个专家——显存要装下全部参数，算力只花 2/8。</p>
+        </div>
+        <div class="me-card">
+          <h3>专家会自己分工</h3>
+          <p>没人告诉它谁管语法谁管事实，训练下来自然分化：有的专家专管标点、有的专管数字、有的专管某种语言。这是稀疏激活带来的涌现分工。</p>
+        </div>
+        <div class="me-card">
+          <h3>路由塌缩是真问题</h3>
+          <p>门控一旦偏向某几个专家，它们会被训练得更好、于是更常被选中——正反馈把其余专家饿死。所以要加负载均衡损失，强行让每个专家的被选频率接近均匀。</p>
+        </div>
+        <div class="me-card">
+          <h3>工程上的麻烦</h3>
+          <p>不同 token 去不同专家，GPU 之间要 all-to-all 通信把 token 送过去再收回来。通信开销 + 负载不均，是 MoE 训练比稠密模型难的主要原因。</p>
+        </div>
+      </div>
+      <p class="me-note"><b>看这张图的顺序：</b>先看八根柱子的高低代表门控分数 → 看只有 top-k 根亮起来 → 看 token 换一个之后，亮的是不是另外几根 → 最后看右边那条"使用次数"统计，专家的被选次数是否均匀。</p>
+      <p style="margin-top:12px"><a href="b-tfm.html" style="color:#a9e4f7">← Transformer 分支</a>　·　<a href="lora.html" style="color:#9be7c4">LoRA（下一步：省显存）</a></p>
+    </section>
+  </main>
+
+  <script>
+  (function () {
+    'use strict';
+    var host = document.getElementById('meStage');
+    if (!host) return;
+    var hud = document.getElementById('meHud');
+    var btnPlay = document.getElementById('mePlay');
+    var btnReset = document.getElementById('meReset');
+    var btnBal = document.getElementById('meBal');
+    var speed = document.getElementById('meSpeed');
+    var kInput = document.getElementById('meK');
+
+    var NE = 8, GAP = 3.0, HMAX = 6.6;
+    var tokens = ['的', '量子', '卷积', '2024', 'Transformer', '吗', '梯度', '北京'];
+    var ti = 0;
+    var usage = new Float32Array(NE);
+    var balances = true;
+    var curScores = new Float32Array(NE);
+    var sel = [];
+
+    function scoreFor(t, e) {
+      // 用 token 与专家编号做一个确定性的“打分”，保证可复现又各不相同
+      var s = Math.sin((t + 1) * 12.9898 + (e + 1) * 78.233) * 43758.5453;
+      return (s - Math.floor(s));
+    }
+
+    var started = false, vis = true, bootTimer = 0;
+
+    function boot3D() {
+      if (started) return;
+      started = true;
+      var gate = document.getElementById('meGate');
+      if (gate) gate.firstChild.nodeValue = '正在载入三维库…';
+      var sc = document.createElement('script');
+      sc.src = '../../../../pc/js/three.min.js';
+      sc.async = true;
+      sc.onload = function () {
+        if (gate) { gate.style.opacity = '0'; setTimeout(function () { gate.style.display = 'none'; }, 400); }
+        initScene();
+      };
+      sc.onerror = function () { if (gate) gate.firstChild.nodeValue = '三维库没加载出来，点一下重试'; started = false; };
+      document.head.appendChild(sc);
+    }
+
+    function initScene() {
+      var renderer = new THREE.WebGLRenderer({ canvas: host, antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      var scene = new THREE.Scene();
+      var camera = new THREE.PerspectiveCamera(42, 1, 0.1, 2000);
+
+      scene.add(new THREE.AmbientLight(0x9ab6cc, 0.72));
+      var l1 = new THREE.DirectionalLight(0xffffff, 0.82); l1.position.set(-30, 80, 45); scene.add(l1);
+      var l2 = new THREE.DirectionalLight(0x7fd4ef, 0.45); l2.position.set(50, 30, -45); scene.add(l2);
+
+      var cam = { yaw: -0.34, pitch: 0.56, dist: 40 };
+      var target = new THREE.Vector3(0, 1.6, 0);
+      function updateCamera() {
+        var sp = Math.sin(cam.pitch), cp = Math.cos(cam.pitch);
+        camera.position.set(target.x + cam.dist * cp * Math.sin(cam.yaw),
+                            target.y + cam.dist * sp,
+                            target.z + cam.dist * cp * Math.cos(cam.yaw));
+        camera.lookAt(target);
+      }
+
+      var grid = new THREE.GridHelper(40, 10, 0x24404f, 0x16272f);
+      grid.position.y = -0.02;
+      scene.add(grid);
+
+      var boxGeo = new THREE.BoxGeometry(1.7, 1, 1.7);
+      boxGeo.translate(0, 0.5, 0);
+      var mesh = new THREE.InstancedMesh(boxGeo, new THREE.MeshPhongMaterial({ shininess: 45, specular: 0x223344 }), NE);
+      scene.add(mesh);
+
+      // 每个专家上方的小方块：累计被选次数（越大越高）
+      var usageGeo = new THREE.BoxGeometry(0.7, 1, 0.7);
+      usageGeo.translate(0, 0.5, 0);
+      var usageMesh = new THREE.InstancedMesh(usageGeo, new THREE.MeshPhongMaterial({ shininess: 60, specular: 0x334455 }), NE);
+      scene.add(usageMesh);
+
+      // token 方块
+      var tokGeo = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+      var tokMesh = new THREE.Mesh(tokGeo, new THREE.MeshBasicMaterial({ color: 0xfff4d0 }));
+      scene.add(tokMesh);
+
+      // 两根光束
+      var beams = [];
+      for (var b = 0; b < 4; b++) {
+        var ln = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]),
+          new THREE.LineBasicMaterial({ color: 0xffd9a0, transparent: true, opacity: 0 }));
+        scene.add(ln);
+        beams.push(ln);
+      }
+
+      var m4 = new THREE.Matrix4(), col = new THREE.Color();
+      function xOf(e) { return (e - (NE - 1) / 2) * GAP; }
+
+      function drawExperts() {
+        var k = +kInput.value;
+        for (var e = 0; e < NE; e++) {
+          var s = curScores[e] || 0;
+          var on = sel.indexOf(e) >= 0;
+          var h = 0.6 + (on ? s : 0.25 * s) * HMAX;
+          if (on) col.setRGB(0.95, 0.68, 0.45); else col.setRGB(0.14, 0.20, 0.28);
+          m4.makeScale(1, h, 1);
+          m4.setPosition(xOf(e), 0, 0);
+          mesh.setMatrixAt(e, m4);
+          mesh.setColorAt(e, col);
+        }
+        mesh.instanceMatrix.needsUpdate = true;
+        mesh.instanceColor.needsUpdate = true;
+      }
+
+      function drawUsage() {
+        var mx = 1;
+        for (var e = 0; e < NE; e++) mx = Math.max(mx, usage[e]);
+        for (var e2 = 0; e2 < NE; e2++) {
+          var h = 0.25 + (usage[e2] / mx) * 3.2;
+          var on = sel.indexOf(e2) >= 0;
+          col.setRGB(on ? 0.55 : 0.22, on ? 0.82 : 0.30, on ? 0.72 : 0.40);
+          m4.makeScale(1, h, 1);
+          m4.setPosition(xOf(e2), 0, 4.6);
+          usageMesh.setMatrixAt(e2, m4);
+          usageMesh.setColorAt(e2, col);
+        }
+        usageMesh.instanceMatrix.needsUpdate = true;
+        usageMesh.instanceColor.needsUpdate = true;
+      }
+
+      function pick() {
+        curScores = new Float32Array(NE);
+        for (var e = 0; e < NE; e++) {
+          var s = scoreFor(ti, e);
+          if (balances) s = s * 0.75 + 0.25 * (1 - usage[e] / Math.max(1, usage.reduce(function (a, b) { return a + b; }, 0) / NE + 0.001));
+          curScores[e] = Math.max(0.02, s);
+        }
+        var order = [];
+        for (var i = 0; i < NE; i++) order.push(i);
+        order.sort(function (a, b) { return curScores[b] - curScores[a]; });
+        sel = order.slice(0, +kInput.value);
+        for (var j = 0; j < sel.length; j++) usage[sel[j]] += 1;
+
+        // token 方块悬浮在上方
+        var cx = 0;
+        for (var q = 0; q < sel.length; q++) cx += xOf(sel[q]);
+        cx /= sel.length;
+        tokMesh.position.set(cx, 6.2, 0);
+
+        // 光束
+        for (var g = 0; g < beams.length; g++) {
+          var ln = beams[g];
+          if (g < sel.length) {
+            var ex = xOf(sel[g]);
+            ln.geometry.dispose();
+            ln.geometry = new THREE.BufferGeometry().setFromPoints([
+              new THREE.Vector3(cx, 5.4, 0),
+              new THREE.Vector3(ex, 0.8 + curScores[sel[g]] * HMAX * 0.9, 0)
+            ]);
+            ln.material.opacity = 0.55;
+          } else {
+            ln.material.opacity = 0;
+          }
+        }
+      }
+
+      function updHud() {
+        var s = sel.map(function (e) { return '#' + (e + 1) + '(' + (curScores[e] * 100).toFixed(0) + '%)'; }).join(' ');
+        var tot = usage.reduce(function (a, b) { return a + b; }, 0) || 1;
+        var mn = 1, mx = 0;
+        for (var i = 0; i < NE; i++) { var u = usage[i] / tot; mn = Math.min(mn, u); mx = Math.max(mx, u); }
+        hud.innerHTML = '当前 token：<b>' + tokens[ti % tokens.length] + '</b><br>' +
+          '门控选中：<b class="r">' + s + '</b><br>' +
+          '激活 <b>' + sel.length + '/' + NE + '</b> 个专家　算力 ≈ <b>' + (sel.length / NE * 100).toFixed(0) + '%</b><br>' +
+          '被选频率：最热 ' + (mx * 100).toFixed(1) + '%　最冷 ' + (mn * 100).toFixed(1) + '%（越接近越均衡）';
+      }
+
+      var dragging = false, lx = 0, ly = 0, dirty = true, playing = true;
+
+      host.addEventListener('pointerdown', function (e) {
+        if (e.button !== 0) return;
+        dragging = true; lx = e.clientX; ly = e.clientY;
+        host.classList.add('dragging');
+        if (host.setPointerCapture) host.setPointerCapture(e.pointerId);
+      });
+      host.addEventListener('pointermove', function (e) {
+        if (!dragging) return;
+        cam.yaw -= (e.clientX - lx) * 0.008;
+        cam.pitch = Math.max(0.08, Math.min(1.4, cam.pitch + (e.clientY - ly) * 0.006));
+        lx = e.clientX; ly = e.clientY;
+        updateCamera(); dirty = true;
+      });
+      host.addEventListener('pointerup', function () { dragging = false; host.classList.remove('dragging'); });
+      host.addEventListener('pointercancel', function () { dragging = false; host.classList.remove('dragging'); });
+      host.addEventListener('wheel', function (e) {
+        e.preventDefault();
+        cam.dist = Math.max(18, Math.min(100, cam.dist + e.deltaY * 0.05));
+        updateCamera(); dirty = true;
+      }, { passive: false });
+
+      btnPlay.addEventListener('click', function () {
+        playing = !playing;
+        btnPlay.textContent = playing ? '暂停' : '继续';
+        btnPlay.classList.toggle('on', playing);
+      });
+      btnReset.addEventListener('click', function () {
+        cam.yaw = -0.34; cam.pitch = 0.56; cam.dist = 40;
+        updateCamera(); dirty = true;
+      });
+      btnBal.addEventListener('click', function () {
+        balances = !balances;
+        btnBal.textContent = '负载均衡：' + (balances ? '开' : '关');
+        btnBal.classList.toggle('on', balances);
+        for (var i = 0; i < NE; i++) usage[i] = 0;
+        pick(); drawExperts(); drawUsage(); updHud(); dirty = true;
+      });
+      kInput.addEventListener('input', function () { pick(); drawExperts(); drawUsage(); updHud(); dirty = true; });
+
+      function resize() {
+        var w = host.clientWidth || 900, h = host.clientHeight || 520;
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        dirty = true;
+      }
+      window.addEventListener('resize', resize);
+
+      var last = 0;
+      function loop(now) {
+        requestAnimationFrame(loop);
+        if (!last) last = now;
+        var dt = Math.min(80, now - last);
+        last = now;
+        if (playing && vis) {
+          acc += dt;
+          var per = 1500 / (+speed.value);
+          if (acc > per) {
+            acc = 0;
+            ti++;
+            pick(); drawExperts(); drawUsage(); updHud(); dirty = true;
+          }
+        }
+        if (dirty && vis) { renderer.render(scene, camera); dirty = false; }
+      }
+      var acc = 0;
+
+      pick(); drawExperts(); drawUsage(); updHud();
+      resize(); updateCamera(); requestAnimationFrame(loop);
+
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (es) { vis = es[0].isIntersecting; }, { threshold: 0.02 }).observe(host);
+      }
+    }
+
+    // 进入视口后延迟 0.9s 再拉 three.js
+    (function () {
+      var gate = document.getElementById('meGate');
+      if (gate) gate.addEventListener('click', function () { if (!started) boot3D(); });
+      var rc = host.getBoundingClientRect();
+      if (rc.top < (window.innerHeight || 800) + 240 && rc.bottom > -240) bootTimer = setTimeout(boot3D, 900);
+      if (!('IntersectionObserver' in window)) { if (!bootTimer) setTimeout(boot3D, 900); return; }
+      var io = new IntersectionObserver(function (es) {
+        es.forEach(function (e) {
+          if (e.isIntersecting) { if (!bootTimer) bootTimer = setTimeout(function () { boot3D(); io.disconnect(); }, 900); }
+        });
+      }, { rootMargin: '240px' });
+      io.observe(host);
+    })();
+  })();
+  </script>
+  <script src="../../../../assets/page.js"></script>
+</body>
+</html>
