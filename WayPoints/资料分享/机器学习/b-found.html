@@ -32,10 +32,9 @@
     <h1 class="page-title">基础构件</h1>
     <p class="page-subtitle">机器学习 · 科技树 · 18 个节点</p>
     <section class="card">
-      <p><b>先看动画：</b><a href="viz-perceptron.html" style="color:#a9e4f7">感知机 · 折纸动画</a> —— 一张纸、一道折痕、57 个点怎么把折痕挪到正确位置。</p>
       <p>所有网络都由这几样拼出来：线性变换、激活、损失、梯度、优化器、正则化。先把这一页吃透，后面的模型都是换组合。</p>
       <p class="ml-back">← 回到 <a href="index.html" style="color:#a9e4f7">机器学习总览</a></p>
-        <div class="ml-node main" id="found"><h3>基础构件</h3><p>所有网络都由这几样拼出来：线性变换、激活、损失、梯度、优化。</p></div>
+        <div class="ml-node core" id="mlp"><h3>多层感知机 <span class="tag">核心</span></h3><p>把感知机叠成层、把阶跃换成可导激活，就能拟合曲线。学习的第二步：从一条直线到折线。</p><p class="k">出处：Rumelhart et al., 1986</p></div>
         <div class="ml-node main" id="linear"><h3>线性层</h3><p>y = Wx + b，网络的“乘法”部分。</p></div>
         <div class="ml-node main" id="act"><h3>激活函数</h3><p>给网络引入非线性，没有它叠多少层都等价于一层线性变换。</p></div>
         <div class="ml-node main" id="relu"><h3>ReLU</h3><p>max(0,x)：便宜、不饱和，深层网络能训起来的关键。</p><p class="k">出处：Nair & Hinton, 2010</p></div>
