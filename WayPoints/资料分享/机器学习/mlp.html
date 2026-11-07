@@ -48,6 +48,11 @@
     .ml-card2 p { margin: 4px 0; font-size: 12.5px; line-height: 1.75; color: var(--text-muted); }
 
     /* 国界线折纸（首页主画面） */
+    .cf-gate { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 4px; font-size: 13px; letter-spacing: 1px; color: rgba(191,232,246,.78);
+      background: radial-gradient(circle at 50% 40%, rgba(16,28,38,.9), rgba(5,8,12,.96));
+      cursor: pointer; transition: opacity .4s; }
+    .cf-gate span { font-size: 11px; opacity: .7; letter-spacing: 0; }
     .fc-wrap { position: relative; margin: 12px 0 0; border-radius: 12px; overflow: hidden;
       border: 1px solid rgba(127, 212, 239, 0.3);
       background: radial-gradient(circle at 50% 15%, #12222e, #070f16 78%); }
@@ -104,6 +109,7 @@
 
       <div class="fc-wrap">
         <canvas id="cfStage"></canvas>
+        <div class="cf-gate" id="cfGate">正在准备三维场景…<span>首次加载三维库约 0.6MB，只加载这一次</span></div>
         <div class="fc-hud" id="cfHud"></div>
         <div class="fc-legend">
           <div><i style="background:#f5e3b6"></i>折出来的国界（纸面与阈值面的交线）</div>
@@ -163,14 +169,13 @@
     </section>
   </main>
 
-  <script src="../../../../pc/js/three.min.js"></script>
   <script src="country-data.js"></script>
   <script>
-(function () {
+window.__bootCountry = function () {
     'use strict';
     var D = window.FOLD_COUNTRY;
     var host = document.getElementById('cfStage');
-    if (!D || !host || !window.THREE) return;
+    if (!D || !host) return;
 
     var hud = document.getElementById('cfHud');
     var btnLeft = document.getElementById('cfLeft');
@@ -765,9 +770,45 @@
     window.__cfDebug = function () {
       return { n: feats.length, iou: iou, rmse: rmse };
     };
-  })();
+  };
+
+    // three.js 按需加载：进视口后延迟 0.9s，先让文字画出来
+    (function () {
+      var started = false, bootTimer = 0;
+      var host = document.getElementById('cfStage');
+      if (!host) return;
+      function boot() {
+        if (started) return;
+        started = true;
+        var gate = document.getElementById('cfGate');
+        if (gate) gate.firstChild.nodeValue = '正在载入三维库…';
+        var sc = document.createElement('script');
+        sc.src = '../../../../pc/js/three.min.js';
+        sc.async = true;
+        sc.onload = function () {
+          if (gate) { gate.style.opacity = '0'; setTimeout(function () { gate.style.display = 'none'; }, 400); }
+          window.__bootCountry();
+        };
+        sc.onerror = function () {
+          if (gate) gate.firstChild.nodeValue = '三维库没加载出来，点一下重试';
+          started = false;
+        };
+        document.head.appendChild(sc);
+      }
+      var gate = document.getElementById('cfGate');
+      if (gate) gate.addEventListener('click', function () { boot(); });
+      var rc = host.getBoundingClientRect();
+      if (rc.top < (window.innerHeight || 800) + 240 && rc.bottom > -240) bootTimer = setTimeout(boot, 900);
+      if (!('IntersectionObserver' in window)) { if (!bootTimer) setTimeout(boot, 900); return; }
+      var io = new IntersectionObserver(function (es) {
+        es.forEach(function (e) {
+          if (e.isIntersecting) { if (!bootTimer) bootTimer = setTimeout(function () { boot(); io.disconnect(); }, 900); }
+        });
+      }, { rootMargin: '240px' });
+      io.observe(host);
+    })();
   </script>
-  
+
   <script src="../../../../assets/page.js"></script>
 </body>
 </html>
