@@ -111,6 +111,8 @@
       <p style="margin-top:12px"><a href="conv.html" style="color:#a9e4f7">← 卷积（这些正负值是哪来的）</a>　·　<a href="pool.html" style="color:#f4a6c0">池化（下一步缩图）</a>　·　<a href="b-found.html" style="color:#a9e4f7">基础构件</a></p>
     </section>
 
+        <p class="rl-note" style="margin-top:14px"><b>常见误解：</b>ReLU 不是"把负的变零"这么简单就完事了。它最大的功劳是<b>让梯度在正区间保持不变</b>；如果只为了非线性，用 sigmoid 也能做，但深层网络训不动。</p>
+
     <nav class="concept-nav">
       <a href="pool.html">← 上一个：池化</a>
       <a href="index.html">机器学习总览</a>

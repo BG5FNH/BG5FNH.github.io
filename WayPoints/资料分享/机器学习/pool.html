@@ -109,6 +109,8 @@
       <p style="margin-top:12px"><a href="conv.html" style="color:#f4a6c0">← 上一页：卷积（滑窗扫出新的浮雕）</a>　·　<a href="b-cnn.html" style="color:#a9e4f7">CNN 分支</a></p>
     </section>
 
+        <p class="pl-note" style="margin-top:14px"><b>常见误解：</b>池化不是必须的。很多现代 CNN 用 stride=2 的卷积直接下采样（ResNet、ConvNeXt 都是这么干的），池化层正在变少——它省算力的作用被"带步长的卷积"接手了。</p>
+
     <nav class="concept-nav">
       <a href="conv.html">← 上一个：卷积</a>
       <a href="index.html">机器学习总览</a>
@@ -296,8 +298,12 @@
           if (vv2 > wv) { wv = vv2; wi = ii2; wj = jj2; }
         }
         st.win = [wi, wj, wv];
-        winBox.position.set(INX + (wj - (N - 1) / 2) * GAP, 0.1 + wv * H_IN, (wi - (N - 1) / 2) * GAP);
-        winBox.scale.y = 0.1 + wv * H_IN;
+        // 空白块（最大值≈0）就没必要标出来
+        winBox.visible = wv > 0.02;
+        if (winBox.visible) {
+          winBox.position.set(INX + (wj - (N - 1) / 2) * GAP, 0.1 + wv * H_IN, (wi - (N - 1) / 2) * GAP);
+          winBox.scale.y = 0.1 + wv * H_IN;
+        }
         cOut.setRGB(0.95, 0.62, 0.72);
         put(outMesh, st.filled, OUTX + (j2 - (M - 1) / 2) * GAP, (i2 - (M - 1) / 2) * GAP, 0.1 + v * H_OUT, cOut);
         outMesh.instanceMatrix.needsUpdate = true;

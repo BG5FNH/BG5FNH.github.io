@@ -110,6 +110,8 @@
       <p style="margin-top:12px"><a href="moe.html" style="color:#a9e4f7">← MoE（省算力）</a>　·　<a href="b-tfm.html" style="color:#f4a6c0">Transformer 分支</a></p>
     </section>
 
+        <p class="lr-note" style="margin-top:14px"><b>常见误解：</b>LoRA 省的不只是参数，主要是<b>优化器状态</b>。全量微调 7B 模型光 Adam 动量就要几十 GB，LoRA 把可训练参数砍到千分之一，显存才降得下来。</p>
+
     <nav class="concept-nav">
       <a href="moe.html">← 上一个：MoE</a>
       <a href="index.html">机器学习总览</a>

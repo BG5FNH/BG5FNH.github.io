@@ -230,11 +230,20 @@
       var sampleMesh = new THREE.Mesh(sampleGeo, new THREE.MeshBasicMaterial({ color: 0xfff4d0, depthTest: false, transparent: true, opacity: 0.95 }));
       sampleMesh.renderOrder = 5;
       scene.add(sampleMesh);
-      var arrow = new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(0, 0.1, 0)]),
-        new THREE.LineBasicMaterial({ color: 0xffd9a0 })
-      );
-      scene.add(arrow);
+      // 从 μ 指向 z 的箭头：一根细杆 + 一个锥头
+      var arrowMat = new THREE.MeshBasicMaterial({ color: 0xffd9a0 });
+      var arrowRod = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1, 8), arrowMat);
+      arrowRod.geometry.translate(0, 0.5, 0);
+      var arrowHead = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.55, 10), arrowMat);
+      scene.add(arrowRod); scene.add(arrowHead);
+      // 采样方向：悬在整片丘陵上方的一条亮线（从 μ 指向 z，长度放大 2.5 倍便于观察）
+      var arrowLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(0, 0.1, 0)]),
+        new THREE.LineBasicMaterial({ color: 0xffd9a0, depthTest: false, transparent: true, opacity: 0.95 }));
+      arrowLine.renderOrder = 7;
+      scene.add(arrowLine);
+      var muDot = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), new THREE.MeshBasicMaterial({ color: 0x9be7c4, depthTest: false }));
+      muDot.renderOrder = 7;
+      scene.add(muDot);
 
       function rebuild() {
         for (var i = 0; i < NG; i++) {
@@ -270,11 +279,13 @@
         var h = 0.4 + density(sx, sz) * HMAX * 0.8;
         sampleMesh.position.set(sx, 0, sz);
         sampleMesh.scale.set(1, h, 1);
-        // 从 μ 指向 z 的箭头
-        arrow.geometry.dispose();
-        arrow.geometry = new THREE.BufferGeometry().setFromPoints([
-          new THREE.Vector3(muX, h + 0.2, muZ),
-          new THREE.Vector3(sx, h + 0.2, sz)
+        // 从 μ 指向 z 的箭头（杆 + 锥头）
+        var yTop = 8.2;
+        muDot.position.set(muX, yTop, muZ);
+        arrowLine.geometry.dispose();
+        arrowLine.geometry = new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(muX, yTop, muZ),
+          new THREE.Vector3(muX + (sx - muX) * 3.2, yTop, muZ + (sz - muZ) * 3.2)
         ]);
         return { muX: muX, muZ: muZ };
       }
