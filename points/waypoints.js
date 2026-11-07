@@ -201,6 +201,8 @@ window.BG5FNH_WAYPOINTS = {
             universeBg: '#06101a',
             universePoints: [
               { key: 'ptron', path: 'ptron', name: '感知机', pos: [0.00, -0.77], scale: 1.15, labelScale: 1, color: '#e8f7fd', lineColor: '#7fb8cf', url: '资料分享/机器学习/index.html' },
+              // 可视化入口：放在感知机左边，点进去是折纸动画
+              { key: 'viz', path: 'viz', parent: 'ptron', name: '折纸动画', pos: [-2.4, -0.77], scale: 0.86, labelScale: 0.95, color: '#ffe6a7', lineColor: '#b59a68', url: '资料分享/机器学习/viz-perceptron.html' },
               { key: 'found', path: 'found', parent: 'ptron', name: '基础构件', pos: [3.60, 12.10], scale: 0.78, labelScale: 0.9, color: '#7fd4ef', lineColor: '#4f8ea8', url: '资料分享/机器学习/b-found.html#found' },
               { key: 'linear', path: 'linear', parent: 'found', name: '线性层', pos: [7.20, 14.52], scale: 0.78, labelScale: 0.9, color: '#7fd4ef', lineColor: '#4f8ea8', url: '资料分享/机器学习/b-found.html#linear' },
               { key: 'act', path: 'act', parent: 'found', name: '激活函数', pos: [7.20, 13.86], scale: 0.78, labelScale: 0.9, color: '#7fd4ef', lineColor: '#4f8ea8', url: '资料分享/机器学习/b-found.html#act' },
