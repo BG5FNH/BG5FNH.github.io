@@ -13,6 +13,10 @@
       background: radial-gradient(circle at 50% 0%, #0e1826, #05080c 82%); }
     #meStage { display: block; width: 100%; height: 520px; touch-action: none; cursor: grab; }
     #meStage.dragging { cursor: grabbing; }
+    .me-labels { position: absolute; inset: 0; pointer-events: none; }
+    .me-labels span { position: absolute; font-size: 11px; color: rgba(191,232,246,.72);
+      transform: translate(-50%, -50%); white-space: nowrap; text-shadow: 0 0 6px rgba(0,0,0,.9); }
+    .me-labels span.on { color: #ffd9a0; }
     .me-hud { position: absolute; left: 10px; top: 10px; font-size: 11.5px; line-height: 1.75;
       color: #bfe8f6; background: rgba(6, 16, 26, .8); border: 1px solid rgba(127, 212, 239, .3);
       border-radius: 8px; padding: 8px 10px; pointer-events: none; }
@@ -70,6 +74,7 @@
 
       <div class="me-wrap">
         <canvas id="meStage"></canvas>
+        <div class="me-labels" id="vzLabels"></div>
         <div class="me-gate" id="meGate">正在准备三维场景…<span>首次加载三维库约 0.6MB，只加载这一次</span></div>
         <div class="me-hud" id="meHud"></div>
         <div class="me-tag" style="left:38%;top:7%">八根柱 = 八个专家，亮的才参与计算</div>
@@ -317,6 +322,34 @@
           '被选频率：最热 ' + (mx * 100).toFixed(1) + '%　最冷 ' + (mn * 100).toFixed(1) + '%（越接近越均衡）';
       }
 
+      // 专家编号
+      var labelBox = document.getElementById('vzLabels');
+      var experts = [];
+      for (var ei = 0; ei < NE; ei++) {
+        var el = document.createElement('span');
+        el.textContent = '#' + (ei + 1);
+        labelBox.appendChild(el);
+        experts.push(el);
+      }
+
+      var labelBox = document.getElementById('vzLabels');
+      var tmpV = new THREE.Vector3();
+      function placeLabel(el, x, y, z, fade) {
+        var w = host.clientWidth, h = host.clientHeight;
+        tmpV.set(x, y, z).project(camera);
+        el.style.left = ((tmpV.x * 0.5 + 0.5) * w) + 'px';
+        el.style.top = ((-tmpV.y * 0.5 + 0.5) * h) + 'px';
+        el.style.opacity = (fade === undefined ? 1 : fade);
+        el.style.display = (tmpV.z > 1) ? 'none' : 'block';
+      }
+
+      function placeLabels() {
+        for (var i = 0; i < NE; i++) {
+          placeLabel(experts[i], xOf(i), 7.4, 0, sel.indexOf(i) >= 0 ? 1 : 0.4);
+          experts[i].className = sel.indexOf(i) >= 0 ? 'on' : '';
+        }
+      }
+
       var dragging = false, lx = 0, ly = 0, dirty = true, playing = true;
 
       host.addEventListener('pointerdown', function (e) {
@@ -382,7 +415,7 @@
             pick(); drawExperts(); drawUsage(); updHud(); dirty = true;
           }
         }
-        if (dirty && vis) { renderer.render(scene, camera); dirty = false; }
+        if (dirty && vis) { renderer.render(scene, camera); placeLabels(); dirty = false; }
       }
       var acc = 0;
 

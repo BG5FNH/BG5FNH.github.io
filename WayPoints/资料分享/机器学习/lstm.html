@@ -13,6 +13,11 @@
       background: radial-gradient(circle at 50% 0%, #0e1a17, #05080a 82%); }
     #lsStage { display: block; width: 100%; height: 540px; touch-action: none; cursor: grab; }
     #lsStage.dragging { cursor: grabbing; }
+    .ls-labels { position: absolute; inset: 0; pointer-events: none; }
+    .ls-labels span { position: absolute; font-size: 11px; color: rgba(205,238,224,.8);
+      transform: translate(-50%, -50%); white-space: nowrap; text-shadow: 0 0 6px rgba(0,0,0,.9); }
+    .ls-labels span.c { color: #9be7c4; }
+    .ls-labels span.h { color: #f4c6d8; }
     .ls-hud { position: absolute; left: 10px; top: 10px; font-size: 11.5px; line-height: 1.75;
       color: #cdeee0; background: rgba(6, 18, 14, .8); border: 1px solid rgba(155, 231, 196, .3);
       border-radius: 8px; padding: 8px 10px; pointer-events: none; }
@@ -74,6 +79,7 @@
 
       <div class="ls-wrap">
         <canvas id="lsStage"></canvas>
+        <div class="ls-labels" id="vzLabels"></div>
         <div class="ls-gate" id="lsGate">正在准备三维场景…<span>首次加载三维库约 0.6MB，只加载这一次</span></div>
         <div class="ls-hud" id="lsHud"></div>
         <div class="ls-tag" style="left:34%;top:7%">上排 = 记忆 C（传送带）　下排 = 输出 h</div>
@@ -305,6 +311,30 @@
           '记忆 C=<b class="r">' + CS[t].toFixed(2) + '</b>　输出 h=<b>' + HS[t].toFixed(2) + '</b><br>';
       }
 
+      // 两行标签
+      var labelBox = document.getElementById('vzLabels');
+      var labC = document.createElement('span'); labC.className = 'c'; labC.textContent = '记忆 C';
+      var labH = document.createElement('span'); labH.className = 'h'; labH.textContent = '输出 h';
+      var labT = document.createElement('span'); labT.textContent = '时间 t →';
+      labelBox.appendChild(labC); labelBox.appendChild(labH); labelBox.appendChild(labT);
+
+      var labelBox = document.getElementById('vzLabels');
+      var tmpV = new THREE.Vector3();
+      function placeLabel(el, x, y, z, fade) {
+        var w = host.clientWidth, h = host.clientHeight;
+        tmpV.set(x, y, z).project(camera);
+        el.style.left = ((tmpV.x * 0.5 + 0.5) * w) + 'px';
+        el.style.top = ((-tmpV.y * 0.5 + 0.5) * h) + 'px';
+        el.style.opacity = (fade === undefined ? 1 : fade);
+        el.style.display = (tmpV.z > 1) ? 'none' : 'block';
+      }
+
+      function placeLabels() {
+        placeLabel(labC, 0, 9.2, C0);
+        placeLabel(labH, 0, 9.2, H0);
+        placeLabel(labT, -(T * GAP) / 2 - 2.6, 0.8, C0, 0.55);
+      }
+
       var dragging = false, lx = 0, ly = 0;
       host.addEventListener('pointerdown', function (e) {
         if (e.button !== 0) return;
@@ -368,7 +398,7 @@
             dirty = true;
           }
         }
-        if (dirty && vis) { renderer.render(scene, camera); dirty = false; }
+        if (dirty && vis) { renderer.render(scene, camera); placeLabels(); dirty = false; }
       }
 
       function resetAll() {
