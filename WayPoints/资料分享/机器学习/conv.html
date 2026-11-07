@@ -3,20 +3,35 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>卷积 · 滑窗是怎么扫出特征图的 - BG5FNH</title>
+  <title>卷积 · 滑窗扫出一张新的三维图 - BG5FNH</title>
   <script>window.BG5FNH_ROOT = "../../../../";</script>
   <link rel="stylesheet" href="../../../../assets/style.css" />
   <style>
     .cv-lead { margin: 0 0 10px; font-size: 14px; line-height: 1.9; }
     .cv-wrap { position: relative; margin-top: 12px; border-radius: 12px; overflow: hidden;
       border: 1px solid rgba(127, 212, 239, .3);
-      background: radial-gradient(circle at 50% 0%, #121e2a, #06090f 80%); }
-    #cvStage { display: block; width: 100%; height: 480px; }
-    .cv-ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; font-size: 12.5px; color: var(--text-muted); }
+      background: radial-gradient(circle at 50% 0%, #101c28, #05080d 82%); }
+    #cvStage { display: block; width: 100%; height: 560px; touch-action: none; cursor: grab; }
+    #cvStage.dragging { cursor: grabbing; }
+    .cv-hud { position: absolute; left: 10px; top: 10px; font-size: 11.5px; line-height: 1.75;
+      color: #bfe8f6; background: rgba(6, 16, 26, .8); border: 1px solid rgba(127, 212, 239, .3);
+      border-radius: 8px; padding: 8px 10px; pointer-events: none; }
+    .cv-hud b { color: #fff; }
+    .cv-hud .r { color: #f4a6c0; }
+    .cv-hud .g { color: #ffd9a0; }
+    .cv-legend { position: absolute; left: 10px; bottom: 10px; font-size: 11px; line-height: 1.7;
+      color: rgba(200, 216, 228, .72); pointer-events: none; }
+    .cv-legend i { display: inline-block; width: 13px; height: 3px; border-radius: 2px;
+      margin-right: 5px; vertical-align: 3px; }
+    .cv-tag { position: absolute; font-size: 11px; color: rgba(191,232,246,.72); pointer-events: none; letter-spacing: .3px; }
+    .cv-tip { position: absolute; right: 10px; bottom: 10px; font-size: 11px; color: rgba(191,232,246,.78);
+      background: rgba(6,16,26,.72); border-radius: 8px; padding: 5px 9px; pointer-events: none; }
+    .cv-ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px;
+      font-size: 12.5px; color: var(--text-muted); }
     .cv-ctrl button { font: inherit; font-size: 12.5px; padding: 7px 13px; border-radius: 999px; cursor: pointer;
       color: #a9e4f7; background: rgba(127,212,239,.08); border: 1px solid rgba(127,212,239,.45); }
     .cv-ctrl button.on { background: rgba(244,166,192,.24); border-color: #f4a6c0; color: #fff; }
-    .cv-ctrl input[type=range] { width: 130px; accent-color: #f4a6c0; }
+    .cv-ctrl input[type=range] { width: 120px; accent-color: #f4a6c0; }
     .cv-eq { display: block; margin: 10px 0 0; padding: 9px 12px; border-radius: 8px; font-size: 12.5px;
       color: #d9f4ff; background: rgba(6,16,26,.6); border-left: 2px solid rgba(127,212,239,.6);
       overflow-x: auto; white-space: nowrap; }
@@ -29,8 +44,9 @@
     .cv-card h3 { margin: 0 0 6px; font-size: 13.5px; color: #a9e4f7; }
     .cv-card p { margin: 4px 0; font-size: 12.5px; line-height: 1.8; color: var(--text-muted); }
     @media (max-width: 640px) {
-      #cvStage { height: 380px; }
+      #cvStage { height: 420px; }
       .cv-two { grid-template-columns: 1fr; }
+      .cv-hud { font-size: 10.5px; padding: 6px 8px; }
     }
   </style>
 </head>
@@ -45,14 +61,24 @@
 
   <main class="page">
     <h1 class="page-title">卷积</h1>
-    <p class="page-subtitle">机器学习 · CNN · 一个小窗口，把图扫成另一张图</p>
+    <p class="page-subtitle">机器学习 · CNN · 左边一张三维的图，卷积核扫过之后，右边长出一张新的</p>
 
     <section class="card">
-      <p class="cv-lead">左边是输入图，中间那个 3×3 的方框是<b>卷积核</b>，右边是它扫出来的<b>特征图</b>。窗口每挪一格，就把盖住的 9 个像素和核里 9 个数字逐位相乘再相加，得到一个数，写进右边对应的格子。</p>
-      <p class="cv-lead" style="font-size:12.5px;color:var(--text-muted)">换核看看：竖线核只对竖直边缘发亮，横线核只对横向边缘发亮，模糊核把细节抹平。换完你会发现右边那张图完全变了——同一张输入，不同的核看不同的东西。</p>
+      <p class="cv-lead">左边那 784 个方块是用来认字的输入：<b>每个方块的高度和亮度都是这一格的像素值</b>，笔画的地方高、背景的地方几乎贴地——所以它看起来像一块刻出来的浮雕。这里写的是数字 3。</p>
+      <p class="cv-lead">中间那个半透明的方框是 <b>3×3 的卷积核</b>。它一格一格扫过去，每停一次就把盖住的 9 个高度按权重加起来，往右边同一个位置放一根新方块。扫完 26×26 次，右边的第二张浮雕就长好了。</p>
+      <p class="cv-lead" style="font-size:12.5px;color:var(--text-muted)">换个核看：竖线核只把竖直的笔画顶起来，横线核只认横的，边缘核把轮廓勾出来，模糊核把整个数字压平。左边一动不动，右边完全是另一个样子。</p>
 
       <div class="cv-wrap">
         <canvas id="cvStage"></canvas>
+        <div class="cv-hud" id="cvHud"></div>
+        <div class="cv-tag" style="left:27%;top:9%">输入 28×28 · 高度 = 像素亮度</div>
+        <div class="cv-tag" style="left:62%;top:9%">特征图 26×26 · 高度 ∝ |Σ|</div>
+        <div class="cv-legend">
+          <div><i style="background:#ffd9a0"></i>输入像素（高度 = 亮度）</div>
+          <div><i style="background:#f4a6c0"></i>卷积输出（正值）</div>
+          <div><i style="background:#5fb7d4"></i>卷积输出（负值）</div>
+        </div>
+        <div class="cv-tip">左键拖动旋转 · 滚轮缩放</div>
       </div>
 
       <div class="cv-ctrl">
@@ -62,220 +88,301 @@
         <button id="cvK2">边缘核</button>
         <button id="cvK3">模糊核</button>
         <span>速度 <input type="range" id="cvSpeed" min="1" max="8" step="1" value="4" /></span>
+        <button id="cvReset">重置视角</button>
       </div>
 
-      <span class="cv-eq">out[i,j] = Σₘ Σₙ img[i+m, j+n] · k[m,n]　（m,n ∈ 0..2）</span>
+      <span class="cv-eq">out[i,j] = Σₘ Σₙ img[i+m, j+n] · k[m,n]　（m,n ∈ 0…2）</span>
     </section>
 
     <section class="card">
-      <h2>为什么这一招厉害</h2>
+      <h2>这一步到底在算什么</h2>
+      <p class="cv-lead">把 3×3 的窗口摊平看，就是九次乘法加一次求和。核里的数字是固定的，像素是变动的；窗口滑到哪儿，这一串乘加就算到哪儿。</p>
+      <span class="cv-eq">Σ = 0.0×(−1) + 0.8×2 + 0.1×(−1) + …　结果见左上角实时数值</span>
       <div class="cv-two">
         <div class="cv-card">
-          <h3>参数共享</h3>
-          <p>整张图共用这 9 个数字。20×20 的图接全连接层要 400 个权重，3×3 卷积只要 9 个——而且图变大，参数量不变。</p>
+          <h3>为什么参数这么少</h3>
+          <p>整张图共用这 9 个数字。784 个像素如果直接接全连接层，第一层就要几十万个权重；卷一层只要 9 个。图变得更大，参数量也不变。</p>
         </div>
         <div class="cv-card">
-          <h3>平移不变</h3>
-          <p>竖线出现在左上还是右下，用的都是同一个核，特征图里都会亮。所以 CNN 天生不关心物体在哪。</p>
+          <h3>为什么平移不影响</h3>
+          <p>竖线在左上角还是右下角，用的都是同一个核，右边的浮雕里都会亮。CNN 不需要被告知"东西在哪"，它只关心"这里有没有这种纹理"。</p>
         </div>
         <div class="cv-card">
-          <h3>堆叠 = 看得更广</h3>
-          <p>一个 3×3 只看 3×3。两层 3×3 就看 5×5，三层看 7×7。感受野是这么一层层涨上去的，不用更大的核。</p>
+          <h3>为什么堆得越深看得越广</h3>
+          <p>一个 3×3 只看 3×3。两层看 5×5，三层看 7×7，到十几层就覆盖整张图。感受野是这么一层层涨上去的，不必用更大的核。</p>
         </div>
         <div class="cv-card">
-          <h3>通道 = 很多张特征图</h3>
-          <p>真实网络一层有 64、256 个核，输出就是 64 张特征图叠在一起。每个核负责一种"看法"。</p>
+          <h3>后面紧跟着什么</h3>
+          <p>现实中卷积后面会接 ReLU（负值归零），再池化（2×2 取最大，尺寸减半）。堆几轮之后特征图越来越小、通道越来越多，最后接一层全连接输出 0–9 的概率。</p>
         </div>
       </div>
-      <p class="cv-note"><b>和全连接的分水岭：</b>全连接把图拉平成一维向量，邻接关系就没了；卷积保留二维结构，还只让邻近像素参与运算。这就是为什么 CNN 在图像上一直赢——直到 ViT 用足够多的数据把"位置关系"重新学了回来。</p>
-    </section>
-
-    <section class="card">
-      <h2>接下来会发生什么</h2>
-      <p class="cv-lead">卷积之后通常跟三步：<b>ReLU</b>（负值清零，只留"这里有多像"）→ <b>池化</b>（2×2 取最大，图缩小一半）→ 重复。下面这张图右侧正在做 2×2 最大池化，方框里的四个数只留最大的那个。</p>
+      <p class="cv-note"><b>为什么值得做成三维：</b>二维动图里，"卷积"看起来只是把小方框挪来挪去；把像素值画成高度之后，乘加就变成了"这块地势有多像这个核"，右边那张图也不再是抽象格子，而是同一片地形被另一种眼光重新量了一遍。</p>
       <p style="margin-top:12px"><a href="b-cnn.html" style="color:#a9e4f7">← 回到 CNN 分支</a>　·　<a href="index.html" style="color:#a9e4f7">机器学习总览</a></p>
     </section>
   </main>
 
+  <script src="../../../../pc/js/three.min.js"></script>
   <script>
   (function () {
     'use strict';
-    var cv = document.getElementById('cvStage');
-    if (!cv) return;
-    var ctx = cv.getContext('2d');
+    var host = document.getElementById('cvStage');
+    if (!host || !window.THREE) return;
+    var hud = document.getElementById('cvHud');
     var btnPlay = document.getElementById('cvPlay');
+    var btnReset = document.getElementById('cvReset');
     var speed = document.getElementById('cvSpeed');
     var kBtns = [0, 1, 2, 3].map(function (i) { return document.getElementById('cvK' + i); });
 
-    var N = 20;                  // 输入 20×20
-    var OUT = N - 2;             // 输出 18×18
+    var N = 28;
+    var OUT = N - 2;
+    var GAP = 1.06;
+    var H_IN = 4.6;
+    var H_OUT = 3.8;
+
+    // 用真字体画一个数字，读成 28×28 灰度
+    var IMG = (function () {
+      var c = document.createElement('canvas');
+      c.width = 112; c.height = 112;
+      var g = c.getContext('2d');
+      g.fillStyle = '#000'; g.fillRect(0, 0, 112, 112);
+      g.save();
+      g.translate(56, 60);
+      g.rotate(-0.06);
+      g.fillStyle = '#fff';
+      g.font = 'bold 84px "Times New Roman", serif';
+      g.textAlign = 'center';
+      g.textBaseline = 'middle';
+      g.fillText('3', 0, 0);
+      g.restore();
+      var small = document.createElement('canvas');
+      small.width = N; small.height = N;
+      var sctx = small.getContext('2d');
+      sctx.drawImage(c, 0, 0, N, N);
+      var data = sctx.getImageData(0, 0, N, N).data;
+      var a = new Float32Array(N * N);
+      for (var i = 0; i < N * N; i++) {
+        var v = data[i * 4] / 255;
+        a[i] = v < 0.12 ? 0 : Math.pow(v, 1.25);
+      }
+      return a;
+    })();
+
     var KERNELS = [
       { name: '竖线核', k: [[-1, 2, -1], [-1, 2, -1], [-1, 2, -1]] },
       { name: '横线核', k: [[-1, -1, -1], [2, 2, 2], [-1, -1, -1]] },
       { name: '边缘核', k: [[-1, -1, -1], [-1, 8, -1], [-1, -1, -1]] },
       { name: '模糊核', k: [[1 / 9, 1 / 9, 1 / 9], [1 / 9, 1 / 9, 1 / 9], [1 / 9, 1 / 9, 1 / 9]] }
     ];
-    var st = { ki: 0, playing: true, idx: 0, t0: performance.now(), acc: 0 };
 
-    // 造一张有竖线、横线、斜线的 20×20 图
-    var IMG = (function () {
-      var a = new Float32Array(N * N);
-      for (var i = 0; i < N; i++) for (var j = 0; j < N; j++) {
-        var v = 0.10;
-        if (Math.abs(j - 6) < 1.0) v = 0.95;                       // 竖线
-        if (Math.abs(i - 13) < 1.0 && j > 3 && j < 16) v = 0.9;    // 横线
-        if (Math.abs((i - j) - 4) < 1.1 && i > 6) v = 0.65;        // 斜线
-        if (i < 3 && j < 3) v = 0.5;
-        a[i * N + j] = v;
+    var st = { ki: 0, playing: true, filled: -1, curV: 0 };
+
+    var renderer = new THREE.WebGLRenderer({ canvas: host, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(42, 1, 0.1, 2000);
+
+    scene.add(new THREE.AmbientLight(0x9ab6cc, 0.72));
+    var d1 = new THREE.DirectionalLight(0xfff0d8, 0.85); d1.position.set(-40, 70, 55); scene.add(d1);
+    var d2 = new THREE.DirectionalLight(0x7fd4ef, 0.45); d2.position.set(60, 40, -50); scene.add(d2);
+
+    var cam = { yaw: -0.5, pitch: 0.70, dist: 66 };
+    var target = new THREE.Vector3(0, 2.1, 0);
+    function updateCamera() {
+      var sp = Math.sin(cam.pitch), cp = Math.cos(cam.pitch);
+      camera.position.set(
+        target.x + cam.dist * cp * Math.sin(cam.yaw),
+        target.y + cam.dist * sp,
+        target.z + cam.dist * cp * Math.cos(cam.yaw)
+      );
+      camera.lookAt(target);
+    }
+
+    var grid = new THREE.GridHelper(130, 26, 0x24404f, 0x16272f);
+    grid.position.y = -0.02;
+    scene.add(grid);
+
+    var boxGeo = new THREE.BoxGeometry(0.92, 1, 0.92);
+    boxGeo.translate(0, 0.5, 0);
+
+    var OFF_IN_X = -15.6, OFF_OUT_X = 15.6;
+
+    var inputMesh = new THREE.InstancedMesh(boxGeo, new THREE.MeshPhongMaterial({ shininess: 40, specular: 0x223344 }), N * N);
+    scene.add(inputMesh);
+    var outMesh = new THREE.InstancedMesh(boxGeo, new THREE.MeshPhongMaterial({ shininess: 55, specular: 0x334455 }), OUT * OUT);
+    scene.add(outMesh);
+
+    var m4 = new THREE.Matrix4();
+    var colIn = new THREE.Color(), colOut = new THREE.Color();
+
+    function setInstance(mesh, k, x, z, h, color) {
+      m4.makeScale(1, h, 1);
+      m4.setPosition(x, 0, z);
+      mesh.setMatrixAt(k, m4);
+      mesh.setColorAt(k, color);
+    }
+
+    function buildInput() {
+      for (var i = 0; i < N; i++) {
+        for (var j = 0; j < N; j++) {
+          var k = i * N + j;
+          var v = IMG[k];
+          var x = OFF_IN_X + (j - (N - 1) / 2) * GAP;
+          var z = (i - (N - 1) / 2) * GAP;
+          colIn.setRGB(0.10 + 0.86 * v, 0.13 + 0.72 * v, 0.22 + 0.46 * v);
+          setInstance(inputMesh, k, x, z, 0.12 + v * H_IN, colIn);
+        }
       }
-      return a;
-    })();
+      inputMesh.instanceMatrix.needsUpdate = true;
+      inputMesh.instanceColor.needsUpdate = true;
+    }
 
-    function conv(i, j) {
+    function resetOutput() {
+      for (var k = 0; k < OUT * OUT; k++) {
+        var i = Math.floor(k / OUT), j = k % OUT;
+        var x = OFF_OUT_X + (j - (OUT - 1) / 2) * GAP;
+        var z = (i - (OUT - 1) / 2) * GAP;
+        colOut.setRGB(0.10, 0.14, 0.20);
+        setInstance(outMesh, k, x, z, 0.001, colOut);
+      }
+      outMesh.instanceMatrix.needsUpdate = true;
+      outMesh.instanceColor.needsUpdate = true;
+    }
+
+    var frame = new THREE.Group();
+    var frameGeo = new THREE.BoxGeometry(3 * GAP, 1, 3 * GAP);
+    frameGeo.translate(0, 0.5, 0);
+    frame.add(new THREE.Mesh(frameGeo, new THREE.MeshBasicMaterial({
+      color: 0xffe4a8, transparent: true, opacity: 0.10, depthWrite: false
+    })));
+    frame.add(new THREE.LineSegments(new THREE.EdgesGeometry(frameGeo),
+      new THREE.LineBasicMaterial({ color: 0xffe4a8, transparent: true, opacity: 0.95 })));
+    scene.add(frame);
+
+    function convAt(i, j) {
       var kk = KERNELS[st.ki].k, s = 0;
       for (var m = 0; m < 3; m++) for (var n = 0; n < 3; n++) s += IMG[(i + m) * N + (j + n)] * kk[m][n];
       return s;
     }
-    function norm(v) { return Math.max(0, Math.min(1, Math.abs(v) / 2.6)); }
-    function col(v) {
-      var t = Math.max(0, Math.min(1, v));
-      var r = Math.round(24 + 214 * t), g = Math.round(44 + 168 * t), b = Math.round(66 + 96 * t);
-      return 'rgb(' + r + ',' + g + ',' + b + ')';
+    function windowTop(i, j) {
+      var h = 0.5;
+      for (var m = 0; m < 3; m++) for (var n = 0; n < 3; n++) h = Math.max(h, 0.12 + IMG[(i + m) * N + (j + n)] * H_IN);
+      return h + 0.9;
+    }
+    function placeFrame(i, j) {
+      frame.position.set(
+        OFF_IN_X + (j + 1 - (N - 1) / 2) * GAP,
+        0,
+        (i + 1 - (N - 1) / 2) * GAP
+      );
+      frame.scale.y = windowTop(i, j);
     }
 
-    function fit() {
-      var dpr = Math.min(window.devicePixelRatio || 1, 2);
-      var w = cv.clientWidth, h = cv.clientHeight;
-      if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
-        cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var pauseLeft = 0;
+    function stepOnce() {
+      var total = OUT * OUT;
+      if (st.filled >= total - 1) {
+        if (pauseLeft > 0) { pauseLeft--; return; }
+        pauseLeft = 14;
+        resetOutput();
+        st.filled = -1;
+        return;
       }
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, w, h);
-      return { w: w, h: h };
+      st.filled++;
+      var i = Math.floor(st.filled / OUT), j = st.filled % OUT;
+      var v = convAt(i, j);
+      st.curV = v;
+      var h = 0.12 + Math.min(1, Math.abs(v) / 2.2) * H_OUT;
+      var x = OFF_OUT_X + (j - (OUT - 1) / 2) * GAP;
+      var z = (i - (OUT - 1) / 2) * GAP;
+      if (v >= 0) colOut.setRGB(0.95, 0.62, 0.72); else colOut.setRGB(0.32, 0.70, 0.82);
+      setInstance(outMesh, st.filled, x, z, h, colOut);
+      outMesh.instanceMatrix.needsUpdate = true;
+      outMesh.instanceColor.needsUpdate = true;
+      placeFrame(i, j);
     }
 
-    function draw(now) {
-      var g = fit(), w = g.w, h = g.h;
-      // 三块并排：输入 N 格 + 核面板 + 特征图 OUT 格，横向一起算格子大小
-      var cell = Math.min((w - 150) / (N + OUT + 5.4), (h - 150) / N);
-      cell = Math.max(5, Math.floor(cell));
-      var ix = 24, iy = 52;
-      var px = ix + cell * N + 18;
-      var pwid = Math.max(56, cell * 4.2);
-      var ox = px + pwid + 26;
-      var oy = iy;
-
-      // ---- 输入图 ----
-      for (var i = 0; i < N; i++) for (var j = 0; j < N; j++) {
-        ctx.fillStyle = col(IMG[i * N + j]);
-        ctx.fillRect(ix + j * cell, iy + i * cell, cell - 1, cell - 1);
-      }
-      // ---- 输出图 ----
-      var done = st.idx;
-      for (var a2 = 0; a2 < OUT; a2++) for (var b2 = 0; b2 < OUT; b2++) {
-        var seq = a2 * OUT + b2;
-        if (seq < done) {
-          ctx.fillStyle = col(norm(conv(a2, b2)));
-        } else {
-          ctx.fillStyle = 'rgba(255,255,255,.035)';
-        }
-        ctx.fillRect(ox + b2 * cell, oy + a2 * cell, cell - 1, cell - 1);
-      }
-
-      // ---- 当前窗口 ----
-      var ci = Math.floor(st.idx / OUT), cj = st.idx % OUT;
-      if (st.idx < OUT * OUT) {
-        ctx.strokeStyle = '#fff4cf'; ctx.lineWidth = 2.4;
-        ctx.shadowColor = 'rgba(255,226,160,.8)'; ctx.shadowBlur = 12;
-        ctx.strokeRect(ix + cj * cell - 1, iy + ci * cell - 1, cell * 3 + 2, cell * 3 + 2);
-        ctx.shadowBlur = 0;
-        // 扫描光带
-        var grd = ctx.createLinearGradient(ix + cj * cell, 0, ix + cj * cell + cell * 3, 0);
-        grd.addColorStop(0, 'rgba(255,226,160,0)');
-        grd.addColorStop(0.5, 'rgba(255,226,160,.18)');
-        grd.addColorStop(1, 'rgba(255,226,160,0)');
-        ctx.fillStyle = grd;
-        ctx.fillRect(ix + cj * cell, iy, cell * 3, cell * N);
-      }
-
-      // ---- 中间：核 × 像素 的放大面板 ----
-      var kk = KERNELS[st.ki].k;
-      var pcell = pwid / 3;
-      var py = iy + cell * 2;
-      ctx.fillStyle = 'rgba(6,12,20,.72)';
-      ctx.fillRect(px - 6, py - 30, pwid + 12, pcell * 3 + 46);
-      ctx.strokeStyle = 'rgba(127,212,239,.3)'; ctx.lineWidth = 1;
-      ctx.strokeRect(px - 6, py - 30, pwid + 12, pcell * 3 + 46);
-      ctx.fillStyle = 'rgba(191,232,246,.85)'; ctx.font = '11px system-ui, sans-serif';
-      ctx.fillText('核 3×3', px, py - 12);
-      var sum = 0, sumAbs = 0;
-      for (var m2 = 0; m2 < 3; m2++) for (var n2 = 0; n2 < 3; n2++) {
-        var vv = IMG[(ci + m2) * N + (cj + n2)] * kk[m2][n2];
-        sum += vv; sumAbs += Math.abs(vv);
-        var t2 = Math.min(1, Math.abs(vv) / 1.2);
-        ctx.fillStyle = vv >= 0 ? 'rgba(244,166,192,' + (0.16 + 0.7 * t2) + ')' : 'rgba(127,212,239,' + (0.16 + 0.7 * t2) + ')';
-        ctx.fillRect(px + n2 * pcell, py + m2 * pcell, pcell - 2, pcell - 2);
-        ctx.fillStyle = '#06101a'; ctx.font = 'bold ' + Math.round(pcell * 0.26) + 'px Consolas, monospace';
-        ctx.fillText(kk[m2][n2].toFixed(1), px + n2 * pcell + pcell * 0.16, py + m2 * pcell + pcell * 0.62);
-      }
-      ctx.fillStyle = '#fff4cf'; ctx.font = 'bold 12px Consolas, monospace';
-      ctx.fillText('Σ = ' + sum.toFixed(2) + ' → ' + norm(sum).toFixed(2), px, py + pcell * 3 + 14);
-
-      // ---- 文字 ----
-      ctx.fillStyle = 'rgba(191,232,246,.85)'; ctx.font = '12px system-ui, sans-serif';
-      ctx.fillText('输入 20×20', ix, iy - 10);
-      ctx.fillText('特征图 18×18（' + KERNELS[st.ki].name + '）', ox, oy - 10);
-      ctx.textAlign = 'right';
-      ctx.fillStyle = 'rgba(191,232,246,.55)';
-      ctx.fillText('第 ' + Math.min(st.idx + 1, OUT * OUT) + ' / ' + (OUT * OUT) + ' 个位置', w - 20, 24);
-      ctx.textAlign = 'left';
-
-      // ---- 池化小图（右下角） ----
-      var pw = 6;
-      var poolCell = Math.max(4, Math.floor(cell * 0.42));
-      var poolX = w - poolCell * (OUT / 2) - 24;
-      var poolY = h - poolCell * (OUT / 2) - 30;
-      if (poolX > ox + cell * OUT + 10) {
-        for (var p2 = 0; p2 < OUT / 2; p2++) for (var q2 = 0; q2 < OUT / 2; q2++) {
-          var mx = 0;
-          for (var s2 = 0; s2 < 2; s2++) for (var t3 = 0; t3 < 2; t3++) {
-            var seq2 = (p2 * 2 + s2) * OUT + (q2 * 2 + t3);
-            if (seq2 < done) mx = Math.max(mx, norm(conv(p2 * 2 + s2, q2 * 2 + t3)));
-          }
-          ctx.fillStyle = col(mx * 0.9);
-          ctx.fillRect(poolX + q2 * poolCell, poolY + p2 * poolCell, poolCell - 1, poolCell - 1);
-        }
-        ctx.fillStyle = 'rgba(191,232,246,.75)'; ctx.font = '11px system-ui, sans-serif';
-        ctx.fillText('2×2 最大池化 → 9×9', poolX, poolY - 8);
-      }
+    function updateHud() {
+      var done = Math.max(0, st.filled);
+      var i = Math.floor(done / OUT), j = done % OUT;
+      hud.innerHTML =
+        '核：<b>' + KERNELS[st.ki].name + '</b><br>' +
+        '窗口：<b>(' + i + ', ' + j + ')</b>　进度 <b>' + done + '/' + (OUT * OUT) + '</b><br>' +
+        '卷积和 Σ：<b class="g">' + (st.filled < 0 ? '—' : st.curV.toFixed(2)) + '</b><br>' +
+        '输出柱高 ∝ |Σ|　<b class="r">粉=正</b>　<b class="g">青=负</b>';
     }
 
-    function loop(now) {
-      requestAnimationFrame(loop);
-      if (st.playing) {
-        var total = OUT * OUT;
-        var step = Math.max(1, Math.round((now - st.t0) / (140 / (+speed.value))));
-        st.idx = Math.floor(step) % (total + 24);          // 走完停一拍再从头
-      }
-      draw(now);
-    }
+    var dragging = false, lastX = 0, lastY = 0, dirty = true;
+    host.addEventListener('pointerdown', function (e) {
+      if (e.button !== 0) return;
+      dragging = true; lastX = e.clientX; lastY = e.clientY;
+      host.classList.add('dragging');
+      if (host.setPointerCapture) host.setPointerCapture(e.pointerId);
+    });
+    host.addEventListener('pointermove', function (e) {
+      if (!dragging) return;
+      var dx = e.clientX - lastX, dy = e.clientY - lastY;
+      lastX = e.clientX; lastY = e.clientY;
+      cam.yaw -= dx * 0.008;
+      cam.pitch = Math.max(0.10, Math.min(1.45, cam.pitch + dy * 0.006));
+      updateCamera(); dirty = true;
+    });
+    host.addEventListener('pointerup', function () { dragging = false; host.classList.remove('dragging'); });
+    host.addEventListener('pointercancel', function () { dragging = false; host.classList.remove('dragging'); });
+    host.addEventListener('wheel', function (e) {
+      e.preventDefault();
+      cam.dist = Math.max(34, Math.min(150, cam.dist + e.deltaY * 0.06));
+      updateCamera(); dirty = true;
+    }, { passive: false });
 
     btnPlay.addEventListener('click', function () {
       st.playing = !st.playing;
       btnPlay.textContent = st.playing ? '暂停' : '继续';
       btnPlay.classList.toggle('on', st.playing);
-      if (st.playing) { st.t0 = performance.now(); }
+    });
+    btnReset.addEventListener('click', function () {
+      cam.yaw = -0.5; cam.pitch = 0.74; cam.dist = 66;
+      updateCamera(); dirty = true;
     });
     kBtns.forEach(function (b, i) {
       b.addEventListener('click', function () {
         st.ki = i;
         kBtns.forEach(function (b2) { b2.classList.remove('on'); });
         b.classList.add('on');
-        st.idx = 0; st.t0 = performance.now();
+        resetOutput();
+        st.filled = -1; pauseLeft = 6; dirty = true;
       });
     });
-    window.addEventListener('resize', function () { draw(performance.now()); });
 
+    function resize() {
+      var w = host.clientWidth || 900, h = host.clientHeight || 560;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      dirty = true;
+    }
+    window.addEventListener('resize', resize);
+
+    var last = 0;
+    function loop(now) {
+      requestAnimationFrame(loop);
+      if (st.playing) {
+        var interval = Math.max(4, Math.round(30 / (+speed.value)));
+        if (now - last > interval) {
+          last = now;
+          stepOnce();
+          updateHud();
+          dirty = true;
+        }
+      }
+      if (dirty) { renderer.render(scene, camera); dirty = false; }
+    }
+
+    buildInput();
+    resetOutput();
+    placeFrame(0, 0);
+    resize();
+    updateCamera();
+    updateHud();
     requestAnimationFrame(loop);
   })();
   </script>
