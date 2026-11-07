@@ -46,7 +46,37 @@
       background: rgba(127, 212, 239, 0.04); }
     .ml-card2 h3 { margin: 0 0 6px; font-size: 13.5px; color: #a9e4f7; font-weight: 600; }
     .ml-card2 p { margin: 4px 0; font-size: 12.5px; line-height: 1.75; color: var(--text-muted); }
+
+    /* 国界线折纸（首页主画面） */
+    .fc-wrap { position: relative; margin: 12px 0 0; border-radius: 12px; overflow: hidden;
+      border: 1px solid rgba(127, 212, 239, 0.3);
+      background: radial-gradient(circle at 50% 15%, #12222e, #070f16 78%); }
+    #cfStage { display: block; width: 100%; height: 560px; touch-action: none; cursor: grab; }
+    #cfStage.dragging { cursor: grabbing; }
+    .fc-hud { position: absolute; left: 10px; top: 10px; font-size: 11px; line-height: 1.7;
+      color: #bfe8f6; background: rgba(6, 16, 26, 0.78); border: 1px solid rgba(127, 212, 239, 0.3);
+      border-radius: 8px; padding: 7px 9px; pointer-events: none; }
+    .fc-hud b { color: #fff; }
+    .fc-hud .r { color: #f4a6c0; }
+    .fc-tip { position: absolute; right: 10px; bottom: 10px; font-size: 11px; color: rgba(191,232,246,.78);
+      background: rgba(6,16,26,.72); border-radius: 8px; padding: 5px 9px; pointer-events: none; }
+    .fc-legend { position: absolute; left: 10px; bottom: 10px; font-size: 11px; line-height: 1.7;
+      color: rgba(200, 216, 228, .74); pointer-events: none; }
+    .fc-legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px;
+      margin-right: 5px; vertical-align: 3px; }
+    .fc-ctrl { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; align-items: center; }
+    .fc-btn { padding: 9px 16px; border-radius: 999px; border: 1px solid rgba(127, 212, 239, 0.5);
+      background: rgba(127, 212, 239, 0.08); color: #a9e4f7; font-family: inherit; font-size: 13px;
+      cursor: pointer; min-width: 84px; }
+    .fc-btn:hover { background: rgba(127, 212, 239, 0.2); }
+    .fc-btn.primary { border-color: #7fd4ef; background: rgba(127, 212, 239, 0.22); color: #eafaff; }
+    .fc-btn.on { border-color: #f4a6c0; background: rgba(244, 166, 192, 0.22); color: #fff; }
+    .fc-chk { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+
     @media (max-width: 640px) {
+      #cfStage { height: 380px; }
+      .fc-btn { font-size: 12px; padding: 7px 12px; min-width: 70px; }
+      .fc-hud { font-size: 10px; padding: 6px 8px; }
       #mlStage { height: 320px; }
       .ml-two { grid-template-columns: 1fr; }
       .ml-btn { padding: 8px 13px; font-size: 12.5px; min-width: 72px; }
@@ -67,7 +97,36 @@
     <h1 class="page-title">多层感知机</h1>
     <p class="page-subtitle">机器学习 · 第 3 课 · 一张三维的纸，折很多次</p>
 
+
+    <section class="card" id="country">
+      <p class="ml-lead"><b>先玩这个。</b>还是这张纸，还是这面粉色阈值面——只是这次纸不是用来判 A/B，而是用来贴国界。目标是乌兹别克斯坦：费尔干纳谷地那圈毛刺，加上中间嵌着的塔吉克斯坦<b>飞地</b>。</p>
+      <p class="ml-lead" style="font-size:12.5px;color:var(--text-muted)">每按一次折，就给网络加一个隐藏单元，也就是纸面上多一道折痕。折痕可以竖折、斜折、横折；压到阈值面以上的部分算"国内"，沉下去的是"国外"。折痕一道道叠上去，纸上高出来的那一片就慢慢变成这个国家的形状。</p>
+
+      <div class="fc-wrap">
+        <canvas id="cfStage"></canvas>
+        <div class="fc-hud" id="cfHud"></div>
+        <div class="fc-legend">
+          <div><i style="background:#f5e3b6"></i>折出来的国界（纸面与阈值面的交线）</div>
+          <div><i style="background:#f4a6c0"></i>真实国界（OSM）</div>
+        </div>
+        <div class="fc-tip">左键拖动旋转 · 滚轮缩放</div>
+      </div>
+
+      <div class="fc-ctrl">
+        <button class="fc-btn primary" id="cfLeft" type="button">左折一下</button>
+        <button class="fc-btn" id="cfDiag" type="button">斜着折一下</button>
+        <button class="fc-btn" id="cfBest" type="button">折一次（最优）</button>
+        <button class="fc-btn" id="cfAuto" type="button">自动折</button>
+        <button class="fc-btn" id="cfReset" type="button">重新开始</button>
+        <label class="fc-chk"><input type="checkbox" id="cfBorder" checked /> 真实国界</label>
+        <label class="fc-chk"><input type="checkbox" id="cfFolds" checked /> 折痕</label>
+      </div>
+
+      <p class="ml-note" style="margin-top:12px"><b>左上是拟合进度：</b>折痕数 / 重叠率 IoU / 拟合残差 RMSE。折满 45 道左右，IoU 能到 79%，剩下的都卡在费尔干纳谷地和那几块飞地上——那是这张纸最折不准的地方。</p>
+    </section>
+
     <section class="card">
+      <h2>一维的情况：纸带上的一道折痕</h2>
       <p class="ml-lead"><b>先玩，再看字。</b>这是一张真的三维纸片：平的地方贴地，遇到折痕就往上升。那张<b>半透明的粉色平面</b>是阈值纸片——纸面穿出去的部分判 <span style="color:#f4a6c0">B</span>，没穿出去的判 <span style="color:#7fd4ef">A</span>。</p>
       <p class="ml-lead" style="font-size:12.5px;color:var(--text-muted)"><b>按住鼠标左键拖动</b>可以绕着纸片转圈看（手机单指拖动），滚轮缩放。按「再折一次」加一道 ReLU 折痕。</p>
 
@@ -127,11 +186,614 @@
       <h2>和单层感知机的区别</h2>
       <p>单层感知机是<b>一张平整的纸</b>：一刀切两半，边界永远是直的。</p>
       <p>多层感知机是<b>被反复折过的纸</b>：折痕让纸面带棱，阈值面一插，切出来的边界可以是折线、可以是多边形——二维里就能围出一块，把"中间这一团"单独判成 B。XOR 就是这么解的：一刀切不开，两折就能围出来。</p>
-      <p><a href="perceptron.html">← 回看第 1 课：感知机（单张纸）</a>　·　<a href="fold-country.html">下一课：国界线折纸（拿真实国界试折）→</a>　·　<a href="index.html">机器学习总览</a></p>
+      <p><a href="perceptron.html">← 回看第 1 课：感知机（单张纸）</a>　·　<a href="index.html">机器学习总览</a></p>
     </section>
   </main>
 
   <script src="../../../../pc/js/three.min.js"></script>
+  <script src="country-data.js"></script>
+  <script>
+(function () {
+    'use strict';
+    var D = window.FOLD_COUNTRY;
+    var host = document.getElementById('cfStage');
+    if (!D || !host || !window.THREE) return;
+
+    var hud = document.getElementById('cfHud');
+    var btnLeft = document.getElementById('cfLeft');
+    var btnDiag = document.getElementById('cfDiag');
+    var btnBest = document.getElementById('cfBest');
+    var btnAuto = document.getElementById('cfAuto');
+    var btnReset = document.getElementById('cfReset');
+    var chkBorder = document.getElementById('cfBorder');
+    var chkFolds = document.getElementById('cfFolds');
+
+    var MOBILE = window.innerWidth <= 640;
+    var ASPECT = D.aspect || 1.55;
+    var W = 100, DZ = W / ASPECT;             // 纸的物理尺寸
+    var RX = MOBILE ? 150 : 210;              // 渲染网格
+    var RZ = Math.round(RX / ASPECT);
+    var FX = MOBILE ? 80 : 100;               // 拟合网格（粗一点，最小二乘才跑得动）
+    var FZ = Math.round(FX / ASPECT);
+    var HSCALE = 4.6;                          // h 值 → 世界高度
+    var KMAX = MOBILE ? 30 : 52;
+
+    // ---------------- 目标区域 ----------------
+    var rings = D.rings;
+    function ptInRings(x, y) {
+      var inside = false;
+      for (var r = 0; r < rings.length; r++) {
+        var q = rings[r].pts;
+        for (var i = 0, j = q.length - 1; i < q.length; j = i++) {
+          var xi = q[i][0], yi = q[i][1], xj = q[j][0], yj = q[j][1];
+          if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) inside = !inside;
+        }
+      }
+      return inside;
+    }
+
+    var FN = FX * FZ;
+    var FU = new Float32Array(FN), FV = new Float32Array(FN), FT = new Float32Array(FN);
+    var POSN = 0, NEGN = 0;
+    (function () {
+      for (var j = 0; j < FZ; j++) {
+        for (var i = 0; i < FX; i++) {
+          var k = j * FX + i;
+          var u = (i + 0.5) / FX, v = (j + 0.5) / FZ;
+          FU[k] = u; FV[k] = v;
+          var ins = ptInRings(u, v);
+          FT[k] = ins ? 1 : -1;
+          if (ins) POSN++; else NEGN++;
+        }
+      }
+    })();
+    var WPOS = FN / (2 * (POSN || 1)), WNEG = FN / (2 * (NEGN || 1));
+
+    // ---------------- 折痕（隐藏单元） ----------------
+    var feats = [];      // { nx, ny, c, col: Float32Array(FN) }
+    var WT = [];         // 权重，最后一个是偏置
+    var FIT = new Float32Array(FN);
+    var iou = 0, rmse = 0;
+
+    function makeColumn(nx, ny, c) {
+      var col = new Float32Array(FN);
+      for (var k = 0; k < FN; k++) {
+        var v = nx * FU[k] + ny * FV[k] + c;
+        col[k] = v > 0 ? v : 0;
+      }
+      return col;
+    }
+
+    // 加权最小二乘 + 列主元高斯消元
+    function solve() {
+      var K = feats.length, M = K + 1;
+      var A = new Float64Array(M * M), b = new Float64Array(M);
+      for (var k = 0; k < FN; k++) {
+        var wgt = FT[k] > 0 ? WPOS : WNEG;
+        var yv = FT[k];
+        var row = new Float64Array(M);
+        for (var i = 0; i < K; i++) row[i] = feats[i].col[k];
+        row[K] = 1;
+        for (var a = 0; a < M; a++) {
+          var va = row[a];
+          b[a] += wgt * va * yv;
+          for (var c2 = 0; c2 <= a; c2++) A[a * M + c2] += wgt * va * row[c2];
+        }
+      }
+      for (var a2 = 0; a2 < M; a2++) {
+        for (var c3 = 0; c3 < a2; c3++) A[c3 * M + a2] = A[a2 * M + c3];
+        A[a2 * M + a2] += 1e-6 * FN;
+      }
+      for (var col = 0; col < M; col++) {
+        var piv = col, best = Math.abs(A[col * M + col]);
+        for (var r2 = col + 1; r2 < M; r2++) {
+          var v2 = Math.abs(A[r2 * M + col]);
+          if (v2 > best) { best = v2; piv = r2; }
+        }
+        if (best < 1e-12) continue;
+        if (piv !== col) {
+          for (var c4 = 0; c4 < M; c4++) {
+            var tmp = A[col * M + c4]; A[col * M + c4] = A[piv * M + c4]; A[piv * M + c4] = tmp;
+          }
+          var tb = b[col]; b[col] = b[piv]; b[piv] = tb;
+        }
+        var d = A[col * M + col];
+        for (var r3 = col + 1; r3 < M; r3++) {
+          var f2 = A[r3 * M + col] / d;
+          if (!f2) continue;
+          for (var c5 = col; c5 < M; c5++) A[r3 * M + c5] -= f2 * A[col * M + c5];
+          b[r3] -= f2 * b[col];
+        }
+      }
+      WT = new Array(M);
+      for (var r4 = M - 1; r4 >= 0; r4--) {
+        var sum = b[r4];
+        for (var c6 = r4 + 1; c6 < M; c6++) sum -= A[r4 * M + c6] * WT[c6];
+        var dd = A[r4 * M + r4];
+        WT[r4] = Math.abs(dd) < 1e-12 ? 0 : sum / dd;
+      }
+      for (var k2 = 0; k2 < FN; k2++) {
+        var s2 = 0;
+        for (var i3 = 0; i3 < K; i3++) s2 += WT[i3] * feats[i3].col[k2];
+        FIT[k2] = s2 + WT[K];
+      }
+      measure();
+    }
+
+    function measure() {
+      var inter = 0, uni = 0, se = 0;
+      for (var k = 0; k < FN; k++) {
+        var ins = FIT[k] > 0, t = FT[k] > 0;
+        if (ins && t) inter++;
+        if (ins || t) uni++;
+        var e = FIT[k] - FT[k];
+        se += e * e;
+      }
+      iou = uni ? inter / uni : 0;
+      rmse = Math.sqrt(se / FN);
+    }
+
+    // ---------------- 候选折痕：国界各边的支撑线 + 角度/位置扫描 ----------------
+    var cands = [];
+    (function () {
+      var seen = {};
+      function push(nx, ny, c) {
+        var L = Math.sqrt(nx * nx + ny * ny) || 1;
+        nx /= L; ny /= L;
+        var key = Math.round((Math.atan2(ny, nx) + Math.PI) / 0.06) + '|' + Math.round(-c / 0.02);
+        if (seen[key]) return;
+        seen[key] = 1;
+        cands.push({ nx: nx, ny: ny, c: c });
+      }
+      rings.forEach(function (ring) {
+        var q = ring.pts;
+        for (var i = 0; i < q.length; i++) {
+          var a = q[i], b = q[(i + 1) % q.length];
+          var dx = b[0] - a[0], dy = b[1] - a[1];
+          var L = Math.sqrt(dx * dx + dy * dy);
+          if (L < 0.007) continue;
+          push(-dy / L, dx / L, (dy / L) * a[0] - (dx / L) * a[1]);
+        }
+      });
+      for (var ai = 0; ai < 12; ai++) {
+        var ang = ai * Math.PI / 12;
+        var nx = Math.cos(ang), ny = Math.sin(ang);
+        for (var oi = -3; oi <= 3; oi++) {
+          push(nx, ny, -(nx * 0.5 + ny * 0.5) - oi * 0.11);
+        }
+      }
+    })();
+
+    function angleOk(c, mode) {
+      var a = Math.atan2(Math.abs(c.ny), Math.abs(c.nx));   // 0 = 折痕竖直，PI/2 = 折痕水平
+      if (mode === 'left') return a < 0.28 || a > Math.PI / 2 - 0.28;
+      if (mode === 'diag') return a > 0.42 && a < 1.15;
+      return true;
+    }
+
+    function addBest(mode) {
+      if (feats.length >= KMAX) return false;
+      var res = new Float32Array(FN);
+      for (var k = 0; k < FN; k++) res[k] = FT[k] - FIT[k];
+      var best = null, bestGain = -1;
+      for (var i = 0; i < cands.length; i++) {
+        var c = cands[i];
+        if (!angleOk(c, mode)) continue;
+        var num = 0, den = 0;
+        for (var k2 = 0; k2 < FN; k2++) {
+          var v = c.nx * FU[k2] + c.ny * FV[k2] + c.c;
+          if (v <= 0) continue;
+          var wgt = FT[k2] > 0 ? WPOS : WNEG;
+          num += wgt * res[k2] * v;
+          den += wgt * v * v;
+        }
+        if (den < 1e-9) continue;
+        var gain = num * num / den;
+        if (gain > bestGain) { bestGain = gain; best = c; }
+      }
+      if (!best) return false;
+      feats.push({ nx: best.nx, ny: best.ny, c: best.c, col: makeColumn(best.nx, best.ny, best.c) });
+      solve();
+      rebuild(true);
+      return true;
+    }
+
+    function resetAll() {
+      feats.length = 0;
+      FIT.fill(1);
+      WT = [1];
+      measure();
+      rebuild(false);
+    }
+
+    // ---------------- three.js 场景 ----------------
+    var renderer = new THREE.WebGLRenderer({ canvas: host, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(45, 1, 0.1, 2000);
+
+    scene.add(new THREE.AmbientLight(0x93b6cc, 0.62));
+    var d1 = new THREE.DirectionalLight(0xffffff, 0.62); d1.position.set(-60, 90, 50); scene.add(d1);
+    var d2 = new THREE.DirectionalLight(0x7fd4ef, 0.34); d2.position.set(70, 40, -60); scene.add(d2);
+
+    var cam = { yaw: -0.62, pitch: 0.94, dist: 168 };
+    var target = new THREE.Vector3(0, 2, 0);
+    function updateCamera() {
+      var sp = Math.sin(cam.pitch), cp = Math.cos(cam.pitch);
+      camera.position.set(
+        target.x + cam.dist * cp * Math.sin(cam.yaw),
+        target.y + cam.dist * sp,
+        target.z + cam.dist * cp * Math.cos(cam.yaw)
+      );
+      camera.lookAt(target);
+    }
+
+    var grid = new THREE.GridHelper(200, 20, 0x2b4a5c, 0x18303e);
+    grid.position.y = -16;
+    scene.add(grid);
+
+    // 阈值面 h = 0
+    var thrGeo = new THREE.PlaneGeometry(W, DZ);
+    // 阈值面同时当地图纸：把「拟合出来的区域」画成贴图，折痕再把纸顶上去
+    var maskCanvas = document.createElement('canvas');
+    maskCanvas.width = FX; maskCanvas.height = FZ;
+    var maskCtx = maskCanvas.getContext('2d');
+    var maskTex = new THREE.CanvasTexture(maskCanvas);
+    maskTex.minFilter = THREE.LinearFilter;
+    maskTex.magFilter = THREE.LinearFilter;
+    maskTex.generateMipmaps = false;
+    var thrPlane = new THREE.Mesh(thrGeo, new THREE.MeshPhongMaterial({
+      color: 0xf4a6c0, transparent: true, opacity: 0.12,
+      side: THREE.DoubleSide, depthWrite: false
+    }));
+    thrPlane.rotation.x = -Math.PI / 2;
+    scene.add(thrPlane);
+    var thrEdge = new THREE.LineSegments(new THREE.EdgesGeometry(thrGeo),
+      new THREE.LineBasicMaterial({ color: 0xf4a6c0, transparent: true, opacity: 0.75 }));
+    thrEdge.rotation.x = -Math.PI / 2;
+    thrEdge.position.y = 0.02;
+    scene.add(thrEdge);
+
+    // 纸面网格
+    var vCount = RX * RZ;
+    var pos = new Float32Array(vCount * 3);
+    var col = new Float32Array(vCount * 3);
+    for (var jj = 0; jj < RZ; jj++) {
+      for (var ii = 0; ii < RX; ii++) {
+        var idx = jj * RX + ii;
+        pos[idx * 3] = (ii / (RX - 1) - 0.5) * W;
+        pos[idx * 3 + 1] = HSCALE;
+        pos[idx * 3 + 2] = (jj / (RZ - 1) - 0.5) * DZ;
+      }
+    }
+    var idxArr = [];
+    for (var j2 = 0; j2 < RZ - 1; j2++) {
+      for (var i2 = 0; i2 < RX - 1; i2++) {
+        var a0 = j2 * RX + i2, a1 = a0 + 1, b0 = a0 + RX, b1 = b0 + 1;
+        idxArr.push(a0, b0, b1, a0, b1, a1);
+      }
+    }
+    var sheetGeo = new THREE.BufferGeometry();
+    sheetGeo.setIndex(idxArr);
+    sheetGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    sheetGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    var sheet = new THREE.Mesh(sheetGeo, new THREE.MeshPhongMaterial({
+      vertexColors: true, side: THREE.DoubleSide, shininess: 8, specular: 0x112233,
+      flatShading: true
+    }));
+    sheet.frustumCulled = false;
+    scene.add(sheet);
+
+    var creaseGroup = new THREE.Group();
+    scene.add(creaseGroup);
+
+    var borderLine = new THREE.Line(
+      new THREE.BufferGeometry(),
+      new THREE.LineDashedMaterial({ color: 0xc2185b, dashSize: 3, gapSize: 2, transparent: true, opacity: 1, depthTest: false })
+    );
+    borderLine.frustumCulled = false;
+    scene.add(borderLine);
+
+    var contourLine = new THREE.Mesh(
+      new THREE.BufferGeometry(),
+      new THREE.MeshBasicMaterial({ color: 0xffe9b0, side: THREE.DoubleSide, depthTest: false, transparent: true, opacity: 0.96 })
+    );
+    contourLine.frustumCulled = false;
+    scene.add(contourLine);
+
+    // ---------------- 纸面高度 / 颜色 ----------------
+    var curH = new Float32Array(vCount);
+    var tgtH = new Float32Array(vCount);
+    var fromH = new Float32Array(vCount);
+    var animT0 = 0, animating = false;
+    var DU = new Float32Array(vCount), DV = new Float32Array(vCount);
+    for (var j3 = 0; j3 < RZ; j3++) {
+      for (var i3 = 0; i3 < RX; i3++) {
+        var k3 = j3 * RX + i3;
+        DU[k3] = i3 / (RX - 1);
+        DV[k3] = j3 / (RZ - 1);
+      }
+    }
+
+    function evalH(u, v) {
+      var s = WT[feats.length];
+      for (var i = 0; i < feats.length; i++) {
+        var f = feats[i];
+        var t = f.nx * u + f.ny * v + f.c;
+        if (t > 0) s += WT[i] * t;
+      }
+      return s;
+    }
+
+    var cIn = new THREE.Color(0xf4a6c0), cOut = new THREE.Color(0x4fb4d8);   // 阈值面以上=粉，以下=青
+    var tmpC = new THREE.Color();
+
+    function rebuild(animate) {
+      fromH.set(curH);
+      for (var k = 0; k < vCount; k++) {
+        var h = evalH(DU[k], DV[k]);
+        tgtH[k] = Math.max(-11, Math.min(9.5, h * HSCALE));
+      }
+      // 颜色按 h 的正负插值
+      var data = col;
+      for (var k2 = 0; k2 < vCount; k2++) {
+        var hv = tgtH[k2] / HSCALE;
+        var t2 = Math.max(-1, Math.min(1, hv / 0.18));
+        if (t2 >= 0) tmpC.copy(cOut).lerp(cIn, Math.min(1, t2));
+        else tmpC.copy(cIn).lerp(cOut, Math.min(1, -t2));
+        data[k2 * 3] = tmpC.r; data[k2 * 3 + 1] = tmpC.g; data[k2 * 3 + 2] = tmpC.b;
+      }
+      sheetGeo.attributes.color.needsUpdate = true;
+      if (animate) { animT0 = performance.now(); animating = true; }
+      else {
+        curH.set(tgtH);
+        applyHeights();
+      }
+      paintMask();
+      rebuildCreases();
+      rebuildBorder();
+      rebuildContour();
+      updateHud();
+      dirty = true;
+    }
+
+    function paintMask() {
+      maskCtx.clearRect(0, 0, FX, FZ);
+      for (var j = 0; j < FZ; j++) {
+        for (var i = 0; i < FX; i++) {
+          if (FIT[j * FX + i] <= 0) continue;
+          maskCtx.fillStyle = 'rgba(240,224,182,0.85)';
+          // 画布 y 向下，v 向上：翻一下行
+          maskCtx.fillRect(i, FZ - 1 - j, 1, 1);
+        }
+      }
+      maskTex.needsUpdate = true;
+    }
+
+    function applyHeights() {
+      var arr = sheetGeo.attributes.position.array;
+      for (var k = 0; k < vCount; k++) arr[k * 3 + 1] = curH[k];
+      sheetGeo.attributes.position.needsUpdate = true;
+      sheetGeo.computeVertexNormals();
+    }
+
+    function rebuildCreases() {
+      while (creaseGroup.children.length) {
+        var o = creaseGroup.children.pop();
+        creaseGroup.remove(o);
+        if (o.geometry) o.geometry.dispose();
+        if (o.material) o.material.dispose();
+      }
+      if (!chkFolds.checked) return;
+      for (var i = 0; i < feats.length; i++) {
+        var f = feats[i];
+        var wAbs = Math.min(1, Math.abs(WT[i] || 0) / 1.5);
+        if (wAbs < 0.12) continue;
+        var pts = clipLineToSheet(f.nx, f.ny, -f.c);
+        if (!pts) continue;
+        var arr = [];
+        var SEG = 12;
+        for (var s = 0; s <= SEG; s++) {
+          var u = pts[0] + (pts[2] - pts[0]) * s / SEG;
+          var v = pts[1] + (pts[3] - pts[1]) * s / SEG;
+          arr.push((u - 0.5) * W, evalH(u, v) * HSCALE + 0.25, (v - 0.5) * DZ);
+        }
+        var g = new THREE.BufferGeometry();
+        g.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3));
+        var m = new THREE.LineBasicMaterial({
+          color: 0xe6cf9a, transparent: true, opacity: 0.08 + 0.24 * wAbs
+        });
+        creaseGroup.add(new THREE.Line(g, m));
+      }
+    }
+
+    // 直线 n·x = d 与 [0,1]² 的交线段：返回 [u0,v0,u1,v1]
+    function clipLineToSheet(nx, ny, d) {
+      var pts = [];
+      function add(u, v) {
+        if (!isFinite(u) || !isFinite(v)) return;
+        if (u >= 0 && u <= 1 && v >= 0 && v <= 1) pts.push([u, v]);
+      }
+      if (Math.abs(nx) > 1e-6) { add(d / nx, 0); add((d - ny) / nx, 1); }
+      if (Math.abs(ny) > 1e-6) { add(0, d / ny); add(1, (d - nx) / ny); }
+      var out = [];
+      for (var i = 0; i < pts.length; i++) {
+        var dup = false;
+        for (var j = 0; j < out.length; j++) {
+          if (Math.abs(pts[i][0] - out[j][0]) < 1e-9 && Math.abs(pts[i][1] - out[j][1]) < 1e-9) dup = true;
+        }
+        if (!dup) out.push(pts[i]);
+      }
+      if (out.length < 2) return null;
+      return [out[0][0], out[0][1], out[1][0], out[1][1]];
+    }
+
+    function rebuildBorder() {
+      borderLine.visible = chkBorder.checked;
+      if (!chkBorder.checked) return;
+      var arr = [];
+      rings.forEach(function (ring) {
+        var q = ring.pts;
+        for (var i = 0; i < q.length; i++) {
+          var a = q[i], b = q[(i + 1) % q.length];
+          var steps = 3;
+          for (var s = 0; s < steps; s++) {
+            var t0 = s / steps, t1 = (s + 1) / steps;
+            var u0 = a[0] + (b[0] - a[0]) * t0, v0 = a[1] + (b[1] - a[1]) * t0;
+            var u1 = a[0] + (b[0] - a[0]) * t1, v1 = a[1] + (b[1] - a[1]) * t1;
+            arr.push((u0 - 0.5) * W, evalH(u0, v0) * HSCALE + 0.5, (v0 - 0.5) * DZ);
+            arr.push((u1 - 0.5) * W, evalH(u1, v1) * HSCALE + 0.5, (v1 - 0.5) * DZ);
+          }
+        }
+      });
+      var g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3));
+      borderLine.geometry.dispose();
+      borderLine.geometry = g;
+      borderLine.computeLineDistances();
+    }
+
+    // 纸面与阈值面的交线：h = 0 的等值线，画在 y = 0 略上方
+    function rebuildContour() {
+      var quads = [], idx = [];
+      function lerpU(a, b, va, vb) { var t = (0 - va) / ((vb - va) || 1e-9); return a + (b - a) * t; }
+      function pushSeg(u0, v0, u1, v1) {
+        var x0 = (u0 - 0.5) * W, z0 = (v0 - 0.5) * DZ;
+        var x1 = (u1 - 0.5) * W, z1 = (v1 - 0.5) * DZ;
+        var dx = x1 - x0, dz = z1 - z0;
+        var L = Math.sqrt(dx * dx + dz * dz);
+        if (L < 1e-6) return;
+        var nx = -dz / L * 0.42, nz = dx / L * 0.42;   // 半宽
+        var base = quads.length / 3;
+        var Y = 0.18;
+        quads.push(x0 + nx, Y, z0 + nz, x0 - nx, Y, z0 - nz, x1 - nx, Y, z1 - nz, x1 + nx, Y, z1 + nz);
+        idx.push(base, base + 1, base + 2, base, base + 2, base + 3);
+      }
+      for (var j2 = 0; j2 < RZ - 1; j2++) {
+        for (var i2 = 0; i2 < RX - 1; i2++) {
+          var v0 = evalH(DU[j2 * RX + i2], DV[j2 * RX + i2]);
+          var v1 = evalH(DU[j2 * RX + i2 + 1], DV[j2 * RX + i2 + 1]);
+          var v2 = evalH(DU[(j2 + 1) * RX + i2 + 1], DV[(j2 + 1) * RX + i2 + 1]);
+          var v3 = evalH(DU[(j2 + 1) * RX + i2], DV[(j2 + 1) * RX + i2]);
+          var b0 = v0 > 0 ? 1 : 0, b1 = v1 > 0 ? 1 : 0, b2 = v2 > 0 ? 1 : 0, b3 = v3 > 0 ? 1 : 0;
+          if (b0 === b1 && b1 === b2 && b2 === b3) continue;
+          var u0 = DU[j2 * RX + i2], w0 = DV[j2 * RX + i2];
+          var u1 = DU[j2 * RX + i2 + 1], w1 = DV[j2 * RX + i2 + 1];
+          var u2 = DU[(j2 + 1) * RX + i2 + 1], w2 = DV[(j2 + 1) * RX + i2 + 1];
+          var u3 = DU[(j2 + 1) * RX + i2], w3 = DV[(j2 + 1) * RX + i2];
+          var e = [];
+          if (b0 !== b1) e.push([lerpU(u0, u1, v0, v1), w0]);
+          if (b1 !== b2) e.push([u1, lerpU(w1, w2, v1, v2)]);
+          if (b3 !== b2) e.push([lerpU(u3, u2, v3, v2), w3]);
+          if (b0 !== b3) e.push([u0, lerpU(w0, w3, v0, v3)]);
+          for (var t = 0; t + 1 < e.length; t += 2) {
+            pushSeg(e[t][0], e[t][1], e[t + 1][0], e[t + 1][1]);
+          }
+        }
+      }
+      var g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(quads, 3));
+      g.setIndex(idx);
+      contourLine.geometry.dispose();
+      contourLine.geometry = g;
+    }
+
+    function updateHud() {
+      hud.innerHTML = '折痕（隐藏单元）：<b>' + feats.length + '</b> 道<br>' +
+        '重叠率 IoU：<b class="r">' + (iou * 100).toFixed(1) + '%</b><br>' +
+        '拟合残差 RMSE：<b>' + rmse.toFixed(3) + '</b>';
+    }
+
+    // ---------------- 交互 ----------------
+    var introFolds = 0, introTick = 0;
+    var dirty = true;
+    var dragging = false, lastX = 0, lastY = 0;
+    host.addEventListener('pointerdown', function (e) {
+      if (e.button !== 0) return;
+      dragging = true; lastX = e.clientX; lastY = e.clientY;
+      host.classList.add('dragging');
+      if (host.setPointerCapture) host.setPointerCapture(e.pointerId);
+    });
+    host.addEventListener('pointermove', function (e) {
+      if (!dragging) return;
+      var dx = e.clientX - lastX, dy = e.clientY - lastY;
+      lastX = e.clientX; lastY = e.clientY;
+      cam.yaw -= dx * 0.008;
+      cam.pitch = Math.max(0.12, Math.min(1.45, cam.pitch + dy * 0.006));
+      updateCamera();
+      dirty = true;
+    });
+    host.addEventListener('pointerup', function () { dragging = false; host.classList.remove('dragging'); });
+    host.addEventListener('pointercancel', function () { dragging = false; host.classList.remove('dragging'); });
+    host.addEventListener('wheel', function (e) {
+      e.preventDefault();
+      cam.dist = Math.max(70, Math.min(340, cam.dist + e.deltaY * 0.16));
+      updateCamera();
+      dirty = true;
+    }, { passive: false });
+
+    var autoOn = false, autoTick = 0;
+    btnLeft.addEventListener('click', function () { addBest('left'); });
+    btnDiag.addEventListener('click', function () { addBest('diag'); });
+    btnBest.addEventListener('click', function () { addBest('any'); });
+    btnReset.addEventListener('click', function () {
+      autoOn = false; btnAuto.classList.remove('on'); btnAuto.textContent = '自动折';
+      resetAll();
+    });
+    btnAuto.addEventListener('click', function () {
+      autoOn = !autoOn;
+      btnAuto.classList.toggle('on', autoOn);
+      btnAuto.textContent = autoOn ? '停下' : '自动折';
+      autoTick = 0;
+    });
+    chkBorder.addEventListener('change', function () { rebuildBorder(); });
+    chkFolds.addEventListener('change', function () { rebuildCreases(); });
+
+    function resize() {
+      var w = host.clientWidth || 900, h = host.clientHeight || 560;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      dirty = true;
+    }
+    window.addEventListener('resize', resize);
+
+    function ease(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+
+    function loop(now) {
+      requestAnimationFrame(loop);
+      if (animating) {
+        var t = Math.min(1, (now - animT0) / 260);
+        var e = ease(t);
+        for (var k = 0; k < vCount; k++) curH[k] = fromH[k] + (tgtH[k] - fromH[k]) * e;
+        applyHeights();
+        if (t >= 1) animating = false;
+      }
+      if (autoOn && now - autoTick > 340) {
+        autoTick = now;
+        if (!addBest('any') || feats.length >= KMAX) {
+          autoOn = false; btnAuto.classList.remove('on'); btnAuto.textContent = '自动折';
+        }
+      }
+      // 进页面先自己折十道：让访客一眼看到「纸在变成国家」，而不是一块空白的粉板
+      if (introFolds < 10 && now - introTick > 170) {
+        introTick = now;
+        if (addBest('any')) introFolds++;
+        else introFolds = 10;
+      }
+      if (dirty || animating) { renderer.render(scene, camera); dirty = false; }
+    }
+
+    resize();
+    resetAll();
+    updateCamera();
+    requestAnimationFrame(loop);
+
+    window.__cfDebug = function () {
+      return { n: feats.length, iou: iou, rmse: rmse };
+    };
+  })();
+  </script>
   <script>
     (function () {
       'use strict';
