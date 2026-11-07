@@ -187,6 +187,55 @@ window.BG5FNH_WAYPOINTS = {
             universePoints: [
               { key: 'sm', path: 'sm', name: '声音地图', pos: [0, 0], scale: 1.0, url: '资料分享/声乐/声音地图/index.html' }
             ]
+          },
+
+          {
+            // 机器学习：原神·妮露配色（水蓝主干 + 玫瑰粉叶子 + 深海底）。
+            // 中点是「感知机」——最小的学习节点；往右一层层长出整棵科技树。
+            path: '资料分享/机器学习',
+            name: '机器学习',
+            pos: [2.9, -1.4],
+            universe: true,
+            universeColor: '#7fd4ef',
+            universeColor2: '#f4a6c0',
+            universeBg: '#06101a',
+            universePoints: [
+              { key: 'ptron', color: '#a9e4f7', lineColor: '#5b8fa8', path: 'ptron', name: '感知机', pos: [0, 0], scale: 1.15, url: '资料分享/机器学习/index.html' },
+
+              // 第一层：五条主干
+              { key: 'linroot', color: '#7fd4ef', lineColor: '#5b8fa8', path: 'linroot', parent: 'ptron', name: '线性模型', pos: [1.8, 3.0], scale: 0.82, url: '资料分享/机器学习/index.html#linear' },
+              { key: 'bp', color: '#7fd4ef', lineColor: '#5b8fa8', path: 'bp', parent: 'ptron', name: '反向传播', pos: [1.8, 1.5], scale: 0.82, url: '资料分享/机器学习/index.html#bp' },
+              { key: 'para', color: '#7fd4ef', lineColor: '#5b8fa8', path: 'para', parent: 'ptron', name: '学习范式', pos: [1.8, 0.0], scale: 0.82, url: '资料分享/机器学习/index.html#paradigm' },
+              { key: 'tool', color: '#7fd4ef', lineColor: '#5b8fa8', path: 'tool', parent: 'ptron', name: '工程与工具', pos: [1.8, -1.5], scale: 0.82, url: '资料分享/机器学习/index.html#tool' },
+              { key: 'theory', color: '#f4a6c0', lineColor: '#b07f95', path: 'theory', parent: 'ptron', name: '理论根', pos: [1.8, -3.0], scale: 0.82, url: '资料分享/机器学习/index.html#theory' },
+
+              // 第二层
+              { key: 'logit', color: '#9fe0f5', lineColor: '#5b8fa8', path: 'logit', parent: 'linroot', name: '逻辑回归', pos: [3.4, 3.4], scale: 0.66, labelScale: 0.9, url: '资料分享/机器学习/index.html#linear' },
+              { key: 'svm', color: '#9fe0f5', lineColor: '#5b8fa8', path: 'svm', parent: 'linroot', name: 'SVM / 核方法', pos: [3.4, 2.6], scale: 0.66, labelScale: 0.9, url: '资料分享/机器学习/index.html#linear' },
+
+              { key: 'mlp', color: '#9fe0f5', lineColor: '#5b8fa8', path: 'mlp', parent: 'bp', name: '多层感知机', pos: [3.4, 1.9], scale: 0.66, labelScale: 0.9, url: '资料分享/机器学习/index.html#bp' },
+              { key: 'cnn', color: '#f4a6c0', lineColor: '#b07f95', path: 'cnn', parent: 'mlp', name: 'CNN', pos: [5.0, 2.3], scale: 0.56, labelScale: 0.86, url: '资料分享/机器学习/index.html#bp' },
+              { key: 'rnn', color: '#f4a6c0', lineColor: '#b07f95', path: 'rnn', parent: 'mlp', name: 'RNN / LSTM', pos: [5.0, 1.5], scale: 0.56, labelScale: 0.86, url: '资料分享/机器学习/index.html#bp' },
+              { key: 'attn', color: '#f4a6c0', lineColor: '#b07f95', path: 'attn', parent: 'mlp', name: '注意力 / Transformer', pos: [5.0, 0.7], scale: 0.56, labelScale: 0.86, url: '资料分享/机器学习/index.html#bp' },
+              { key: 'llm', color: '#ffc2d6', lineColor: '#b07f95', path: 'llm', parent: 'attn', name: '大模型', pos: [6.4, 0.7], scale: 0.62, labelScale: 0.88, url: '资料分享/机器学习/index.html#bp' },
+
+              { key: 'sup', color: '#9fe0f5', lineColor: '#5b8fa8', path: 'sup', parent: 'para', name: '监督学习', pos: [3.4, 0.2], scale: 0.66, labelScale: 0.9, url: '资料分享/机器学习/index.html#paradigm' },
+              { key: 'uns', color: '#9fe0f5', lineColor: '#5b8fa8', path: 'uns', parent: 'para', name: '无监督', pos: [3.4, -0.55], scale: 0.66, labelScale: 0.9, url: '资料分享/机器学习/index.html#paradigm' },
+              { key: 'rl', color: '#9fe0f5', lineColor: '#5b8fa8', path: 'rl', parent: 'para', name: '强化学习', pos: [3.4, -1.3], scale: 0.66, labelScale: 0.9, url: '资料分享/机器学习/index.html#paradigm' },
+
+              { key: 'torch', color: '#9fe0f5', lineColor: '#5b8fa8', path: 'torch', parent: 'tool', name: 'PyTorch', pos: [3.4, -1.9], scale: 0.66, labelScale: 0.9, url: '资料分享/机器学习/index.html#tool' },
+              { key: 'tf', color: '#9fe0f5', lineColor: '#5b8fa8', path: 'tf', parent: 'tool', name: 'TensorFlow', pos: [3.4, -2.6], scale: 0.66, labelScale: 0.9, url: '资料分享/机器学习/index.html#tool' },
+
+              // 第三层（叶子）
+              { key: 'tree', color: '#f4a6c0', lineColor: '#b07f95', path: 'tree', parent: 'sup', name: '树模型', pos: [5.0, 0.15], scale: 0.5, labelScale: 0.82, url: '资料分享/机器学习/index.html#paradigm' },
+              { key: 'kmeans', color: '#f4a6c0', lineColor: '#b07f95', path: 'kmeans', parent: 'uns', name: '聚类', pos: [5.0, -0.5], scale: 0.5, labelScale: 0.82, url: '资料分享/机器学习/index.html#paradigm' },
+              { key: 'pca', color: '#f4a6c0', lineColor: '#b07f95', path: 'pca', parent: 'uns', name: '降维', pos: [5.0, -1.0], scale: 0.5, labelScale: 0.82, url: '资料分享/机器学习/index.html#paradigm' },
+
+              // 理论根往下：图灵机 → 可计算性 / 自动机
+              { key: 'turing', color: '#f4a6c0', lineColor: '#b07f95', path: 'turing', parent: 'theory', name: '图灵机', pos: [3.4, -3.4], scale: 0.7, labelScale: 0.9, url: '资料分享/机器学习/index.html#theory' },
+              { key: 'comp', color: '#f4a6c0', lineColor: '#b07f95', path: 'comp', parent: 'turing', name: '可计算性', pos: [5.0, -3.2], scale: 0.5, labelScale: 0.82, url: '资料分享/机器学习/index.html#theory' },
+              { key: 'auto', color: '#f4a6c0', lineColor: '#b07f95', path: 'auto', parent: 'turing', name: '自动机', pos: [5.0, -3.75], scale: 0.5, labelScale: 0.82, url: '资料分享/机器学习/index.html#theory' }
+            ]
           }
         ]
       },

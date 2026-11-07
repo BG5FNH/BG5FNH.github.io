@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>机器学习 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../";</script>
+  <link rel="stylesheet" href="../../../assets/style.css" />
+  <style>
+    .ml-sec { scroll-margin-top: 24px; }
+    .ml-tree { display: grid; gap: 10px; margin: 14px 0 0; }
+    .ml-node { padding: 12px 14px; border: 1px solid rgba(127, 212, 239, 0.26); border-radius: 10px;
+      background: linear-gradient(135deg, rgba(127, 212, 239, 0.06), rgba(244, 166, 192, 0.05)); }
+    .ml-node h3 { margin: 0 0 6px; font-size: 14px; color: #a9e4f7; letter-spacing: .5px; font-weight: 600; }
+    .ml-node p { margin: 4px 0; font-size: 13px; line-height: 1.78; }
+    .ml-node .k { color: var(--text-muted); font-size: 12px; }
+    .ml-node.rose { border-color: rgba(244, 166, 192, 0.28);
+      background: linear-gradient(135deg, rgba(244, 166, 192, 0.07), rgba(127, 212, 239, 0.04)); }
+    .ml-node.rose h3 { color: #f4a6c0; }
+    .ml-chip { display: inline-block; margin: 4px 6px 0 0; padding: 2px 9px; border-radius: 999px;
+      border: 1px solid rgba(244, 166, 192, 0.4); color: #f4a6c0; font-size: 11.5px; }
+    .ml-legend { margin: 12px 0 0; padding: 11px 13px; border-radius: 10px; font-size: 12px; line-height: 1.85;
+      color: var(--text-muted); background: rgba(127, 212, 239, 0.05);
+      border: 1px dashed rgba(127, 212, 239, 0.3); }
+    .ml-jump { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .ml-jump a { padding: 5px 12px; border: 1px solid rgba(127, 212, 239, 0.35); border-radius: 999px;
+      font-size: 12px; color: #a9e4f7; text-decoration: none; }
+    .ml-jump a:nth-child(even) { border-color: rgba(244, 166, 192, 0.4); color: #f4a6c0; }
+    .ml-center { text-align: center; padding: 16px 14px; border-radius: 12px; margin-top: 12px;
+      border: 1px solid rgba(127, 212, 239, 0.42);
+      background: radial-gradient(circle at 50% 0%, rgba(127, 212, 239, 0.16), rgba(244, 166, 192, 0.06) 70%); }
+    .ml-center b { display: block; font-size: 18px; color: #a9e4f7; letter-spacing: 3px; }
+    .ml-center span { display: block; margin-top: 6px; font-size: 12px; color: var(--text-muted); letter-spacing: .5px; }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">机器学习</h1>
+    <p class="page-subtitle">资料分享 · 机器学习 · 从感知机长出来的一棵树</p>
+
+    <section class="card">
+      <div class="ml-center">
+        <b>感知机</b>
+        <span>整棵树的中点：最小的学习节点 —— 给一组输入，乘权重、求和、过阈值，输出 0 或 1</span>
+      </div>
+      <p style="margin-top:12px">1958 年 Rosenblatt 的感知机只有一层，却第一次让机器"从数据里调参数"：猜错了就按误差方向挪一点权重。它只能划一条直线，所以被 XOR 卡住；但把它叠起来、把阈值换成可导的函数，就是今天的深度学习。</p>
+      <p>向右每一层离"纯理论"远一步、离"能跑起来的代码"近一步。点星图里任意一个光点，会跳到下面对应小节。</p>
+      <div class="ml-jump">
+        <a href="#linear">线性模型</a><a href="#bp">反向传播</a><a href="#paradigm">学习范式</a>
+        <a href="#tool">工程与工具</a><a href="#theory">理论根（图灵机）</a>
+      </div>
+      <p class="ml-legend">配色取自原神·妮露：<span style="color:#7fd4ef">水蓝</span>是主干与工程，<span style="color:#f4a6c0">玫瑰粉</span>是理论与叶子，底色是深海的那种深蓝。一个宇宙、一棵树，不套娃。</p>
+    </section>
+
+    <section class="card ml-sec" id="linear">
+      <h2>线性模型</h2>
+      <div class="ml-tree">
+        <div class="ml-node">
+          <h3>逻辑回归</h3>
+          <p>把感知机的硬阈值换成 sigmoid：输出变成 0–1 的概率，损失变成交叉熵，就能用梯度下降稳稳地训。工业界最常见的基线之一。</p>
+          <p class="k">它和感知机的区别只有一个：阈值可导 → 能算梯度 → 能叠很多层。</p>
+          <span class="ml-chip">sigmoid</span><span class="ml-chip">交叉熵</span><span class="ml-chip">正则化</span>
+        </div>
+        <div class="ml-node">
+          <h3>SVM / 核方法</h3>
+          <p>不找"任意一条分界线"，而找"间隔最大的那条"。线性分不开时用核函数把样本映射到高维，等价于在原始空间画曲线。</p>
+          <span class="ml-chip">最大间隔</span><span class="ml-chip">核技巧</span><span class="ml-chip">软间隔</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card ml-sec" id="bp">
+      <h2>反向传播 → 深度网络</h2>
+      <div class="ml-tree">
+        <div class="ml-node">
+          <h3>多层感知机（MLP）</h3>
+          <p>把感知机叠成层、换成可导激活函数（ReLU / tanh），理论上就能逼近任意连续函数。真正的难点是"怎么训练"，答案是反向传播。</p>
+          <span class="ml-chip">隐藏层</span><span class="ml-chip">万能逼近</span><span class="ml-chip">ReLU</span>
+        </div>
+        <div class="ml-node">
+          <h3>反向传播</h3>
+          <p>链式法则 + 计算图：前向算出预测，反向把误差一层层乘回去，得到每个权重的梯度。深度学习能跑起来，靠的就是它 + GPU。</p>
+          <p class="k">梯度消失/爆炸，本质是雅可比连乘的数值后果。</p>
+          <span class="ml-chip">链式法则</span><span class="ml-chip">计算图</span><span class="ml-chip">自动微分</span>
+        </div>
+        <div class="ml-node">
+          <h3>CNN / RNN</h3>
+          <p>CNN 用卷积利用"局部相关 + 平移不变"，把图像参数量降几个数量级；RNN 按时间展开处理序列，LSTM 的门控缓解长依赖。</p>
+          <span class="ml-chip">卷积</span><span class="ml-chip">感受野</span><span class="ml-chip">BPTT</span>
+        </div>
+        <div class="ml-node rose">
+          <h3>注意力 / Transformer / 大模型</h3>
+          <p>自注意力让任意两个位置直接相连，不再受序列长度限制：Attention(Q,K,V) = softmax(QKᵀ/√d)·V。堆很多层 + 海量数据，就有了今天的大模型。</p>
+          <span class="ml-chip">自注意力</span><span class="ml-chip">位置编码</span><span class="ml-chip">预训练 + 微调</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card ml-sec" id="paradigm">
+      <h2>学习范式</h2>
+      <div class="ml-tree">
+        <div class="ml-node">
+          <h3>监督学习</h3>
+          <p>有标签。两条主力：线性/逻辑回归做基线，树模型（决策树 / 随机森林 / GBDT / XGBoost）做表格数据。表格题先上树模型，通常比神经网络省事。</p>
+          <span class="ml-chip">线性回归</span><span class="ml-chip">决策树</span><span class="ml-chip">随机森林</span><span class="ml-chip">GBDT</span>
+        </div>
+        <div class="ml-node">
+          <h3>无监督学习</h3>
+          <p>没有标签，只找结构：聚类（K-means / DBSCAN / 层次聚类）、降维（PCA / t-SNE / UMAP）。</p>
+          <p class="k">聚类不是"分类的弱版"，它回答的是另一个问题：这些样本自己会分成几堆。</p>
+          <span class="ml-chip">K-means</span><span class="ml-chip">DBSCAN</span><span class="ml-chip">PCA</span>
+        </div>
+        <div class="ml-node">
+          <h3>强化学习</h3>
+          <p>没有标准答案，只有奖励：Q-learning → DQN → 策略梯度 → PPO。难点不在算法，在奖励设计——奖励写错，它会精确地学会你想不到的行为。</p>
+          <span class="ml-chip">MDP</span><span class="ml-chip">Q-learning</span><span class="ml-chip">PPO</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card ml-sec" id="tool">
+      <h2>工程与工具</h2>
+      <div class="ml-tree">
+        <div class="ml-node">
+          <h3>PyTorch</h3>
+          <p>动态图、调试友好，研究和工业都在用；<code>tensor</code> + <code>autograd</code> + <code>nn.Module</code> 三件套就够跑通大部分模型。</p>
+        </div>
+        <div class="ml-node">
+          <h3>TensorFlow / Keras</h3>
+          <p>静态图起家，部署链路（TF Serving / TFLite / TF.js）成熟；Keras 把模型定义压到几行。</p>
+        </div>
+        <div class="ml-node">
+          <h3>数据与实验</h3>
+          <p>NumPy / pandas 处理数据，scikit-learn 跑传统模型，Hugging Face 拿预训练权重，W&amp;B / TensorBoard 记实验。</p>
+          <p class="k">模型只占工作量的一小部分；数据清洗、划分、防泄漏才是决定成败的那 80%。</p>
+          <span class="ml-chip">NumPy</span><span class="ml-chip">pandas</span><span class="ml-chip">scikit-learn</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card ml-sec" id="theory">
+      <h2>理论根：图灵机</h2>
+      <div class="ml-tree">
+        <div class="ml-node rose">
+          <h3>图灵机</h3>
+          <p>1936 年那个"一条纸带 + 一个读写头"的抽象机器。它划定了"什么能被机械地计算"的边界——感知机、神经网络、大模型，全都活在这条边界里面。</p>
+          <span class="ml-chip">纸带</span><span class="ml-chip">状态转移</span><span class="ml-chip">丘奇-图灵论题</span>
+        </div>
+        <div class="ml-node rose">
+          <h3>可计算性与自动机</h3>
+          <p>停机问题不是"难"，是"不存在这样的程序"；有限状态机 → 下推自动机 → 图灵机，能力一层层变强。正则表达式、词法分析、协议状态机，都是这条线上的产物。</p>
+          <span class="ml-chip">停机问题</span><span class="ml-chip">正则语言</span><span class="ml-chip">上下文无关文法</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>这棵树还会长</h2>
+      <p>现在挂的是主干与常见枝。后面可以继续往右接：概率图模型、扩散模型、RLHF、模型压缩与量化、推理部署与算子优化。加一个节点只需在星图里加一行 <code>{ name, parent }</code>。</p>
+    </section>
+  </main>
+
+  <script src="../../../assets/page.js"></script>
+</body>
+</html>
