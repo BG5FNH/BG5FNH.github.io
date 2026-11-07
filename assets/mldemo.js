@@ -83,14 +83,15 @@
   // 矩阵：行列扫光
   DRAW.matrix = function (ctx, w, h, t, a) {
     var n = a.n || 6;
-    var size = Math.min(w - 24, h - 26);
-    var cell = size / n, ox = (w - size) / 2, oy = 16;
+    // 铺满整块画布：格子拉成长方形，避免中间一个小方块、两边全空
+    var cw = (w - 24) / n, ch = (h - 30) / n;
+    var ox = 12, oy = 18;
     var sweep = Math.floor((t / 420) % n);
     for (var i = 0; i < n; i++) {
       for (var j = 0; j < n; j++) {
         var v = 0.25 + 0.75 * Math.abs(Math.sin(i * 1.7 + j * 2.3 + (a.seed || 0)));
         ctx.fillStyle = 'rgba(244,166,192,' + (i === sweep ? 0.15 + 0.75 * v : 0.1 + 0.45 * v) + ')';
-        ctx.fillRect(ox + j * cell, oy + i * cell, cell - 1, cell - 1);
+        ctx.fillRect(ox + j * cw, oy + i * ch, cw - 1, ch - 1);
       }
     }
     label(ctx, a.caption || '', 12, 13);
@@ -183,7 +184,7 @@
         var v = 0.2 + 0.6 * Math.abs(Math.sin(i * 2.1 + j * 1.3 + (a.seed || 0)));
         var inWin = (i >= pos && i < pos + k && j >= pos && j < pos + k);
         ctx.fillStyle = inWin ? 'rgba(155,231,196,.75)' : 'rgba(127,212,239,' + (0.08 + 0.3 * v) + ')';
-        ctx.fillRect(ox + j * cell, oy + i * cell, cell - 1, cell - 1);
+        ctx.fillRect(ox + j * cw, oy + i * ch, cw - 1, ch - 1);
       }
     }
     label(ctx, a.caption || '', 12, 12);
