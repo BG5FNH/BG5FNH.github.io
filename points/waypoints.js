@@ -258,7 +258,7 @@ window.BG5FNH_WAYPOINTS = {
               { key: 'longctx', path: 'longctx', parent: 'llm', name: 'KV 缓存', pos: [51.88, -11.00], scale: 0.5, labelScale: 0.78, color: '#f4a6c0', lineColor: '#b07f95', url: '资料分享/机器学习/b-tfm.html#longctx' },
               { key: 'gen', path: 'gen', parent: 'mlp', name: '生成模型', pos: [19.62, -14.96], scale: 0.78, labelScale: 0.9, color: '#ffc2d6', lineColor: '#b07f95', url: '资料分享/机器学习/b-gen.html#gen' },
               { key: 'ae', path: 'ae', parent: 'gen', name: '自编码器', pos: [24.23, -13.20], scale: 0.78, labelScale: 0.9, color: '#ffc2d6', lineColor: '#b07f95', url: '资料分享/机器学习/b-gen.html#ae' },
-              { key: 'vae', path: 'vae', parent: 'ae', name: 'VAE', pos: [28.84, -13.20], scale: 0.78, labelScale: 0.9, color: '#ffc2d6', lineColor: '#b07f95', url: '资料分享/机器学习/b-gen.html#vae' },
+              { key: 'vae', path: 'vae', parent: 'ae', name: 'VAE', pos: [28.84, -13.20], scale: 0.78, labelScale: 0.9, color: '#ffc2d6', lineColor: '#b07f95', url: '资料分享/机器学习/vae.html' },
               { key: 'gan', path: 'gan', parent: 'gen', name: 'GAN', pos: [24.23, -14.30], scale: 1.15, labelScale: 1, color: '#ffc2d6', lineColor: '#b07f95', url: '资料分享/机器学习/gan.html' },
               { key: 'dcgan', path: 'dcgan', parent: 'gan', name: 'DCGAN', pos: [28.84, -13.64], scale: 0.5, labelScale: 0.78, color: '#ffc2d6', lineColor: '#b07f95', url: '资料分享/机器学习/b-gen.html#dcgan' },
               { key: 'wgan', path: 'wgan', parent: 'gan', name: 'WGAN / 梯度惩罚', pos: [28.84, -14.08], scale: 0.5, labelScale: 0.78, color: '#ffc2d6', lineColor: '#b07f95', url: '资料分享/机器学习/b-gen.html#wgan' },
