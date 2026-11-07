@@ -252,7 +252,7 @@ window.BG5FNH_WAYPOINTS = {
               { key: 'llm', path: 'llm', parent: 'gpt', name: 'LLM', pos: [47.27, -9.90], scale: 1.15, labelScale: 1, color: '#f4a6c0', lineColor: '#b07f95', url: '资料分享/机器学习/b-tfm.html#llm' },
               { key: 'sft', path: 'sft', parent: 'llm', name: '指令微调 SFT', pos: [51.88, -8.80], scale: 0.78, labelScale: 0.9, color: '#f4a6c0', lineColor: '#b07f95', url: '资料分享/机器学习/b-tfm.html#sft' },
               { key: 'rlhf', path: 'rlhf', parent: 'llm', name: 'RLHF', pos: [51.88, -9.24], scale: 0.78, labelScale: 0.9, color: '#f4a6c0', lineColor: '#b07f95', url: '资料分享/机器学习/b-tfm.html#rlhf' },
-              { key: 'lora', path: 'lora', parent: 'llm', name: 'LoRA', pos: [51.88, -9.68], scale: 0.78, labelScale: 0.9, color: '#f4a6c0', lineColor: '#b07f95', url: '资料分享/机器学习/b-tfm.html#lora' },
+              { key: 'lora', path: 'lora', parent: 'llm', name: 'LoRA', pos: [51.88, -9.68], scale: 0.78, labelScale: 0.9, color: '#f4a6c0', lineColor: '#b07f95', url: '资料分享/机器学习/lora.html' },
               { key: 'rag', path: 'rag', parent: 'llm', name: 'RAG', pos: [51.88, -10.12], scale: 0.78, labelScale: 0.9, color: '#f4a6c0', lineColor: '#b07f95', url: '资料分享/机器学习/b-tfm.html#rag' },
               { key: 'moe', path: 'moe', parent: 'llm', name: 'MoE 混合专家', pos: [51.88, -10.56], scale: 0.78, labelScale: 0.9, color: '#f4a6c0', lineColor: '#b07f95', url: '资料分享/机器学习/moe.html' },
               { key: 'longctx', path: 'longctx', parent: 'llm', name: 'KV 缓存', pos: [51.88, -11.00], scale: 0.5, labelScale: 0.78, color: '#f4a6c0', lineColor: '#b07f95', url: '资料分享/机器学习/b-tfm.html#longctx' },

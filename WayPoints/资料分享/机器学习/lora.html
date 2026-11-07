@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>LoRA · 只训练两条细长的旁路 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../../";</script>
+  <link rel="stylesheet" href="../../../../assets/style.css" />
+  <style>
+    .lr-lead { margin: 0 0 10px; font-size: 14px; line-height: 1.9; }
+    .lr-wrap { position: relative; margin-top: 12px; border-radius: 12px; overflow: hidden;
+      border: 1px solid rgba(155, 231, 196, .26);
+      background: radial-gradient(circle at 50% 0%, #0d1b18, #05080a 82%); }
+    #lrStage { display: block; width: 100%; height: 520px; touch-action: none; cursor: grab; }
+    #lrStage.dragging { cursor: grabbing; }
+    .lr-hud { position: absolute; left: 10px; top: 10px; font-size: 11.5px; line-height: 1.75;
+      color: #cdeee0; background: rgba(6, 18, 14, .8); border: 1px solid rgba(155, 231, 196, .3);
+      border-radius: 8px; padding: 8px 10px; pointer-events: none; }
+    .lr-hud b { color: #fff; }
+    .lr-hud .r { color: #ffd9a0; }
+    .lr-tag { position: absolute; font-size: 11px; color: rgba(205, 238, 224, .72); pointer-events: none; }
+    .lr-tip { position: absolute; right: 10px; bottom: 10px; font-size: 11px; color: rgba(205,238,224,.75);
+      background: rgba(6,18,14,.72); border-radius: 8px; padding: 5px 9px; pointer-events: none; }
+    .lr-gate { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 4px; font-size: 13px; letter-spacing: 1px; color: rgba(205,238,224,.78);
+      background: radial-gradient(circle at 50% 40%, rgba(14,32,26,.9), rgba(5,8,10,.96));
+      cursor: pointer; transition: opacity .4s; }
+    .lr-gate span { font-size: 11px; opacity: .7; letter-spacing: 0; }
+    .lr-ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px;
+      font-size: 12.5px; color: var(--text-muted); }
+    .lr-ctrl button { font: inherit; font-size: 12.5px; padding: 7px 13px; border-radius: 999px; cursor: pointer;
+      color: #9be7c4; background: rgba(155,231,196,.08); border: 1px solid rgba(155,231,196,.45); }
+    .lr-ctrl button.on { background: rgba(155,231,196,.26); border-color: #9be7c4; color: #fff; }
+    .lr-ctrl input[type=range] { width: 130px; accent-color: #9be7c4; }
+    .lr-eq { display: block; margin: 10px 0 0; padding: 9px 12px; border-radius: 8px; font-size: 12.5px;
+      color: #d8ffee; background: rgba(6,20,15,.6); border-left: 2px solid rgba(155,231,196,.7);
+      overflow-x: auto; white-space: nowrap; }
+    .lr-note { margin: 10px 0 0; padding: 11px 13px; border-radius: 10px; font-size: 12.5px; line-height: 1.85;
+      color: var(--text-muted); background: rgba(155,231,196,.05); border: 1px dashed rgba(155,231,196,.3); }
+    .lr-note b { color: #9be7c4; }
+    .lr-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+    .lr-card { padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(155,231,196,.22);
+      background: rgba(155,231,196,.04); }
+    .lr-card h3 { margin: 0 0 6px; font-size: 13.5px; color: #9be7c4; }
+    .lr-card p { margin: 4px 0; font-size: 12.5px; line-height: 1.8; color: var(--text-muted); }
+    @media (max-width: 640px) {
+      #lrStage { height: 400px; }
+      .lr-two { grid-template-columns: 1fr; }
+      .lr-hud { font-size: 10.5px; padding: 6px 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">LoRA</h1>
+    <p class="page-subtitle">机器学习 · LLM · 冻结大矩阵，只训练两条细旁路</p>
+
+    <section class="card">
+      <p class="lr-lead">后排那片深色方块是一个 <b>8×8 的权重矩阵 W</b>（真实模型里可能是 4096×4096）。微调时它<b>完全冻住</b>，一个数都不改——你看它从头到尾不动、也不发光。</p>
+      <p class="lr-lead">真正训练的是前面两条细长的旁路 <b>A（8×r）</b> 和 <b>B（r×8）</b>，它们相乘得到一个小改动 <b>ΔW = A·B</b>，再加到 W 上。r 通常取 4、8、16，于是参数量从 64 降到 8r+8r = 32（r=2 时）。粉色柱子就是 ΔW 在一片片长出来的样子。</p>
+      <p class="lr-lead" style="font-size:12.5px;color:var(--text-muted)">把 r 拉到 1 看最极端的情况：整片改动只剩一条斜线——但依然够用。这就是 LoRA 的赌注：<b>微调带来的改变，本质上是个低秩的东西</b>。推理时还能把 A·B 直接并进 W，不增加任何延迟。</p>
+
+      <div class="lr-wrap">
+        <canvas id="lrStage"></canvas>
+        <div class="lr-gate" id="lrGate">正在准备三维场景…<span>首次加载三维库约 0.6MB，只加载这一次</span></div>
+        <div class="lr-hud" id="lrHud"></div>
+        <div class="lr-tag" style="left:31%;top:7%">后排深色 = 冻结的 W　前排粉色 = 训练的 ΔW = A·B</div>
+        <div class="lr-tip">左键拖动旋转 · 滚轮缩放</div>
+      </div>
+
+      <div class="lr-ctrl">
+        <button id="lrPlay" class="on">暂停</button>
+        <span>秩 r <input type="range" id="lrR" min="1" max="4" step="1" value="2" /></span>
+        <span>训练进度 <input type="range" id="lrProg" min="0" max="100" step="1" value="55" /></span>
+        <button id="lrReset">重置视角</button>
+      </div>
+
+      <span class="lr-eq">W' = W + ΔW = W + B·A　（W 冻结，只训练 A、B）</span>
+    </section>
+
+    <section class="card">
+      <h2>为什么这么省</h2>
+      <div class="lr-two">
+        <div class="lr-card">
+          <h3>参数量算给你看</h3>
+          <p>全量微调：d×d 个参数。LoRA：d×r + r×d = 2dr。以 d=4096、r=8 为例，全量是 1677 万，LoRA 只有 6.5 万——<b>少 256 倍</b>。</p>
+        </div>
+        <div class="lr-card">
+          <h3>显存省在优化器状态</h3>
+          <p>真正吃显存的不是权重本身，而是 Adam 给每个参数存的两份动量。可训练参数少两个数量级，优化器状态也就少两个数量级。</p>
+        </div>
+        <div class="lr-card">
+          <h3>可以多套并存</h3>
+          <p>一个底座模型 + 十个 LoRA（角色、语气、领域知识），切换时只换几 MB 的旁路文件。这是现在"一个模型多种人格"的工程基础。</p>
+        </div>
+        <div class="lr-card">
+          <h3>推理零成本</h3>
+          <p>训练完可以把 B·A 直接加进 W，得到一个普通权重矩阵，前向不多一次矩阵乘。QLoRA 再把底座量化到 4bit，单卡就能微调 65B。</p>
+        </div>
+      </div>
+      <p class="lr-note"><b>看这张图的顺序：</b>先看后排那片深色——它一动不动，就是"冻结"；再看前排粉色 ΔW 随着进度长出来；最后把秩 r 从 4 拉到 1，看这片改动怎么塌成一条斜线，而参数计数跟着掉一个量级。</p>
+      <p style="margin-top:12px"><a href="moe.html" style="color:#a9e4f7">← MoE（省算力）</a>　·　<a href="b-tfm.html" style="color:#f4a6c0">Transformer 分支</a></p>
+    </section>
+  </main>
+
+  <script>
+  (function () {
+    'use strict';
+    var host = document.getElementById('lrStage');
+    if (!host) return;
+    var hud = document.getElementById('lrHud');
+    var btnPlay = document.getElementById('lrPlay');
+    var btnReset = document.getElementById('lrReset');
+    var rInput = document.getElementById('lrR');
+    var progInput = document.getElementById('lrProg');
+
+    var D = 8, GAP = 2.1, HW = 1.9, HD = 5.2;
+    var ZW = -9.5, ZD = 9.5;
+
+    // 固定的伪随机 A、B（r 行/列里取前 r 个）
+    function rnd(i, j) {
+      var s = Math.sin((i + 1) * 12.9898 + (j + 1) * 78.233) * 43758.5453;
+      return (s - Math.floor(s)) * 2 - 1;
+    }
+    function buildAB(r) {
+      var A = [], B = [];
+      for (var i = 0; i < D; i++) { A.push([]); for (var k = 0; k < r; k++) A[i].push(rnd(i, k) * 0.9); }
+      for (var k2 = 0; k2 < r; k2++) { B.push([]); for (var j = 0; j < D; j++) B[k2].push(rnd(k2 + 20, j) * 0.9); }
+      return { A: A, B: B };
+    }
+    function delta(r, i, j) {
+      var ab = buildAB(r), s = 0;
+      for (var k = 0; k < r; k++) s += ab.A[i][k] * ab.B[k][j];
+      return s / Math.sqrt(r);
+    }
+
+    var started = false, vis = true, bootTimer = 0;
+
+    function boot3D() {
+      if (started) return;
+      started = true;
+      var gate = document.getElementById('lrGate');
+      if (gate) gate.firstChild.nodeValue = '正在载入三维库…';
+      var sc = document.createElement('script');
+      sc.src = '../../../../pc/js/three.min.js';
+      sc.async = true;
+      sc.onload = function () {
+        if (gate) { gate.style.opacity = '0'; setTimeout(function () { gate.style.display = 'none'; }, 400); }
+        initScene();
+      };
+      sc.onerror = function () { if (gate) gate.firstChild.nodeValue = '三维库没加载出来，点一下重试'; started = false; };
+      document.head.appendChild(sc);
+    }
+
+    function initScene() {
+      var renderer = new THREE.WebGLRenderer({ canvas: host, antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      var scene = new THREE.Scene();
+      var camera = new THREE.PerspectiveCamera(42, 1, 0.1, 2000);
+
+      scene.add(new THREE.AmbientLight(0x9ab6cc, 0.72));
+      var l1 = new THREE.DirectionalLight(0xffffff, 0.82); l1.position.set(-30, 80, 45); scene.add(l1);
+      var l2 = new THREE.DirectionalLight(0x9be7c4, 0.45); l2.position.set(50, 30, -45); scene.add(l2);
+
+      var cam = { yaw: -0.6, pitch: 0.6, dist: 46 };
+      var target = new THREE.Vector3(0, 1.6, 0);
+      function updateCamera() {
+        var sp = Math.sin(cam.pitch), cp = Math.cos(cam.pitch);
+        camera.position.set(target.x + cam.dist * cp * Math.sin(cam.yaw),
+                            target.y + cam.dist * sp,
+                            target.z + cam.dist * cp * Math.cos(cam.yaw));
+        camera.lookAt(target);
+      }
+
+      var grid = new THREE.GridHelper(36, 9, 0x1f3a31, 0x152823);
+      grid.position.y = -0.02;
+      scene.add(grid);
+
+      var boxGeo = new THREE.BoxGeometry(GAP * 0.82, 1, GAP * 0.82);
+      boxGeo.translate(0, 0.5, 0);
+      var wMesh = new THREE.InstancedMesh(boxGeo, new THREE.MeshPhongMaterial({ shininess: 20, specular: 0x223344 }), D * D);
+      var dMesh = new THREE.InstancedMesh(boxGeo, new THREE.MeshPhongMaterial({ shininess: 70, specular: 0x334455 }), D * D);
+      scene.add(wMesh); scene.add(dMesh);
+
+      var m4 = new THREE.Matrix4(), col = new THREE.Color();
+      function xOf(j) { return (j - (D - 1) / 2) * GAP; }
+      function zOf(i) { return (i - (D - 1) / 2) * GAP; }
+
+      function put(mesh, k, x, z, h, c) {
+        m4.makeScale(1, Math.max(0.02, h), 1);
+        m4.setPosition(x, 0, z);
+        mesh.setMatrixAt(k, m4);
+        mesh.setColorAt(k, c);
+      }
+
+      function drawW() {
+        for (var i = 0; i < D; i++) for (var j = 0; j < D; j++) {
+          var w = Math.abs(rnd(i, j));
+          col.setRGB(0.16 + 0.1 * w, 0.26 + 0.12 * w, 0.30 + 0.1 * w);   // 冻结：偏灰蓝、不发光
+          put(wMesh, i * D + j, xOf(j), ZW + zOf(i), 0.35 + w * HW * 0.5, col);
+        }
+        wMesh.instanceMatrix.needsUpdate = true;
+        wMesh.instanceColor.needsUpdate = true;
+      }
+
+      function drawDelta() {
+        var r = +rInput.value;
+        var prog = (+progInput.value) / 100;
+        for (var i = 0; i < D; i++) for (var j = 0; j < D; j++) {
+          var v = delta(r, i, j) * prog;
+          var a = Math.min(1, Math.abs(v));
+          col.setRGB(0.60 + 0.35 * a, 0.34 + 0.4 * a, 0.55 + 0.2 * a);
+          put(dMesh, i * D + j, xOf(j), ZD + zOf(i), 0.1 + a * HD, col);
+        }
+        dMesh.instanceMatrix.needsUpdate = true;
+        dMesh.instanceColor.needsUpdate = true;
+      }
+
+      function updHud() {
+        var r = +rInput.value;
+        var full = D * D, lora = 2 * D * r;
+        hud.innerHTML = '矩阵：<b>' + D + '×' + D + ' = ' + full + '</b> 个参数（全部冻结）<br>' +
+          '秩 r = <b class="r">' + r + '</b>　旁路 A: ' + D + '×' + r + '　B: ' + r + '×' + D + '<br>' +
+          '可训练参数：<b>' + lora + '</b>（这个玩具矩阵占 ' + (lora / full * 100).toFixed(0) + '%；真实 d=4096、r=8 时只占 0.39%）<br>' +
+          '训练进度：' + (+progInput.value) + '%　推理时把 A·B 并进 W，零额外延迟';
+      }
+
+      var dragging = false, lx = 0, ly = 0, dirty = true, playing = true, progDir = 1;
+
+      host.addEventListener('pointerdown', function (e) {
+        if (e.button !== 0) return;
+        dragging = true; lx = e.clientX; ly = e.clientY;
+        host.classList.add('dragging');
+        if (host.setPointerCapture) host.setPointerCapture(e.pointerId);
+      });
+      host.addEventListener('pointermove', function (e) {
+        if (!dragging) return;
+        cam.yaw -= (e.clientX - lx) * 0.008;
+        cam.pitch = Math.max(0.1, Math.min(1.45, cam.pitch + (e.clientY - ly) * 0.006));
+        lx = e.clientX; ly = e.clientY;
+        updateCamera(); dirty = true;
+      });
+      host.addEventListener('pointerup', function () { dragging = false; host.classList.remove('dragging'); });
+      host.addEventListener('pointercancel', function () { dragging = false; host.classList.remove('dragging'); });
+      host.addEventListener('wheel', function (e) {
+        e.preventDefault();
+        cam.dist = Math.max(16, Math.min(90, cam.dist + e.deltaY * 0.05));
+        updateCamera(); dirty = true;
+      }, { passive: false });
+
+      btnPlay.addEventListener('click', function () {
+        playing = !playing;
+        btnPlay.textContent = playing ? '暂停' : '继续';
+        btnPlay.classList.toggle('on', playing);
+      });
+      btnReset.addEventListener('click', function () {
+        cam.yaw = -0.6; cam.pitch = 0.6; cam.dist = 46;
+        updateCamera(); dirty = true;
+      });
+      rInput.addEventListener('input', function () { drawDelta(); updHud(); dirty = true; });
+      progInput.addEventListener('input', function () { drawDelta(); updHud(); dirty = true; });
+
+      function resize() {
+        var w = host.clientWidth || 900, h = host.clientHeight || 520;
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        dirty = true;
+      }
+      window.addEventListener('resize', resize);
+
+      var last = 0;
+      function loop(now) {
+        requestAnimationFrame(loop);
+        if (!last) last = now;
+        var dt = Math.min(80, now - last);
+        last = now;
+        if (playing && vis) {
+          var p = +progInput.value + progDir * dt * 0.02;
+          if (p >= 100) { p = 100; progDir = -1; }
+          if (p <= 12) { p = 12; progDir = 1; }
+          progInput.value = p;
+          drawDelta(); updHud(); dirty = true;
+        }
+        if (dirty && vis) { renderer.render(scene, camera); dirty = false; }
+      }
+
+      drawW(); drawDelta(); updHud();
+      resize(); updateCamera(); requestAnimationFrame(loop);
+
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (es) { vis = es[0].isIntersecting; }, { threshold: 0.02 }).observe(host);
+      }
+    }
+
+    // 进入视口后延迟 0.9s 再拉 three.js
+    (function () {
+      var gate = document.getElementById('lrGate');
+      if (gate) gate.addEventListener('click', function () { if (!started) boot3D(); });
+      var rc = host.getBoundingClientRect();
+      if (rc.top < (window.innerHeight || 800) + 240 && rc.bottom > -240) bootTimer = setTimeout(boot3D, 900);
+      if (!('IntersectionObserver' in window)) { if (!bootTimer) setTimeout(boot3D, 900); return; }
+      var io = new IntersectionObserver(function (es) {
+        es.forEach(function (e) {
+          if (e.isIntersecting) { if (!bootTimer) bootTimer = setTimeout(function () { boot3D(); io.disconnect(); }, 900); }
+        });
+      }, { rootMargin: '240px' });
+      io.observe(host);
+    })();
+  })();
+  </script>
+  <script src="../../../../assets/page.js"></script>
+</body>
+</html>
