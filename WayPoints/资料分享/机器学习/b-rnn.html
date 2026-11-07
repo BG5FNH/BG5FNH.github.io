@@ -35,7 +35,7 @@
       <p>序列建模的第一代方案：按时间展开、共享权重。门控解决了长依赖，注意力又把它推到 Seq2Seq 的巅峰，然后被 Transformer 接棒。</p>
       <p class="ml-back">← 回到 <a href="index.html" style="color:#a9e4f7">机器学习总览</a></p>
         <div class="ml-node main" id="rnn"><h3>RNN</h3><p>按时间展开，处理变长序列；问题是长依赖梯度消失。</p></div>
-        <div class="ml-node core" id="lstm"><h3>LSTM / GRU <span class="tag">核心</span></h3><p>门控记住该记的、忘掉该忘的，长依赖问题大幅缓解。</p><p class="k">出处：Hochreiter & Schmidhuber, 1997</p></div>
+        <div class="ml-node core" id="lstm"><h3>LSTM / GRU  <a href="lstm.html" style="font-size:11px;color:#9be7c4;margin-left:8px">▶ 看三道闸门</a><span class="tag">核心</span></h3><p>门控记住该记的、忘掉该忘的，长依赖问题大幅缓解。</p><p class="k">出处：Hochreiter & Schmidhuber, 1997</p></div>
         <div class="ml-node leaf" id="bptt"><h3>BPTT 沿时间反传</h3><p>把时间轴当成层，误差沿时间反向传播。</p></div>
         <div class="ml-node main" id="seq2seq"><h3>Seq2Seq</h3><p>编码器-解码器，机器翻译的基本框架。</p></div>
         <div class="ml-node core" id="attn"><h3>注意力机制 <span class="tag">核心</span></h3><p>解码时动态看编码器的不同位置——Transformer 的前身。</p><p class="k">出处：Bahdanau et al., ICLR 2015</p></div>

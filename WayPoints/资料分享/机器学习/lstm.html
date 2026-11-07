@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>LSTM · 三道闸门管着一条记忆 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../../";</script>
+  <link rel="stylesheet" href="../../../../assets/style.css" />
+  <style>
+    .ls-lead { margin: 0 0 10px; font-size: 14px; line-height: 1.9; }
+    .ls-wrap { position: relative; margin-top: 12px; border-radius: 12px; overflow: hidden;
+      border: 1px solid rgba(155, 231, 196, .28);
+      background: radial-gradient(circle at 50% 0%, #0e1a17, #05080a 82%); }
+    #lsStage { display: block; width: 100%; height: 540px; touch-action: none; cursor: grab; }
+    #lsStage.dragging { cursor: grabbing; }
+    .ls-hud { position: absolute; left: 10px; top: 10px; font-size: 11.5px; line-height: 1.75;
+      color: #cdeee0; background: rgba(6, 18, 14, .8); border: 1px solid rgba(155, 231, 196, .3);
+      border-radius: 8px; padding: 8px 10px; pointer-events: none; }
+    .ls-hud b { color: #fff; }
+    .ls-hud .r { color: #ffd9a0; }
+    .ls-tag { position: absolute; font-size: 11px; color: rgba(205, 238, 224, .72); pointer-events: none; }
+    .ls-tip { position: absolute; right: 10px; bottom: 10px; font-size: 11px; color: rgba(205,238,224,.75);
+      background: rgba(6,18,14,.72); border-radius: 8px; padding: 5px 9px; pointer-events: none; }
+    .ls-gate-note { position: absolute; left: 10px; bottom: 10px; font-size: 11px; line-height: 1.7;
+      color: rgba(205,238,224,.75); pointer-events: none; }
+    .ls-gate-note i { display: inline-block; width: 12px; height: 3px; border-radius: 2px;
+      margin-right: 5px; vertical-align: 3px; }
+    .ls-gate { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 4px; font-size: 13px; letter-spacing: 1px; color: rgba(205,238,224,.78);
+      background: radial-gradient(circle at 50% 40%, rgba(14,32,26,.9), rgba(5,8,10,.96));
+      cursor: pointer; transition: opacity .4s; }
+    .ls-gate span { font-size: 11px; opacity: .7; letter-spacing: 0; }
+    .ls-ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px;
+      font-size: 12.5px; color: var(--text-muted); }
+    .ls-ctrl button { font: inherit; font-size: 12.5px; padding: 7px 13px; border-radius: 999px; cursor: pointer;
+      color: #9be7c4; background: rgba(155,231,196,.08); border: 1px solid rgba(155,231,196,.45); }
+    .ls-ctrl button.on { background: rgba(155,231,196,.26); border-color: #9be7c4; color: #fff; }
+    .ls-ctrl input[type=range] { width: 120px; accent-color: #9be7c4; }
+    .ls-eq { display: block; margin: 10px 0 0; padding: 9px 12px; border-radius: 8px; font-size: 12.5px;
+      color: #d8ffee; background: rgba(6,20,15,.6); border-left: 2px solid rgba(155,231,196,.7);
+      overflow-x: auto; white-space: nowrap; }
+    .ls-note { margin: 10px 0 0; padding: 11px 13px; border-radius: 10px; font-size: 12.5px; line-height: 1.85;
+      color: var(--text-muted); background: rgba(155,231,196,.05); border: 1px dashed rgba(155,231,196,.3); }
+    .ls-note b { color: #9be7c4; }
+    .ls-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+    .ls-card { padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(155,231,196,.22);
+      background: rgba(155,231,196,.04); }
+    .ls-card h3 { margin: 0 0 6px; font-size: 13.5px; color: #9be7c4; }
+    .ls-card p { margin: 4px 0; font-size: 12.5px; line-height: 1.8; color: var(--text-muted); }
+    @media (max-width: 640px) {
+      #lsStage { height: 400px; }
+      .ls-two { grid-template-columns: 1fr; }
+      .ls-hud { font-size: 10.5px; padding: 6px 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">LSTM</h1>
+    <p class="page-subtitle">机器学习 · RNN · 三道闸门，管着一条不会冲垮的记忆</p>
+
+    <section class="card">
+      <p class="ls-lead">普通 RNN 只有一条隐藏状态，每来一个词就被整个覆盖一次，几十步之后早先的信息基本被冲没了。LSTM 在旁边多开了一条<b>传送带</b>——上面那排柱子就是记忆 C：它只被"加一点"和"乘一点"，很少被整体重写。</p>
+      <p class="ls-lead">三个闸门各管一件事，按顺序扫过每一格：<b>遗忘门</b>决定旧的记忆留多少（柱子降下去就是忘了），<b>输入门</b>决定新信息写进去多少（柱子升起来），<b>输出门</b>决定这一刻对外露出多少（下排 h 跟着变）。</p>
+      <p class="ls-lead" style="font-size:12.5px;color:var(--text-muted)">盯着看久一点：记忆那条带子上的柱子是"连续"的，不会每步归零；而下面 h 的柱子起起落落——记忆是私有的，输出才是给下一层看的。</p>
+
+      <div class="ls-wrap">
+        <canvas id="lsStage"></canvas>
+        <div class="ls-gate" id="lsGate">正在准备三维场景…<span>首次加载三维库约 0.6MB，只加载这一次</span></div>
+        <div class="ls-hud" id="lsHud"></div>
+        <div class="ls-tag" style="left:34%;top:7%">上排 = 记忆 C（传送带）　下排 = 输出 h</div>
+        <div class="ls-gate-note">
+          <div><i style="background:#7fd4ef"></i>遗忘门 f</div>
+          <div><i style="background:#ffd9a0"></i>输入门 i</div>
+          <div><i style="background:#9be7c4"></i>输出门 o</div>
+        </div>
+        <div class="ls-tip">左键拖动旋转 · 滚轮缩放</div>
+      </div>
+
+      <div class="ls-ctrl">
+        <button id="lsPlay" class="on">暂停</button>
+        <span>速度 <input type="range" id="lsSpeed" min="1" max="8" step="1" value="4" /></span>
+        <button id="lsReset">重置视角</button>
+      </div>
+
+      <span class="ls-eq">Cₜ = fₜ ⊙ Cₜ₋₁ + iₜ ⊙ gₜ　　hₜ = oₜ ⊙ tanh(Cₜ)</span>
+    </section>
+
+    <section class="card">
+      <h2>三道门分别在管什么</h2>
+      <div class="ls-two">
+        <div class="ls-card">
+          <h3>遗忘门 f：旧账怎么销</h3>
+          <p>f 是 0 到 1 之间的向量（sigmoid 出来的）。乘 0.2 就是"这条记忆只留两成"，乘 0.98 就是"几乎原样带下去"。它让网络自己决定什么时候该忘。</p>
+        </div>
+        <div class="ls-card">
+          <h3>输入门 i：新账怎么写</h3>
+          <p>候选记忆 g 由当前输入算出，但能不能写进去、写多少，由 i 卡着。忘一半、写三成，记忆就被平滑地更新而不是覆盖。</p>
+        </div>
+        <div class="ls-card">
+          <h3>输出门 o：对外露多少</h3>
+          <p>记忆 C 是内部状态，对外只暴露 h = o ⊙ tanh(C)。同一份记忆，在不同时刻可以只露出相关的部分——这也是多头/多层堆叠能工作的基础。</p>
+        </div>
+        <div class="ls-card">
+          <h3>为什么解决梯度消失</h3>
+          <p>反向传播时，记忆那条路的梯度是乘 f 而不是乘一整个权重矩阵；f 接近 1 时梯度就能一路传回去。加法式的更新（C = fC + ig）比连乘温和得多。</p>
+        </div>
+      </div>
+      <p class="ls-note"><b>一句话记住：</b>RNN 是"每步重写一遍笔记"，LSTM 是"在笔记本上改几个字"。改字比换本子便宜，也不容易把早先写的东西弄丢——这就是它能记住几百步之前信息的原因。</p>
+      <p style="margin-top:12px"><a href="b-rnn.html" style="color:#9be7c4">← RNN 分支</a>　·　<a href="attn.html" style="color:#f4a6c0">自注意力（另一条路）</a>　·　<a href="index.html" style="color:#a9e4f7">机器学习总览</a></p>
+    </section>
+  </main>
+
+  <script>
+  (function () {
+    'use strict';
+    var host = document.getElementById('lsStage');
+    if (!host) return;
+    var hud = document.getElementById('lsHud');
+    var btnPlay = document.getElementById('lsPlay');
+    var btnReset = document.getElementById('lsReset');
+    var speed = document.getElementById('lsSpeed');
+
+    var T = 12;                 // 12 步
+    var GAP = 2.6, HMAX = 11.0;
+
+    // 固定的“教学序列”：中间有一大段没用的输入（遗忘门很小），最后要记住开头的信息
+    var SEQ = (function () {
+      var f = [], i = [], g = [], o = [];
+      for (var t = 0; t < T; t++) {
+        var keep = t < 3 ? 0.95 : (t < 9 ? 0.32 : 0.9);      // 中段大幅遗忘
+        f.push(keep);
+        i.push(t < 3 || t >= 9 ? 0.85 : 0.25);
+        g.push(Math.sin(t * 1.7 + 0.6) * 0.8 + (t >= 9 ? 0.55 : 0));
+        o.push(0.55 + 0.4 * Math.abs(Math.cos(t * 0.9)));
+      }
+      return { f: f, i: i, g: g, o: o };
+    })();
+
+    // 预先算好 C 与 h
+    var CS = [], HS = [];
+    (function () {
+      var c = 0;
+      for (var t = 0; t < T; t++) {
+        c = SEQ.f[t] * c + SEQ.i[t] * SEQ.g[t];
+        CS.push(c);
+        HS.push(SEQ.o[t] * Math.tanh(c));
+      }
+    })();
+
+    var started = false, vis = true, bootTimer = 0;
+
+    function boot3D() {
+      if (started) return;
+      started = true;
+      var gate = document.getElementById('lsGate');
+      if (gate) gate.firstChild.nodeValue = '正在载入三维库…';
+      var sc = document.createElement('script');
+      sc.src = '../../../../pc/js/three.min.js';
+      sc.async = true;
+      sc.onload = function () {
+        if (gate) { gate.style.opacity = '0'; setTimeout(function () { gate.style.display = 'none'; }, 400); }
+        initScene();
+      };
+      sc.onerror = function () { if (gate) gate.firstChild.nodeValue = '三维库没加载出来，点一下重试'; started = false; };
+      document.head.appendChild(sc);
+    }
+
+    function initScene() {
+      var renderer = new THREE.WebGLRenderer({ canvas: host, antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      var scene = new THREE.Scene();
+      var camera = new THREE.PerspectiveCamera(42, 1, 0.1, 2000);
+
+      scene.add(new THREE.AmbientLight(0x9ab6cc, 0.7));
+      var l1 = new THREE.DirectionalLight(0xffffff, 0.8); l1.position.set(-40, 80, 50); scene.add(l1);
+      var l2 = new THREE.DirectionalLight(0x9be7c4, 0.45); l2.position.set(55, 30, -45); scene.add(l2);
+
+      var cam = { yaw: 0.04, pitch: 0.5, dist: 40 };
+      var target = new THREE.Vector3(0, 2.4, 0);
+      function updateCamera() {
+        var sp = Math.sin(cam.pitch), cp = Math.cos(cam.pitch);
+        camera.position.set(target.x + cam.dist * cp * Math.sin(cam.yaw),
+                            target.y + cam.dist * sp,
+                            target.z + cam.dist * cp * Math.cos(cam.yaw));
+        camera.lookAt(target);
+      }
+
+      var grid = new THREE.GridHelper(60, 12, 0x1f3a31, 0x152823);
+      grid.position.y = -0.02;
+      scene.add(grid);
+
+      var boxGeo = new THREE.BoxGeometry(1.5, 1, 1.5);
+      boxGeo.translate(0, 0.5, 0);
+      var cMesh = new THREE.InstancedMesh(boxGeo, new THREE.MeshPhongMaterial({ shininess: 50, specular: 0x334455 }), T);
+      var hMesh = new THREE.InstancedMesh(boxGeo, new THREE.MeshPhongMaterial({ shininess: 70, specular: 0x445566 }), T);
+      scene.add(cMesh); scene.add(hMesh);
+
+      var m4 = new THREE.Matrix4(), col = new THREE.Color();
+      function put(mesh, k, x, z, h, c) {
+        var y = h >= 0 ? 0 : h;
+        m4.makeScale(1, Math.max(0.0015, Math.abs(h)), 1);
+        m4.setPosition(x, y, z);
+        mesh.setMatrixAt(k, m4);
+        mesh.setColorAt(k, c);
+      }
+
+      // 三道闸门：竖直的薄板，扫到第 t 格时亮起来
+      function makeGate(color) {
+        var g = new THREE.Mesh(
+          new THREE.BoxGeometry(0.12, 5.2, 3.0),
+          new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.0, depthWrite: false, blending: THREE.AdditiveBlending })
+        );
+        scene.add(g);
+        return g;
+      }
+      var gateF = makeGate(0x7fd4ef), gateI = makeGate(0xffd9a0), gateO = makeGate(0x9be7c4);
+
+      var C0 = -6.2, H0 = 2.2;      // 两条带的 z 位置
+      function xOf(t) { return (t - (T - 1) / 2) * GAP; }
+
+      // 初始：全部由第一格之前的状态决定（C=0）
+      for (var t = 0; t < T; t++) {
+        col.setRGB(0.10, 0.22, 0.20);
+        put(cMesh, t, xOf(t), C0, 0.0015, col);
+        put(hMesh, t, xOf(t), H0, 0.0015, col);
+      }
+      cMesh.instanceMatrix.needsUpdate = true; cMesh.instanceColor.needsUpdate = true;
+      hMesh.instanceMatrix.needsUpdate = true; hMesh.instanceColor.needsUpdate = true;
+
+      var cur = -1, phase = 0, dirty = true, playing = true;
+      var phaseT = 0;
+
+      function applyCell(t, p) {
+        // p: 0 → 刚走到，遗忘；0.5 → 写入；1 → 输出
+        var prevC = t === 0 ? 0 : CS[t - 1];
+        var targetC;
+        if (p < 0.5) {
+          targetC = prevC * (SEQ.f[t] + (1 - SEQ.f[t]) * (1 - p * 2));
+        } else {
+          var q = (p - 0.5) * 2;
+          targetC = prevC * SEQ.f[t] + SEQ.i[t] * SEQ.g[t] * q;
+        }
+        var hScaled = HS[t] * Math.min(1, p < 0.5 ? 0 : (p - 0.5) * 2.2);
+        col.setRGB(0.62, 0.86, 0.62);
+        put(cMesh, t, xOf(t), C0, Math.max(0.02, targetC * HMAX / 0.9), col);
+        col.setRGB(0.90, 0.62, 0.72);
+        put(hMesh, t, xOf(t), H0, Math.max(0.02, hScaled * HMAX / 0.55), col);
+        cMesh.instanceMatrix.needsUpdate = true; cMesh.instanceColor.needsUpdate = true;
+        hMesh.instanceMatrix.needsUpdate = true; hMesh.instanceColor.needsUpdate = true;
+      }
+
+      function placeGates(t, p) {
+        var x = xOf(t);
+        gateF.position.set(x - 0.8, 4, C0);
+        gateI.position.set(x, 4, C0);
+        gateO.position.set(x + 0.8, 4, H0);
+        gateF.material.opacity = p < 0.45 ? 0.55 : 0.0;
+        gateI.material.opacity = (p >= 0.45 && p < 0.8) ? 0.55 : 0.0;
+        gateO.material.opacity = p >= 0.8 ? 0.55 : 0.0;
+      }
+
+      function updHud() {
+        var t = Math.max(0, Math.min(T - 1, cur));
+        hud.innerHTML = '第 <b>' + (cur + 1) + '/' + T + '</b> 步<br>' +
+          '遗忘 f=<b>' + SEQ.f[t].toFixed(2) + '</b>　输入 i=<b>' + SEQ.i[t].toFixed(2) + '</b>　输出 o=<b>' + SEQ.o[t].toFixed(2) + '</b><br>' +
+          '记忆 C=<b class="r">' + CS[t].toFixed(2) + '</b>　输出 h=<b>' + HS[t].toFixed(2) + '</b><br>';
+      }
+
+      var dragging = false, lx = 0, ly = 0;
+      host.addEventListener('pointerdown', function (e) {
+        if (e.button !== 0) return;
+        dragging = true; lx = e.clientX; ly = e.clientY;
+        host.classList.add('dragging');
+        if (host.setPointerCapture) host.setPointerCapture(e.pointerId);
+      });
+      host.addEventListener('pointermove', function (e) {
+        if (!dragging) return;
+        cam.yaw -= (e.clientX - lx) * 0.008;
+        cam.pitch = Math.max(0.05, Math.min(1.4, cam.pitch + (e.clientY - ly) * 0.006));
+        lx = e.clientX; ly = e.clientY;
+        updateCamera(); dirty = true;
+      });
+      host.addEventListener('pointerup', function () { dragging = false; host.classList.remove('dragging'); });
+      host.addEventListener('pointercancel', function () { dragging = false; host.classList.remove('dragging'); });
+      host.addEventListener('wheel', function (e) {
+        e.preventDefault();
+        cam.dist = Math.max(20, Math.min(110, cam.dist + e.deltaY * 0.05));
+        updateCamera(); dirty = true;
+      }, { passive: false });
+
+      btnPlay.addEventListener('click', function () {
+        playing = !playing;
+        btnPlay.textContent = playing ? '暂停' : '继续';
+        btnPlay.classList.toggle('on', playing);
+      });
+      btnReset.addEventListener('click', function () {
+        cam.yaw = 0.04; cam.pitch = 0.5; cam.dist = 40;
+        updateCamera(); dirty = true;
+      });
+
+      function resize() {
+        var w = host.clientWidth || 900, h = host.clientHeight || 540;
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        dirty = true;
+      }
+      window.addEventListener('resize', resize);
+
+      var acc = 0, last = 0;
+      function loop(now) {
+        requestAnimationFrame(loop);
+        if (playing && vis) {
+          if (!last) last = now;
+          var dt = Math.min(64, now - last);
+          last = now;
+          var perStep = 2000 / (+speed.value);      // 一步用时
+          acc += dt;
+          while (acc > perStep) {
+            acc -= perStep;
+            cur++;
+            if (cur >= T) { cur = -1; resetAll(); break; }
+          }
+          if (cur >= 0) {
+            var p = acc / perStep;
+            applyCell(cur, p);
+            placeGates(cur, p);
+            updHud();
+            dirty = true;
+          }
+        }
+        if (dirty && vis) { renderer.render(scene, camera); dirty = false; }
+      }
+
+      function resetAll() {
+        for (var t = 0; t < T; t++) {
+          col.setRGB(0.10, 0.22, 0.20);
+          put(cMesh, t, xOf(t), C0, 0.0015, col);
+          put(hMesh, t, xOf(t), H0, 0.0015, col);
+        }
+        cMesh.instanceMatrix.needsUpdate = true; cMesh.instanceColor.needsUpdate = true;
+        hMesh.instanceMatrix.needsUpdate = true; hMesh.instanceColor.needsUpdate = true;
+        gateF.material.opacity = gateI.material.opacity = gateO.material.opacity = 0;
+        acc = 0; dirty = true;
+      }
+
+      resize(); updateCamera(); updHud();
+      requestAnimationFrame(loop);
+
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (es) { vis = es[0].isIntersecting; }, { threshold: 0.02 }).observe(host);
+      }
+    }
+
+    // 进入视口后延迟 0.9s 再拉 three.js
+    (function () {
+      var gate = document.getElementById('lsGate');
+      if (gate) gate.addEventListener('click', function () { if (!started) boot3D(); });
+      var rc = host.getBoundingClientRect();
+      if (rc.top < (window.innerHeight || 800) + 240 && rc.bottom > -240) bootTimer = setTimeout(boot3D, 900);
+      if (!('IntersectionObserver' in window)) { if (!bootTimer) setTimeout(boot3D, 900); return; }
+      var io = new IntersectionObserver(function (es) {
+        es.forEach(function (e) {
+          if (e.isIntersecting) { if (!bootTimer) bootTimer = setTimeout(function () { boot3D(); io.disconnect(); }, 900); }
+          else if (bootTimer && !started) { clearTimeout(bootTimer); bootTimer = 0; }
+        });
+      }, { rootMargin: '240px' });
+      io.observe(host);
+    })();
+  })();
+  </script>
+  <script src="../../../../assets/page.js"></script>
+</body>
+</html>

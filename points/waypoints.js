@@ -234,7 +234,7 @@ window.BG5FNH_WAYPOINTS = {
               { key: 'yolo', path: 'yolo', parent: 'unet', name: 'YOLO 系列', pos: [33.45, -6.16], scale: 0.78, labelScale: 0.9, color: '#8fd9f0', lineColor: '#4f8ea8', url: '资料分享/机器学习/b-cnn.html#yolo' },
               { key: 'seg', path: 'seg', parent: 'cnn', name: '检测/分割', pos: [24.23, -6.60], scale: 0.5, labelScale: 0.78, color: '#8fd9f0', lineColor: '#4f8ea8', url: '资料分享/机器学习/b-cnn.html#seg' },
               { key: 'rnn', path: 'rnn', parent: 'mlp', name: 'RNN', pos: [19.62, -8.58], scale: 0.78, labelScale: 0.9, color: '#a9e4f7', lineColor: '#4f8ea8', url: '资料分享/机器学习/b-rnn.html#rnn' },
-              { key: 'lstm', path: 'lstm', parent: 'rnn', name: 'LSTM / GRU', pos: [24.23, -8.58], scale: 1.15, labelScale: 1, color: '#a9e4f7', lineColor: '#4f8ea8', url: '资料分享/机器学习/b-rnn.html#lstm' },
+              { key: 'lstm', path: 'lstm', parent: 'rnn', name: 'LSTM / GRU', pos: [24.23, -8.58], scale: 1.15, labelScale: 1, color: '#a9e4f7', lineColor: '#4f8ea8', url: '资料分享/机器学习/lstm.html' },
               { key: 'bptt', path: 'bptt', parent: 'lstm', name: 'BPTT 沿时间反传', pos: [28.84, -7.04], scale: 0.5, labelScale: 0.78, color: '#a9e4f7', lineColor: '#4f8ea8', url: '资料分享/机器学习/b-rnn.html#bptt' },
               { key: 'seq2seq', path: 'seq2seq', parent: 'lstm', name: 'Seq2Seq', pos: [28.84, -10.12], scale: 0.78, labelScale: 0.9, color: '#a9e4f7', lineColor: '#4f8ea8', url: '资料分享/机器学习/b-rnn.html#seq2seq' },
               { key: 'attn', path: 'attn', parent: 'seq2seq', name: '注意力机制', pos: [33.45, -10.12], scale: 1.15, labelScale: 1, color: '#a9e4f7', lineColor: '#4f8ea8', url: '资料分享/机器学习/attn.html' },
