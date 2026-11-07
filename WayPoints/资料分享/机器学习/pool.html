@@ -265,6 +265,13 @@
         new THREE.LineBasicMaterial({ color: 0xffd9ea, transparent: true, opacity: 0.95 })));
       scene.add(frame);
 
+      var winBox = new THREE.LineSegments(
+        new THREE.EdgesGeometry(new THREE.BoxGeometry(GAP * 0.92, 1, GAP * 0.92)),
+        new THREE.LineBasicMaterial({ color: 0xfff4d0, transparent: true, opacity: 0.95, depthTest: false })
+      );
+      winBox.renderOrder = 6;
+      scene.add(winBox);
+
       function blockVal(i, j) {
         var a = IMG[i * N + j], b = IMG[i * N + Math.min(N - 1, j + 1)];
         var c = IMG[Math.min(N - 1, i + 1) * N + j], d = IMG[Math.min(N - 1, i + 1) * N + Math.min(N - 1, j + 1)];
@@ -281,6 +288,16 @@
         var i2 = Math.floor(st.filled / M), j2 = st.filled % M;
         var v = blockVal(i2 * 2, j2 * 2);
         st.cur = v;
+        // 找这一块里最大的那一格
+        var wi = i2 * 2, wj = j2 * 2, wv = -1;
+        for (var dm = 0; dm < 2; dm++) for (var dn = 0; dn < 2; dn++) {
+          var ii2 = Math.min(N - 1, i2 * 2 + dm), jj2 = Math.min(N - 1, j2 * 2 + dn);
+          var vv2 = IMG[ii2 * N + jj2];
+          if (vv2 > wv) { wv = vv2; wi = ii2; wj = jj2; }
+        }
+        st.win = [wi, wj, wv];
+        winBox.position.set(INX + (wj - (N - 1) / 2) * GAP, 0.1 + wv * H_IN, (wi - (N - 1) / 2) * GAP);
+        winBox.scale.y = 0.1 + wv * H_IN;
         cOut.setRGB(0.95, 0.62, 0.72);
         put(outMesh, st.filled, OUTX + (j2 - (M - 1) / 2) * GAP, (i2 - (M - 1) / 2) * GAP, 0.1 + v * H_OUT, cOut);
         outMesh.instanceMatrix.needsUpdate = true;
@@ -295,7 +312,8 @@
         hud.innerHTML = '方式：<b>' + (mode === 0 ? '最大池化' : '平均池化') + '</b><br>' +
           '窗口：<b>(' + i3 + ', ' + j3 + ')</b>　进度 <b>' + done + '/' + (M * M) + '</b><br>' +
           '取出的值：<b>' + (st.filled < 0 ? '—' : st.cur.toFixed(2)) + '</b><br>' +
-          '28×28 → <b>14×14</b>';
+          '28×28 → <b>14×14</b><br>' +
+          '这一块的胜出格：<b class="r">(' + (st.win ? st.win[0] : '-') + ', ' + (st.win ? st.win[1] : '-') + ')</b>　值 ' + (st.win ? st.win[2].toFixed(2) : '—') + '（亮框标出）';
       }
 
       var dragging = false, lx = 0, ly = 0, dirty = true;
