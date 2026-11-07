@@ -115,6 +115,8 @@
       <p style="margin-top:12px"><a href="b-gen.html" style="color:#a9e4f7">← 生成模型分支</a>　·　<a href="index.html" style="color:#a9e4f7">机器学习总览</a></p>
     </section>
 
+        <p class="df-note" style="margin-top:14px"><b>常见误解：</b>扩散不是在"把噪声画成图"，而是在<b>估计每一步加了什么噪声</b>。所谓生成，是反复减掉自己预测出来的噪声，剩下的东西自然就浮现了。</p>
+
     <nav class="concept-nav">
       <a href="lstm.html">← 上一个：LSTM</a>
       <a href="index.html">机器学习总览</a>
@@ -298,7 +300,11 @@
 
       function placeLabels() {
         for (var i = 0; i < NT; i++) {
-          placeLabel(tLabels[i], -(NX * GAPX) / 2 - 2.2, 0.5, zOf(i), i <= cur ? 0.85 : 0.3);
+          // 12 个标签会挤成一串，隔三个显示一个，最后一个总是显示
+          var keep = (i % 3 === 0) || (i === NT - 1);
+          tLabels[i].style.display = 'none';
+          if (!keep) continue;
+          placeLabel(tLabels[i], -(NX * GAPX) / 2 - 2.4, 0.5, zOf(i), i <= cur ? 0.85 : 0.3);
         }
       }
 

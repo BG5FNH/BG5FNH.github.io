@@ -116,6 +116,8 @@
       <p style="margin-top:12px"><a href="b-tfm.html" style="color:#a9e4f7">← Transformer 分支</a>　·　<a href="lora.html" style="color:#9be7c4">LoRA（下一步：省显存）</a></p>
     </section>
 
+        <p class="me-note" style="margin-top:14px"><b>常见误解：</b>MoE 不是"把模型切开放到不同机器上跑"。它是每个 token 动态选专家，同一条 batch 里不同 token 可能走完全不同的专家，所以才有跨卡通信的麻烦。</p>
+
     <nav class="concept-nav">
       <a href="vae.html">← 上一个：VAE</a>
       <a href="index.html">机器学习总览</a>
