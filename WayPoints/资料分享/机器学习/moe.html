@@ -354,6 +354,7 @@
 
       var dirty = true;
     // ---- 手势：单指旋转；双指捏合缩放，同时拖动能继续转 ----
+    var playing = true;                 // 动画开关（原先声明在已删除的手势变量里）
     var baseDist = cam.dist;            // 以进入时的镜头距离为基准，限制缩放范围
     var pointers = new Map();
     var lastDist = 0, lastMid = null, lastX = 0, lastY = 0;
