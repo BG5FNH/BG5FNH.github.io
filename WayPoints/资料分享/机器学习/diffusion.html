@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>扩散模型 · 把噪声一层层洗掉 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../../";</script>
+  <link rel="stylesheet" href="../../../../assets/style.css" />
+  <style>
+    .df-lead { margin: 0 0 10px; font-size: 14px; line-height: 1.9; }
+    .df-wrap { position: relative; margin-top: 12px; border-radius: 12px; overflow: hidden;
+      border: 1px solid rgba(127, 212, 239, .28);
+      background: radial-gradient(circle at 50% 0%, #0d1a26, #05080c 82%); }
+    #dfStage { display: block; width: 100%; height: 540px; touch-action: none; cursor: grab; }
+    #dfStage.dragging { cursor: grabbing; }
+    .df-hud { position: absolute; left: 10px; top: 10px; font-size: 11.5px; line-height: 1.75;
+      color: #bfe8f6; background: rgba(6, 16, 26, .8); border: 1px solid rgba(127, 212, 239, .3);
+      border-radius: 8px; padding: 8px 10px; pointer-events: none; }
+    .df-hud b { color: #fff; }
+    .df-hud .r { color: #ffd9a0; }
+    .df-tag { position: absolute; font-size: 11px; color: rgba(191,232,246,.72); pointer-events: none; }
+    .df-tip { position: absolute; right: 10px; bottom: 10px; font-size: 11px; color: rgba(191,232,246,.75);
+      background: rgba(6,16,26,.72); border-radius: 8px; padding: 5px 9px; pointer-events: none; }
+    .df-gate { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 4px; font-size: 13px; letter-spacing: 1px; color: rgba(191,232,246,.78);
+      background: radial-gradient(circle at 50% 40%, rgba(16,28,38,.9), rgba(5,8,12,.96));
+      cursor: pointer; transition: opacity .4s; }
+    .df-gate span { font-size: 11px; opacity: .7; letter-spacing: 0; }
+    .df-ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px;
+      font-size: 12.5px; color: var(--text-muted); }
+    .df-ctrl button { font: inherit; font-size: 12.5px; padding: 7px 13px; border-radius: 999px; cursor: pointer;
+      color: #a9e4f7; background: rgba(127,212,239,.08); border: 1px solid rgba(127,212,239,.45); }
+    .df-ctrl button.on { background: rgba(244,166,192,.26); border-color: #f4a6c0; color: #fff; }
+    .df-ctrl input[type=range] { width: 120px; accent-color: #f4a6c0; }
+    .df-eq { display: block; margin: 10px 0 0; padding: 9px 12px; border-radius: 8px; font-size: 12.5px;
+      color: #d9f4ff; background: rgba(6,16,26,.6); border-left: 2px solid rgba(127,212,239,.6);
+      overflow-x: auto; white-space: nowrap; }
+    .df-note { margin: 10px 0 0; padding: 11px 13px; border-radius: 10px; font-size: 12.5px; line-height: 1.85;
+      color: var(--text-muted); background: rgba(127,212,239,.05); border: 1px dashed rgba(127,212,239,.3); }
+    .df-note b { color: #a9e4f7; }
+    .df-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+    .df-card { padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(127,212,239,.25);
+      background: rgba(127,212,239,.04); }
+    .df-card h3 { margin: 0 0 6px; font-size: 13.5px; color: #a9e4f7; }
+    .df-card p { margin: 4px 0; font-size: 12.5px; line-height: 1.8; color: var(--text-muted); }
+    @media (max-width: 640px) {
+      #dfStage { height: 400px; }
+      .df-two { grid-template-columns: 1fr; }
+      .df-hud { font-size: 10.5px; padding: 6px 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">扩散模型</h1>
+    <p class="page-subtitle">机器学习 · 生成 · 先学会弄脏，再学会一点点擦干净</p>
+
+    <section class="card">
+      <p class="df-lead">每一排柱子是一条曲线，<b>往里推一排，就多一步噪声</b>。最前面那排是干净的目标（一个平滑的波形），越往后越毛糙，最后变成纯噪声——这就是<b>前向过程</b>：加噪不需要训练，按一个固定时间表往里兑噪声就行。</p>
+      <p class="df-lead">扩散模型真正学的是反过来走：给它看第 t 步的毛糙曲线，让它猜"这一步加进去的噪声长什么样"，减掉一点，往回退一步。重复几十上百次，一条噪声就被洗回成曲线。这一页演示的就是这条反向通路：柱子从后往前，一排比一排平。</p>
+      <p class="df-lead" style="font-size:12.5px;color:var(--text-muted)">按「暂停」可以停在中间某一排，看看第 5 步、第 8 步到底有多脏——真实模型的步数是 50 到 1000，这里压成了 12 步，方便一次看完。</p>
+
+      <div class="df-wrap">
+        <canvas id="dfStage"></canvas>
+        <div class="df-gate" id="dfGate">正在准备三维场景…<span>首次加载三维库约 0.6MB，只加载这一次</span></div>
+        <div class="df-hud" id="dfHud"></div>
+        <div class="df-tag" style="left:37%;top:7%">纵深 = 时间步 t，高度 = 信号值</div>
+        <div class="df-tip">左键拖动旋转 · 滚轮缩放</div>
+      </div>
+
+      <div class="df-ctrl">
+        <button id="dfPlay" class="on">暂停</button>
+        <button id="dfMode0" class="on">前向：加噪</button>
+        <button id="dfMode1">反向：去噪</button>
+        <span>速度 <input type="range" id="dfSpeed" min="1" max="8" step="1" value="4" /></span>
+        <button id="dfReset">重置视角</button>
+      </div>
+
+      <span class="df-eq">x_t = √ᾱ_t · x₀ + √(1−ᾱ_t) · ε　　ε ~ N(0, I)</span>
+    </section>
+
+    <section class="card">
+      <h2>为什么这样能生成</h2>
+      <div class="df-two">
+        <div class="df-card">
+          <h3>训练目标其实很朴素</h3>
+          <p>随机取一张图、随机取一个 t、加一次已知的噪声 ε，让网络预测"我加的是哪个 ε"。损失就是预测噪声和真实噪声的均方误差——不需要对抗、不需要判别器。</p>
+        </div>
+        <div class="df-card">
+          <h3>为什么要分很多步</h3>
+          <p>一步把噪声全减掉，网络要学一个极其复杂的映射；拆成一百小步，每一步只要求"稍微干净一点"，每步都好学。这和"一次跳下悬崖"与"一级一级下楼梯"的区别一样。</p>
+        </div>
+        <div class="df-card">
+          <h3>ᾱ 是那个时间表</h3>
+          <p>ᾱ_t 是"到第 t 步还剩下多少原始信号"，从 1 平滑降到接近 0。它决定了每步加多少噪声，也决定了采样时要走多少步。常用 cosine 或 linear 两种。</p>
+        </div>
+        <div class="df-card">
+          <h3>和 GAN 的区别</h3>
+          <p>GAN 一次生成、靠判别器逼真，快但容易崩；扩散几百步采样、逐点匹配噪声，慢但稳、覆盖度高。后来用 Latent Diffusion 把过程搬到压缩后的潜空间，才有了能跑在消费级显卡上的文生图。</p>
+        </div>
+      </div>
+      <p class="df-note"><b>看这张图的顺序：</b>先盯最近的一排（干净波形）→ 眼睛往深处走，看它怎么一步步被噪声吞掉 → 切到「反向：去噪」再走一遍，注意最后一排几乎回到第一排的形状。这就是模型学会的那件事。</p>
+      <p style="margin-top:12px"><a href="b-gen.html" style="color:#a9e4f7">← 生成模型分支</a>　·　<a href="index.html" style="color:#a9e4f7">机器学习总览</a></p>
+    </section>
+  </main>
+
+  <script>
+  (function () {
+    'use strict';
+    var host = document.getElementById('dfStage');
+    if (!host) return;
+    var hud = document.getElementById('dfHud');
+    var btnPlay = document.getElementById('dfPlay');
+    var btnReset = document.getElementById('dfReset');
+    var speed = document.getElementById('dfSpeed');
+    var modeBtns = [document.getElementById('dfMode0'), document.getElementById('dfMode1')];
+
+    var NX = 26;            // 每条曲线的采样点
+    var NT = 12;            // 时间步
+    var GAPX = 1.15, GAPZ = 2.2;
+    var HSCALE = 4.6;
+
+    var mode = 0;           // 0 = 前向加噪，1 = 反向去噪
+
+    function clean(x) { return Math.sin(x * Math.PI * 2) * 0.62 + Math.sin(x * Math.PI * 6 + 1.1) * 0.18; }
+    function noiseAt(i, t) { return Math.sin(i * 12.9898 + t * 78.233) * 0.78; }
+
+    // ᾱ_t：从 1 平滑降到 ~0.02
+    function abar(t) {
+      var s = t / (NT - 1);
+      return Math.max(0.02, Math.cos(s * Math.PI / 2) * 0.98 + 0.02 * (1 - s));
+    }
+    function valueAt(i, t) {
+      var x = i / (NX - 1);
+      var a = abar(t);
+      var fwd = Math.sqrt(a) * clean(x) + Math.sqrt(1 - a) * noiseAt(i, t);
+      if (mode === 0) return fwd;
+      // 反向：从最脏的一步开始，逐步把噪声减掉（示意）
+      var tRev = NT - 1 - t;
+      var a2 = abar(tRev);
+      return Math.sqrt(a2) * clean(x) + Math.sqrt(1 - a2) * noiseAt(i, tRev) * (1 - 0);
+    }
+
+    var started = false, vis = true, bootTimer = 0;
+
+    function boot3D() {
+      if (started) return;
+      started = true;
+      var gate = document.getElementById('dfGate');
+      if (gate) gate.firstChild.nodeValue = '正在载入三维库…';
+      var sc = document.createElement('script');
+      sc.src = '../../../../pc/js/three.min.js';
+      sc.async = true;
+      sc.onload = function () {
+        if (gate) { gate.style.opacity = '0'; setTimeout(function () { gate.style.display = 'none'; }, 400); }
+        initScene();
+      };
+      sc.onerror = function () { if (gate) gate.firstChild.nodeValue = '三维库没加载出来，点一下重试'; started = false; };
+      document.head.appendChild(sc);
+    }
+
+    function initScene() {
+      var renderer = new THREE.WebGLRenderer({ canvas: host, antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      var scene = new THREE.Scene();
+      var camera = new THREE.PerspectiveCamera(42, 1, 0.1, 2000);
+
+      scene.add(new THREE.AmbientLight(0x9ab6cc, 0.72));
+      var l1 = new THREE.DirectionalLight(0xffffff, 0.8); l1.position.set(-30, 80, 40); scene.add(l1);
+      var l2 = new THREE.DirectionalLight(0x7fd4ef, 0.45); l2.position.set(50, 30, -60); scene.add(l2);
+
+      var cam = { yaw: -0.5, pitch: 0.66, dist: 56 };
+      var target = new THREE.Vector3(0, 1.8, 0);
+      function updateCamera() {
+        var sp = Math.sin(cam.pitch), cp = Math.cos(cam.pitch);
+        camera.position.set(target.x + cam.dist * cp * Math.sin(cam.yaw),
+                            target.y + cam.dist * sp,
+                            target.z + cam.dist * cp * Math.cos(cam.yaw));
+        camera.lookAt(target);
+      }
+
+      var grid = new THREE.GridHelper(60, 12, 0x24404f, 0x16272f);
+      grid.position.y = -0.02;
+      scene.add(grid);
+
+      var boxGeo = new THREE.BoxGeometry(0.82, 1, 0.82);
+      boxGeo.translate(0, 0.5, 0);
+      var mesh = new THREE.InstancedMesh(boxGeo, new THREE.MeshPhongMaterial({ shininess: 40, specular: 0x223344 }), NX * NT);
+      scene.add(mesh);
+
+      var m4 = new THREE.Matrix4(), col = new THREE.Color();
+      var rowOn = new Float32Array(NT);      // 0..1 该排的显现程度
+
+      function xOf(i) { return (i - (NX - 1) / 2) * GAPX; }
+      function zOf(t) { return (t - (NT - 1) / 2) * GAPZ; }
+
+      function putCell(i, t, k) {
+        var v = valueAt(i, t) * rowOn[t];
+        var h = Math.max(0.02, Math.abs(v) * HSCALE);
+        var a = abar(mode === 0 ? t : NT - 1 - t);
+        // 越脏越偏青白，越干净越偏金
+        var dirty = 1 - a;
+        col.setRGB(0.95 - 0.3 * dirty, 0.78 - 0.06 * dirty, 0.55 + 0.35 * dirty);
+        var y = v >= 0 ? 0 : -h;
+        m4.makeScale(1, h, 1);
+        m4.setPosition(xOf(i), y, zOf(t));
+        mesh.setMatrixAt(k, m4);
+        mesh.setColorAt(k, col);
+      }
+
+      function redraw() {
+        for (var t = 0; t < NT; t++) {
+          for (var i = 0; i < NX; i++) putCell(i, t, t * NX + i);
+        }
+        mesh.instanceMatrix.needsUpdate = true;
+        mesh.instanceColor.needsUpdate = true;
+      }
+
+      // 当前扫描排的高亮框
+      var cursorBox = new THREE.LineSegments(
+        new THREE.EdgesGeometry(new THREE.BoxGeometry(NX * GAPX, 0.6, GAPZ * 0.9)),
+        new THREE.LineBasicMaterial({ color: 0xfff4d0, transparent: true, opacity: 0.7 })
+      );
+      scene.add(cursorBox);
+
+      var cur = 0, dirty = true, playing = true;
+
+      function updHud() {
+        var a = abar(mode === 0 ? cur : NT - 1 - cur);
+        hud.innerHTML = '模式：<b>' + (mode === 0 ? '前向加噪' : '反向去噪') + '</b><br>' +
+          '第 <b>' + (cur + 1) + '/' + NT + '</b> 步　ᾱ = <b class="r">' + a.toFixed(3) + '</b><br>' +
+          '剩余信号 √ᾱ = ' + Math.sqrt(a).toFixed(2) + '　噪声 √(1−ᾱ) = ' + Math.sqrt(1 - a).toFixed(2) + '<br>' +
+          '纵深 = 时间，高度 = 信号值';
+      }
+
+      var dragging = false, lx = 0, ly = 0;
+      host.addEventListener('pointerdown', function (e) {
+        if (e.button !== 0) return;
+        dragging = true; lx = e.clientX; ly = e.clientY;
+        host.classList.add('dragging');
+        if (host.setPointerCapture) host.setPointerCapture(e.pointerId);
+      });
+      host.addEventListener('pointermove', function (e) {
+        if (!dragging) return;
+        cam.yaw -= (e.clientX - lx) * 0.008;
+        cam.pitch = Math.max(0.08, Math.min(1.4, cam.pitch + (e.clientY - ly) * 0.006));
+        lx = e.clientX; ly = e.clientY;
+        updateCamera(); dirty = true;
+      });
+      host.addEventListener('pointerup', function () { dragging = false; host.classList.remove('dragging'); });
+      host.addEventListener('pointercancel', function () { dragging = false; host.classList.remove('dragging'); });
+      host.addEventListener('wheel', function (e) {
+        e.preventDefault();
+        cam.dist = Math.max(22, Math.min(120, cam.dist + e.deltaY * 0.05));
+        updateCamera(); dirty = true;
+      }, { passive: false });
+
+      btnPlay.addEventListener('click', function () {
+        playing = !playing;
+        btnPlay.textContent = playing ? '暂停' : '继续';
+        btnPlay.classList.toggle('on', playing);
+      });
+      btnReset.addEventListener('click', function () {
+        cam.yaw = -0.5; cam.pitch = 0.66; cam.dist = 56;
+        updateCamera(); dirty = true;
+      });
+      modeBtns.forEach(function (b, i) {
+        b.addEventListener('click', function () {
+          mode = i;
+          modeBtns.forEach(function (b2) { b2.classList.remove('on'); });
+          b.classList.add('on');
+          for (var t = 0; t < NT; t++) rowOn[t] = 0;
+          cur = 0; dirty = true;
+        });
+      });
+
+      function resize() {
+        var w = host.clientWidth || 900, h = host.clientHeight || 540;
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        dirty = true;
+      }
+      window.addEventListener('resize', resize);
+
+      var last = 0;
+      function loop(now) {
+        requestAnimationFrame(loop);
+        if (!last) last = now;
+        var dt = Math.min(80, now - last);
+        last = now;
+        if (playing && vis) {
+          var per = 900 / (+speed.value);
+          acc += dt;
+          if (acc > per) {
+            acc = 0;
+            rowOn[cur] = 1;
+            cur++;
+            if (cur >= NT) { cur = 0; for (var t = 0; t < NT; t++) rowOn[t] = 0; }
+            updHud();
+            dirty = true;
+          }
+          // 行渐显
+          for (var t2 = 0; t2 < NT; t2++) {
+            if (rowOn[t2] > 0 && rowOn[t2] < 1) rowOn[t2] = Math.min(1, rowOn[t2] + 0.12);
+          }
+          redraw();
+          cursorBox.position.set(0, 0.3, zOf(Math.max(0, cur - 1)));
+          dirty = true;
+        }
+        if (dirty && vis) { renderer.render(scene, camera); dirty = false; }
+      }
+      var acc = 0;
+
+      for (var t3 = 0; t3 < NT; t3++) rowOn[t3] = 0;
+      redraw();
+      resize(); updateCamera(); updHud();
+      requestAnimationFrame(loop);
+
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (es) { vis = es[0].isIntersecting; }, { threshold: 0.02 }).observe(host);
+      }
+    }
+
+    // 进入视口后延迟 0.9s 再拉 three.js
+    (function () {
+      var gate = document.getElementById('dfGate');
+      if (gate) gate.addEventListener('click', function () { if (!started) boot3D(); });
+      var rc = host.getBoundingClientRect();
+      if (rc.top < (window.innerHeight || 800) + 240 && rc.bottom > -240) bootTimer = setTimeout(boot3D, 900);
+      if (!('IntersectionObserver' in window)) { if (!bootTimer) setTimeout(boot3D, 900); return; }
+      var io = new IntersectionObserver(function (es) {
+        es.forEach(function (e) {
+          if (e.isIntersecting) { if (!bootTimer) bootTimer = setTimeout(function () { boot3D(); io.disconnect(); }, 900); }
+          else if (bootTimer && !started) { clearTimeout(bootTimer); bootTimer = 0; }
+        });
+      }, { rootMargin: '240px' });
+      io.observe(host);
+    })();
+  })();
+  </script>
+  <script src="../../../../assets/page.js"></script>
+</body>
+</html>

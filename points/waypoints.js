@@ -264,7 +264,7 @@ window.BG5FNH_WAYPOINTS = {
               { key: 'wgan', path: 'wgan', parent: 'gan', name: 'WGAN / 梯度惩罚', pos: [28.84, -14.08], scale: 0.5, labelScale: 0.78, color: '#ffc2d6', lineColor: '#b07f95', url: '资料分享/机器学习/b-gen.html#wgan' },
               { key: 'stylegan', path: 'stylegan', parent: 'gan', name: 'StyleGAN', pos: [28.84, -14.52], scale: 0.78, labelScale: 0.9, color: '#ffc2d6', lineColor: '#b07f95', url: '资料分享/机器学习/b-gen.html#stylegan' },
               { key: 'cyclegan', path: 'cyclegan', parent: 'gan', name: 'CycleGAN', pos: [28.84, -14.96], scale: 0.5, labelScale: 0.78, color: '#ffc2d6', lineColor: '#b07f95', url: '资料分享/机器学习/b-gen.html#cyclegan' },
-              { key: 'diff', path: 'diff', parent: 'gen', name: '扩散模型', pos: [24.23, -15.62], scale: 1.15, labelScale: 1, color: '#ffc2d6', lineColor: '#b07f95', url: '资料分享/机器学习/b-gen.html#diff' },
+              { key: 'diff', path: 'diff', parent: 'gen', name: '扩散模型', pos: [24.23, -15.62], scale: 1.15, labelScale: 1, color: '#ffc2d6', lineColor: '#b07f95', url: '资料分享/机器学习/diffusion.html' },
               { key: 'ddpm', path: 'ddpm', parent: 'diff', name: 'DDPM', pos: [28.84, -15.40], scale: 0.78, labelScale: 0.9, color: '#ffc2d6', lineColor: '#b07f95', url: '资料分享/机器学习/b-gen.html#ddpm' },
               { key: 'ddim', path: 'ddim', parent: 'ddpm', name: 'DDIM', pos: [33.45, -15.40], scale: 0.5, labelScale: 0.78, color: '#ffc2d6', lineColor: '#b07f95', url: '资料分享/机器学习/b-gen.html#ddim' },
               { key: 'ldm', path: 'ldm', parent: 'diff', name: 'Latent Diffusion', pos: [28.84, -15.84], scale: 0.78, labelScale: 0.9, color: '#ffc2d6', lineColor: '#b07f95', url: '资料分享/机器学习/b-gen.html#ldm' },
