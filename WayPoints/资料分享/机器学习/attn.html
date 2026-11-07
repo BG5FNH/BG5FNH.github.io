@@ -13,6 +13,10 @@
       background: radial-gradient(circle at 50% 0%, #1b1220, #07070c 82%); }
     #atStage { display: block; width: 100%; height: 540px; touch-action: none; cursor: grab; }
     #atStage.dragging { cursor: grabbing; }
+    .at-labels { position: absolute; inset: 0; pointer-events: none; }
+    .at-labels span { position: absolute; font-size: 11px; color: rgba(246,215,226,.78);
+      transform: translate(-50%, -50%); white-space: nowrap; text-shadow: 0 0 6px rgba(0,0,0,.9); }
+    .at-labels span.row { color: #ffd9a0; }
     .at-hud { position: absolute; left: 10px; top: 10px; font-size: 11.5px; line-height: 1.75;
       color: #f6d7e2; background: rgba(22, 8, 16, .8); border: 1px solid rgba(244, 166, 192, .3);
       border-radius: 8px; padding: 8px 10px; pointer-events: none; }
@@ -70,6 +74,7 @@
 
       <div class="at-wrap">
         <canvas id="atStage"></canvas>
+        <div class="at-labels" id="atLabels"></div>
         <div class="at-gate" id="atGate">正在准备三维场景…<span>首次加载三维库约 0.6MB，只加载这一次</span></div>
         <div class="at-hud" id="atHud"></div>
         <div class="at-tag" style="left:40%;top:8%">行 = 查询者，列 = 被看的词</div>
@@ -304,6 +309,38 @@
       putAll();
 
       rowBar.position.set(0, 0.04, (qIdx - (n - 1) / 2) * GAP);
+      // 行列标签：行 = 查询者（左侧），列 = 被看的词（后侧）
+      var labelBox = document.getElementById('atLabels');
+      var rowLabels = [], colLabels = [];
+      for (var li = 0; li < n; li++) {
+        var rl = document.createElement('span');
+        rl.className = 'row';
+        rl.textContent = TOK[li];
+        labelBox.appendChild(rl);
+        rowLabels.push(rl);
+        var cl = document.createElement('span');
+        cl.textContent = TOK[li];
+        labelBox.appendChild(cl);
+        colLabels.push(cl);
+      }
+
+      var tmpV = new THREE.Vector3();
+      function projectLabels() {
+        var w = host.clientWidth, h = host.clientHeight;
+        for (var i = 0; i < n; i++) {
+          // 行标签放在网格左侧
+          tmpV.set(-(n * GAP) / 2 - 1.6, 0.4, (i - (n - 1) / 2) * GAP).project(camera);
+          rowLabels[i].style.left = ((tmpV.x * 0.5 + 0.5) * w) + 'px';
+          rowLabels[i].style.top = ((-tmpV.y * 0.5 + 0.5) * h) + 'px';
+          rowLabels[i].style.opacity = (i === qIdx) ? '1' : '0.45';
+
+          // 列标签放在网格后方
+          tmpV.set((i - (n - 1) / 2) * GAP, 0.4, -(n * GAP) / 2 - 1.6).project(camera);
+          colLabels[i].style.left = ((tmpV.x * 0.5 + 0.5) * w) + 'px';
+          colLabels[i].style.top = ((-tmpV.y * 0.5 + 0.5) * h) + 'px';
+        }
+      }
+
       var dirty = true, playing = true;
       window.__atSetQuery = function (i) {
         qIdx = i;
@@ -382,7 +419,7 @@
           }
           if (moving) { putAll(); dirty = true; }
         }
-        if (dirty && vis) { updHud(); renderer.render(scene, camera); dirty = false; }
+        if (dirty && vis) { updHud(); renderer.render(scene, camera); projectLabels(); dirty = false; }
       }
 
       resize(); updateCamera(); updHud();
