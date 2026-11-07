@@ -204,7 +204,7 @@ window.BG5FNH_WAYPOINTS = {
               { key: 'mlp', path: 'mlp', parent: 'act', name: '多层感知机', pos: [15.02, -12.10], scale: 1.15, labelScale: 1, color: '#7fd4ef', lineColor: '#4f8ea8', url: '资料分享/机器学习/mlp.html' },
               { key: 'linear', path: 'linear', parent: 'mlp', name: '线性层', pos: [19.62, 0.00], scale: 0.78, labelScale: 0.9, color: '#7fd4ef', lineColor: '#4f8ea8', url: '资料分享/机器学习/b-found.html#linear' },
               { key: 'act', path: 'act', parent: 'ptron', name: '激活函数', pos: [10.41, -19.03], scale: 0.78, labelScale: 0.9, color: '#7fd4ef', lineColor: '#4f8ea8', url: '资料分享/机器学习/b-found.html#act' },
-              { key: 'relu', path: 'relu', parent: 'act', name: 'ReLU', pos: [15.02, -25.52], scale: 0.78, labelScale: 0.9, color: '#7fd4ef', lineColor: '#4f8ea8', url: '资料分享/机器学习/b-found.html#relu' },
+              { key: 'relu', path: 'relu', parent: 'act', name: 'ReLU', pos: [15.02, -25.52], scale: 0.78, labelScale: 0.9, color: '#7fd4ef', lineColor: '#4f8ea8', url: '资料分享/机器学习/relu.html' },
               { key: 'gelu', path: 'gelu', parent: 'act', name: 'GELU', pos: [15.02, -25.96], scale: 0.5, labelScale: 0.78, color: '#7fd4ef', lineColor: '#4f8ea8', url: '资料分享/机器学习/b-found.html#gelu' },
               { key: 'loss', path: 'loss', parent: 'bp', name: '损失函数', pos: [24.23, -1.43], scale: 0.78, labelScale: 0.9, color: '#7fd4ef', lineColor: '#4f8ea8', url: '资料分享/机器学习/b-found.html#loss' },
               { key: 'ce', path: 'ce', parent: 'loss', name: '交叉熵', pos: [28.84, -0.44], scale: 0.78, labelScale: 0.9, color: '#7fd4ef', lineColor: '#4f8ea8', url: '资料分享/机器学习/b-found.html#ce' },

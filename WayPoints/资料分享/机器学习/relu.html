@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>ReLU · 一把刀把负的一半削掉 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../../";</script>
+  <link rel="stylesheet" href="../../../../assets/style.css" />
+  <style>
+    .rl-lead { margin: 0 0 10px; font-size: 14px; line-height: 1.9; }
+    .rl-wrap { position: relative; margin-top: 12px; border-radius: 12px; overflow: hidden;
+      border: 1px solid rgba(127, 212, 239, .3);
+      background: radial-gradient(circle at 50% 0%, #0d1a24, #05080c 82%); }
+    #rlStage { display: block; width: 100%; height: 540px; touch-action: none; cursor: grab; }
+    #rlStage.dragging { cursor: grabbing; }
+    .rl-hud { position: absolute; left: 10px; top: 10px; font-size: 11.5px; line-height: 1.75;
+      color: #bfe8f6; background: rgba(6, 16, 26, .8); border: 1px solid rgba(127, 212, 239, .3);
+      border-radius: 8px; padding: 8px 10px; pointer-events: none; }
+    .rl-hud b { color: #fff; }
+    .rl-hud .r { color: #f4a6c0; }
+    .rl-tag { position: absolute; font-size: 11px; color: rgba(191,232,246,.72); pointer-events: none; }
+    .rl-tip { position: absolute; right: 10px; bottom: 10px; font-size: 11px; color: rgba(191,232,246,.75);
+      background: rgba(6,16,26,.72); border-radius: 8px; padding: 5px 9px; pointer-events: none; }
+    .rl-gate { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      font-size: 13px; letter-spacing: 1px; color: rgba(191,232,246,.75);
+      background: radial-gradient(circle at 50% 40%, rgba(16,28,38,.9), rgba(5,8,13,.96));
+      cursor: pointer; transition: opacity .4s; text-align: center; line-height: 1.8; }
+    .rl-ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px;
+      font-size: 12.5px; color: var(--text-muted); }
+    .rl-ctrl button { font: inherit; font-size: 12.5px; padding: 7px 13px; border-radius: 999px; cursor: pointer;
+      color: #a9e4f7; background: rgba(127,212,239,.08); border: 1px solid rgba(127,212,239,.45); }
+    .rl-ctrl button.on { background: rgba(244,166,192,.24); border-color: #f4a6c0; color: #fff; }
+    .rl-ctrl input[type=range] { width: 120px; accent-color: #f4a6c0; }
+    .rl-eq { display: block; margin: 10px 0 0; padding: 9px 12px; border-radius: 8px; font-size: 12.5px;
+      color: #d9f4ff; background: rgba(6,16,26,.6); border-left: 2px solid rgba(127,212,239,.6);
+      overflow-x: auto; white-space: nowrap; }
+    .rl-note { margin: 10px 0 0; padding: 11px 13px; border-radius: 10px; font-size: 12.5px; line-height: 1.85;
+      color: var(--text-muted); background: rgba(127,212,239,.05); border: 1px dashed rgba(127,212,239,.3); }
+    .rl-note b { color: #a9e4f7; }
+    .rl-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+    .rl-card { padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(127,212,239,.25);
+      background: rgba(127,212,239,.04); }
+    .rl-card h3 { margin: 0 0 6px; font-size: 13.5px; color: #a9e4f7; }
+    .rl-card p { margin: 4px 0; font-size: 12.5px; line-height: 1.8; color: var(--text-muted); }
+    @media (max-width: 640px) {
+      #rlStage { height: 400px; }
+      .rl-two { grid-template-columns: 1fr; }
+      .rl-hud { font-size: 10.5px; padding: 6px 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">ReLU</h1>
+    <p class="page-subtitle">机器学习 · CNN · 一把刀，只留地面以上的部分</p>
+
+    <section class="card">
+      <p class="rl-lead">把数字的灰度减掉一个基线（中心化），笔画就成了正值、背景成了负值。ReLU 做的事只有一件：<b>把地面以下的柱子按回地面</b>，正值原样保留。</p>
+      <p class="rl-lead">画面里一把横着的刀从前往后扫：刀后面，负的柱子塌成零；刀前面，它们还倒挂在地面之下。扫完，背景被整片削平，只剩数字 3 立着——这不是比喻，ReLU 就是一次 max(0, x) 的逐元素裁剪。</p>
+      <p class="rl-lead" style="font-size:12.5px;color:var(--text-muted)">换成 Leaky ReLU 或 GELU 对比：Leaky 给负值留 10% 的坡，GELU 让裁剪变圆滑——因为"一刀切干净"有个副作用：负区间导数恒为 0，那个神经元可能再也醒不过来。</p>
+
+      <div class="rl-wrap">
+        <canvas id="rlStage"></canvas>
+        <div class="rl-gate" id="rlGate">正在准备三维场景…<br><span style="font-size:11px;opacity:.7">首次加载三维库约 0.6MB，只加载这一次</span></div>
+        <div class="rl-hud" id="rlHud"></div>
+        <div class="rl-tag" style="left:36%;top:8%">像素 − 基线（有正有负）→ 逐行裁剪</div>
+        <div class="rl-tip">左键拖动旋转 · 滚轮缩放</div>
+      </div>
+
+      <div class="rl-ctrl">
+        <button id="rlPlay" class="on">暂停</button>
+        <button id="rlMode0" class="on">ReLU</button>
+        <button id="rlMode1">Leaky ReLU</button>
+        <button id="rlMode2">GELU</button>
+        <span>速度 <input type="range" id="rlSpeed" min="1" max="8" step="1" value="4" /></span>
+        <button id="rlReset">重置视角</button>
+      </div>
+
+      <span class="rl-eq">ReLU(x) = max(0, x)　　LeakyReLU(x) = max(0.1x, x)　　GELU(x) ≈ x · Φ(x)</span>
+    </section>
+
+    <section class="card">
+      <h2>为什么这一刀这么重要</h2>
+      <div class="rl-two">
+        <div class="rl-card">
+          <h3>没有它，深度就没意义</h3>
+          <p>两层线性变换叠起来还是线性变换：W₂(W₁x) = (W₂W₁)x。堆一百层也等价于一层。加一个非线性的折角，网络才真的"变深"了。</p>
+        </div>
+        <div class="rl-card">
+          <h3>梯度不再越传越小</h3>
+          <p>sigmoid 的导数最大只有 0.25，几层连乘就趋近 0。ReLU 正区间导数恒等于 1，梯度能原样传回浅层——这是 2012 年之后网络能堆到几十层的直接原因。</p>
+        </div>
+        <div class="rl-card">
+          <h3>计算几乎免费</h3>
+          <p>只要一次比较和一次取大，没有 exp、没有除法。相比 sigmoid/tanh，前向和反向都快得多，GPU 上尤其明显。</p>
+        </div>
+        <div class="rl-card">
+          <h3>代价：神经元会死</h3>
+          <p>如果一个单元长期只收到负输入，它输出恒为 0、梯度恒为 0，就再也学不动了。Leaky ReLU 留一点负斜率，GELU 用平滑曲线，都是在给"死掉的单元"留一条回来的路。</p>
+        </div>
+      </div>
+      <p class="rl-note"><b>看这一页的顺序：</b>先看负的柱子在地面以下 → 看刀扫过去它们塌平 → 再点 Leaky ReLU 重跑一遍，注意地面以下还剩一层薄薄的坡，那就是"没死透"的神经元。</p>
+      <p style="margin-top:12px"><a href="conv.html" style="color:#a9e4f7">← 卷积（这些正负值是哪来的）</a>　·　<a href="pool.html" style="color:#f4a6c0">池化（下一步缩图）</a>　·　<a href="b-found.html" style="color:#a9e4f7">基础构件</a></p>
+    </section>
+  </main>
+
+  <script>
+  (function () {
+    'use strict';
+    var host = document.getElementById('rlStage');
+    if (!host) return;
+    var hud = document.getElementById('rlHud');
+    var btnPlay = document.getElementById('rlPlay');
+    var btnReset = document.getElementById('rlReset');
+    var speed = document.getElementById('rlSpeed');
+    var modeBtns = [document.getElementById('rlMode0'), document.getElementById('rlMode1'), document.getElementById('rlMode2')];
+
+    var N = 22, GAP = 1.16, H = 4.2;
+    var mode = 0;
+
+    // 输入：数字 3 的像素减掉一个基线，笔画为正、背景为负
+    // （就是"中心化"：把灰度图减去 0.45，负值代表暗背景）
+    var ACT = (function () {
+      var c = document.createElement('canvas');
+      c.width = 88; c.height = 88;
+      var g = c.getContext('2d');
+      g.fillStyle = '#000'; g.fillRect(0, 0, 88, 88);
+      g.translate(44, 47); g.rotate(-0.05);
+      g.fillStyle = '#fff';
+      g.font = 'bold 66px "Times New Roman", serif';
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText('3', 0, 0);
+      var s2 = document.createElement('canvas');
+      s2.width = N; s2.height = N;
+      var sc = s2.getContext('2d');
+      sc.drawImage(c, 0, 0, N, N);
+      var d = sc.getImageData(0, 0, N, N).data;
+      var out = new Float32Array(N * N);
+      for (var i = 0; i < out.length; i++) {
+        var v = d[i * 4] / 255;
+        out[i] = Math.max(-1, Math.min(1, (v - 0.45) * 1.9));
+      }
+      return out;
+    })();
+
+    function act(v) {
+      if (mode === 0) return Math.max(0, v);
+      if (mode === 1) return v > 0 ? v : 0.1 * v;
+      return v * 0.5 * (1 + Math.tanh(Math.sqrt(2 / Math.PI) * (v + 0.044715 * v * v * v)));
+    }
+
+    var started = false, vis = true, bootTimer = 0;
+
+    function boot3D() {
+      if (started) return;
+      started = true;
+      var gate = document.getElementById('rlGate');
+      if (gate) gate.textContent = '正在载入三维库…';
+      var sc = document.createElement('script');
+      sc.src = '../../../../pc/js/three.min.js';
+      sc.async = true;
+      sc.onload = function () {
+        if (gate) { gate.style.opacity = '0'; setTimeout(function () { gate.style.display = 'none'; }, 400); }
+        initScene();
+      };
+      sc.onerror = function () { if (gate) gate.textContent = '三维库没加载出来，点一下重试'; started = false; };
+      document.head.appendChild(sc);
+    }
+
+    function initScene() {
+      var renderer = new THREE.WebGLRenderer({ canvas: host, antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      var scene = new THREE.Scene();
+      var camera = new THREE.PerspectiveCamera(42, 1, 0.1, 2000);
+
+      scene.add(new THREE.AmbientLight(0x9ab6cc, 0.72));
+      var l1 = new THREE.DirectionalLight(0xffffff, 0.8); l1.position.set(-40, 80, 50); scene.add(l1);
+      var l2 = new THREE.DirectionalLight(0x7fd4ef, 0.45); l2.position.set(60, 30, -50); scene.add(l2);
+
+      var cam = { yaw: -0.58, pitch: 0.52, dist: 54 };
+      var target = new THREE.Vector3(0, 0.6, 0);
+      function updateCamera() {
+        var sp = Math.sin(cam.pitch), cp = Math.cos(cam.pitch);
+        camera.position.set(target.x + cam.dist * cp * Math.sin(cam.yaw),
+                            target.y + cam.dist * sp,
+                            target.z + cam.dist * cp * Math.cos(cam.yaw));
+        camera.lookAt(target);
+      }
+
+      var grid = new THREE.GridHelper(90, 18, 0x24404f, 0x16272f);
+      grid.position.y = -5.2;
+      scene.add(grid);
+
+      // 地面：y = 0 的阈值面
+      var planeGeo = new THREE.PlaneGeometry(N * GAP + 2, N * GAP + 2);
+      var plane = new THREE.Mesh(planeGeo, new THREE.MeshBasicMaterial({
+        color: 0x7fd4ef, transparent: true, opacity: 0.07, side: THREE.DoubleSide, depthWrite: false
+      }));
+      plane.rotation.x = -Math.PI / 2;
+      scene.add(plane);
+      var planeEdge = new THREE.LineSegments(new THREE.EdgesGeometry(planeGeo),
+        new THREE.LineBasicMaterial({ color: 0x7fd4ef, transparent: true, opacity: 0.35 }));
+      planeEdge.rotation.x = -Math.PI / 2;
+      scene.add(planeEdge);
+
+      var boxGeo = new THREE.BoxGeometry(0.88, 1, 0.88);
+      boxGeo.translate(0, 0.5, 0);          // 从 y=0 向上长
+      var mesh = new THREE.InstancedMesh(boxGeo, new THREE.MeshPhongMaterial({ shininess: 45, specular: 0x223344 }), N * N);
+      scene.add(mesh);
+
+      var m4 = new THREE.Matrix4(), col = new THREE.Color();
+      function put(k, i, j, v) {
+        var h = Math.max(0.0015, Math.abs(v) * H);
+        var y = v >= 0 ? 0 : -h;             // 负值：柱子从地面往下长
+        m4.makeScale(1, v >= 0 ? h : h, 1);
+        m4.setPosition((j - (N - 1) / 2) * GAP, y, (i - (N - 1) / 2) * GAP);
+        mesh.setMatrixAt(k, m4);
+        if (v > 0.01) col.setRGB(0.95, 0.72, 0.45);
+        else if (v < -0.01) col.setRGB(0.32, 0.62, 0.82);
+        else col.setRGB(0.22, 0.26, 0.32);
+        mesh.setColorAt(k, col);
+      }
+
+      function rebuildAll() {
+        for (var i = 0; i < N; i++) for (var j = 0; j < N; j++) {
+          var k = i * N + j;
+          put(k, i, j, ACT[k]);
+        }
+        mesh.instanceMatrix.needsUpdate = true;
+        mesh.instanceColor.needsUpdate = true;
+      }
+      rebuildAll();
+
+      // 刀：一片横跨 x 的发光薄板，沿 z 推进
+      var blade = new THREE.Mesh(
+        new THREE.BoxGeometry(N * GAP + 2, 0.06, 0.34),
+        new THREE.MeshBasicMaterial({ color: 0xfff4d0, transparent: true, opacity: 0.85 })
+      );
+      scene.add(blade);
+
+      var cursor = -1;    // 已经处理到第几行
+      var pause = 0;
+      function step() {
+        if (cursor >= N - 1) {
+          if (pause > 0) { pause--; return; }
+          pause = 16; cursor = -1; rebuildAll();
+          return;
+        }
+        cursor++;
+        for (var j = 0; j < N; j++) {
+          var k = cursor * N + j;
+          put(k, cursor, j, act(ACT[k]));
+        }
+        mesh.instanceMatrix.needsUpdate = true;
+        mesh.instanceColor.needsUpdate = true;
+        blade.position.set(0, 0, (cursor - (N - 1) / 2) * GAP);
+      }
+
+      function updHud() {
+        var done = Math.max(0, cursor + 1);
+        var negs = 0, kept = 0;
+        for (var i = 0; i < N; i++) for (var j = 0; j < N; j++) {
+          var v = ACT[i * N + j];
+          if (v < -0.01) negs++;
+          if (i <= cursor) { if (act(v) !== v) kept++; }
+        }
+        hud.innerHTML = '方式：<b>' + ['ReLU', 'Leaky ReLU', 'GELU'][mode] + '</b><br>' +
+          '裁到第 <b>' + done + '/' + N + '</b> 行<br>' +
+          '负值柱：<b class="r">' + negs + '</b> 根　已改写：<b>' + kept + '</b> 根<br>' +
+          '地面 = 0，下探 = 负激活';
+      }
+
+      var dragging = false, lx = 0, ly = 0, dirty = true;
+      host.addEventListener('pointerdown', function (e) {
+        if (e.button !== 0) return;
+        dragging = true; lx = e.clientX; ly = e.clientY;
+        host.classList.add('dragging');
+        if (host.setPointerCapture) host.setPointerCapture(e.pointerId);
+      });
+      host.addEventListener('pointermove', function (e) {
+        if (!dragging) return;
+        cam.yaw -= (e.clientX - lx) * 0.008;
+        cam.pitch = Math.max(-0.25, Math.min(1.4, cam.pitch + (e.clientY - ly) * 0.006));
+        lx = e.clientX; ly = e.clientY;
+        updateCamera(); dirty = true;
+      });
+      host.addEventListener('pointerup', function () { dragging = false; host.classList.remove('dragging'); });
+      host.addEventListener('pointercancel', function () { dragging = false; host.classList.remove('dragging'); });
+      host.addEventListener('wheel', function (e) {
+        e.preventDefault();
+        cam.dist = Math.max(26, Math.min(130, cam.dist + e.deltaY * 0.06));
+        updateCamera(); dirty = true;
+      }, { passive: false });
+
+      btnPlay.addEventListener('click', function () {
+        st.playing = !st.playing;
+        btnPlay.textContent = st.playing ? '暂停' : '继续';
+        btnPlay.classList.toggle('on', st.playing);
+      });
+      btnReset.addEventListener('click', function () {
+        cam.yaw = -0.58; cam.pitch = 0.52; cam.dist = 54;
+        updateCamera(); dirty = true;
+      });
+      modeBtns.forEach(function (b, i) {
+        b.addEventListener('click', function () {
+          mode = i;
+          modeBtns.forEach(function (b2) { b2.classList.remove('on'); });
+          b.classList.add('on');
+          cursor = -1; pause = 10; rebuildAll(); dirty = true;
+        });
+      });
+
+      function resize() {
+        var w = host.clientWidth || 900, h = host.clientHeight || 540;
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        dirty = true;
+      }
+      window.addEventListener('resize', resize);
+
+      var last = 0;
+      function loop(now) {
+        requestAnimationFrame(loop);
+        if (st.playing && vis) {
+          var interval = Math.max(4, Math.round(34 / (+speed.value)));
+          if (now - last > interval) { last = now; step(); updHud(); dirty = true; }
+        }
+        if (dirty && vis) { renderer.render(scene, camera); dirty = false; }
+      }
+
+      resize(); updateCamera(); updHud();
+      requestAnimationFrame(loop);
+
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (es) { vis = es[0].isIntersecting; }, { threshold: 0.02 }).observe(host);
+      }
+    }
+
+    var st = { playing: true };
+
+    // 进入视口后延迟 0.9s 再拉 three.js
+    (function () {
+      var gate = document.getElementById('rlGate');
+      if (gate) gate.addEventListener('click', function () { if (!started) boot3D(); });
+      var rc = host.getBoundingClientRect();
+      if (rc.top < (window.innerHeight || 800) + 240 && rc.bottom > -240) bootTimer = setTimeout(boot3D, 900);
+      if (!('IntersectionObserver' in window)) { if (!bootTimer) setTimeout(boot3D, 900); return; }
+      var io = new IntersectionObserver(function (es) {
+        es.forEach(function (e) {
+          if (e.isIntersecting) { if (!bootTimer) bootTimer = setTimeout(function () { boot3D(); io.disconnect(); }, 900); }
+          else if (bootTimer && !started) { clearTimeout(bootTimer); bootTimer = 0; }
+        });
+      }, { rootMargin: '240px' });
+      io.observe(host);
+    })();
+  })();
+  </script>
+  <script src="../../../../assets/page.js"></script>
+</body>
+</html>
