@@ -765,7 +765,9 @@
       var pNode = pp ? byKey(pp) : null;
       n.parentNode = pNode;
       var pPos = pNode ? pNode.basePos : center;
-      if (n.basePos.distanceTo(pPos) > 0.001) {
+      // 没有父节点的点（宇宙根、独立时间轴起点）不画连线，避免从宇宙中心
+      // 冒出一根没头没尾的短线
+      if (pNode && n.basePos.distanceTo(pPos) > 0.001) {
         var line = makeLine([center.clone(), center.clone()], n.lineColor, 0);
         line.frustumCulled = false;
         line.renderOrder = 1;
@@ -888,14 +890,16 @@
     var spanV = (maxV - minV) / 2 * unit;
     var pad = unit * 1.2;
     var dist = fitDistance(spanH, spanV, pad);
-    // 节点特别多的宇宙（机器学习那棵 105 点的树）：fitDistance 按窄边算会切边，
-    // 直接按「最长的那个方向要占满屏幕」再放大一点，保证整棵树都在画面里。
-    if (pts.length > 40) {
-      var big = Math.max(Math.abs(midH) + spanH / unit, Math.abs(midV) + spanV / unit);
-      dist = Math.max(dist, big * unit * 2.1);
-    }
-    // 大宇宙上限放宽到装得下整棵树
-    dist = Math.max(20, Math.min(MOBILE_LAYOUT ? 220 : 200, dist));
+    // 节点特别多的宇宙（机器学习那棵 111 点的树）：fitDistance 按包围盒算，
+    // 再留 6% 余量，保证最外圈的点和名字不被切在屏幕外
+    if (pts.length > 40) dist *= 1.06;
+    // 手机竖屏放不下这么宽的树：只按高度取景，横向溢出靠单指拖动平移，
+    // 否则整棵树会被压成 0.3 倍、名字全都糊在一起
+    if (MOBILE_LAYOUT && pts.length > 40) dist = fitDistance(0, spanV, pad + unit * 2.5);
+    // 大宇宙上限放宽到装得下整棵树（机器学习那棵 y 跨度约 80 格，200 会把树切在屏幕外）
+    var cap = pts.length > 40 ? 460 : (MOBILE_LAYOUT ? 220 : 200);
+    dist = Math.max(20, Math.min(cap, dist));
+    entry.fitDist = dist;
     var c = entry.centerPos;
     if (MOBILE_LAYOUT) {
       // 手机端：pos[1] 落在 -Z，pos[0] 落在 +X
@@ -1320,6 +1324,20 @@
       var from = n.parentNode ? n.parentNode.pos : top.centerPos;
       moveLine(n.line, from, n.pos);
     });
+
+    // 标签 LOD：一百多个点的树在远景上全靠名字会糊成一团，所以远处只留核心点
+    // （scale ≥ 0.9）的名字，滚轮拉近再把次级节点的名字放出来
+    if (top.nodes.length > 40) {
+      var camDist = camera.position.distanceTo(viewLookAt);
+      var nearLimit = (top.fitDist || 0) * 0.78;
+      top.nodes.forEach(function (n) {
+        if (!n.ui || !n.ui.label) return;
+        var show = camDist < nearLimit || (n.baseScale || 1) >= 0.9
+          || n.def.labelAlways || n === selectedNode;
+        var vis = show ? '' : 'hidden';
+        if (n.ui.label.style.visibility !== vis) n.ui.label.style.visibility = vis;
+      });
+    }
   }
 
   function updateAnimation(dt) {
@@ -1434,6 +1452,12 @@
           ui.label.style.top = p.y + 'px';
           ui.label.style.transform = toRight ? 'translate(0, -50%)' : 'translate(-100%, -50%)';
           ui.label.style.textAlign = toRight ? 'left' : 'right';
+        } else if (n.kind === 'point' && n.def.labelAbove) {
+          // 时间轴是一条横线，奇偶节点的名字上下交错，沿线一字排开不会互相压住
+          ui.label.style.left = p.x + 'px';
+          ui.label.style.top = (p.y - 10 - cssFont * 0.55) + 'px';
+          ui.label.style.transform = 'translate(-50%, -100%)';
+          ui.label.style.textAlign = 'center';
         } else {
           ui.label.style.left = p.x + 'px';
           ui.label.style.top = (p.y + 10 + cssFont * 0.55) + 'px';

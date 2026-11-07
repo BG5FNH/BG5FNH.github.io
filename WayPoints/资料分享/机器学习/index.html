@@ -52,18 +52,22 @@
       </div>
       <p>1958 年 Rosenblatt 的感知机只有一层，却第一次让机器"从数据里调参数"：猜错了就按误差方向挪一点权重。它只能划一条直线，被 XOR 卡住；把阈值换成可导函数、把层叠起来，就成了后面的整棵树。</p>
       <div class="ml-stat">
-        <div><b>105</b><span>个节点</span></div>
-        <div><b>5</b><span>层深度</span></div>
-        <div><b>10</b><span>条主分支</span></div>
+        <div><b>111</b><span>个节点</span></div>
+        <div><b>7</b><span>层主干</span></div>
+        <div><b>13</b><span>条理论年表</span></div>
       </div>
       <p class="ml-legend">星图里节点越大越亮 = 越核心（感知机 / 反向传播 / CNN / ResNet / LSTM / 注意力 / Transformer / GAN / 扩散 / PPO / LLM / 数据工程 / 图灵机 …）；小点 = 次级技术（各种变体、技巧、调度）。<br>
-      配色取自原神·妮露：<span style="color:#7fd4ef">水蓝</span>是主干，<span style="color:#f4a6c0">玫瑰粉</span>是生成与理论，<span style="color:#9be7c4">薄荷绿</span>是强化学习。</p>
+      配色取自原神·妮露：<span style="color:#7fd4ef">水蓝</span>是主干，<span style="color:#f4a6c0">玫瑰粉</span>是生成与理论，<span style="color:#9be7c4">薄荷绿</span>是强化学习，<span style="color:#e6cf9a">金色一行</span>是顶上的理论年表。</p>
     </section>
 
     <section class="card">
-      <h2>先看这个：感知机折纸动画</h2>
-      <p>把一张纸当成「所有可能的物体」：横轴是颜色、纵轴是大小；感知机在纸上折一道折痕，喂一个点判错就把折痕挪一点，挪到两堆点中间为止。</p>
-      <p><a href="viz-perceptron.html">打开折纸动画 →</a>　可单步、可调速度、可重新随机撒点。</p>
+      <h2>三个入口</h2>
+      <p>中间这棵是「技能树」——从感知机一层层往上长，越往右越接近能跑起来的代码。星图顶上那条横线是「理论年表」，它和技能树分开：年表讲几几年长出了什么理论，竖直方向不表示难度，只表示时间。</p>
+      <div class="ml-grid">
+        <a class="ml-card" href="perceptron.html"><b>感知机 · 折纸动画</b><span>一张纸代表所有可能的物体，判错一次就把折痕挪一点，挪到两堆点中间为止</span><em>可单步 / 可调速度 / 可重新撒点</em></a>
+        <a class="ml-card" href="mlp.html"><b>多层感知机 · 3D 折纸</b><span>两层 ReLU 把平面折出真正的三维皱褶，拖动可以转着看，滑杆调阈值</span><em>左键拖动旋转 / 滚轮缩放</em></a>
+        <a class="ml-card" href="timeline.html"><b>理论长河 · 1936→2022</b><span>图灵机 → 神经元模型 → 感知机 → XOR 困境 → 反向传播 → 万能逼近 → AlexNet → Transformer → RLHF</span><em>和技能树分开的那条横线</em></a>
+      </div>
     </section>
 
     <section class="card">

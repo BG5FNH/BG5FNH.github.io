@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>理论时间轴 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../../";</script>
+  <link rel="stylesheet" href="../../../../assets/style.css" />
+  <style>
+    .tl-wrap { position: relative; margin: 14px 0 0; padding-left: 22px; }
+    .tl-wrap::before { content: ''; position: absolute; left: 6px; top: 4px; bottom: 4px; width: 2px;
+      background: linear-gradient(180deg, rgba(201,168,106,.9), rgba(201,168,106,.15)); }
+    .tl-item { position: relative; margin: 0 0 16px; }
+    .tl-item::before { content: ''; position: absolute; left: -21px; top: 5px; width: 10px; height: 10px;
+      border-radius: 50%; background: #0d0c10; border: 2px solid #c9a86a; }
+    .tl-year { font-family: Consolas, monospace; font-size: 13px; color: #c9a86a; letter-spacing: 1px; }
+    .tl-name { margin-top: 2px; font-size: 14px; color: var(--text); }
+    .tl-desc { margin-top: 3px; font-size: 12.5px; line-height: 1.75; color: var(--text-muted); }
+    .tl-note { margin: 16px 0 0; padding: 12px 14px; border-radius: 10px; font-size: 12.5px; line-height: 1.85;
+      color: var(--text-muted); background: rgba(201,168,106,.05); border: 1px dashed rgba(201,168,106,.3); }
+    .tl-note b { color: #c9a86a; }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">理论时间轴</h1>
+    <p class="page-subtitle">机器学习 · 星图上方那条横线 · 理论是怎么一步步长出来的</p>
+
+    <section class="card">
+      <p>这条线和下面那棵技能树是<b>分开</b>的：技能树讲"怎么学、怎么用"，这条线讲"这些结论是哪一年、被谁证明出来的"。理论不是从多层感知机里长出来的，它们自成一条脉络。</p>
+
+      <div class="tl-wrap">
+        <div class="tl-item"><div class="tl-year">1936</div><div class="tl-name">图灵机</div>
+          <div class="tl-desc">图灵用"一条纸带 + 读写头"定义了什么叫"可计算"，划出算法能到达的边界。</div></div>
+        <div class="tl-item"><div class="tl-year">1943</div><div class="tl-name">麦卡洛克-皮茨神经元</div>
+          <div class="tl-desc">第一个数学神经元模型：输入加权求和过阈值，输出 0/1。感知机的直系祖先。</div></div>
+        <div class="tl-item"><div class="tl-year">1949</div><div class="tl-name">Hebbian 学习</div>
+          <div class="tl-desc">"一起激活的神经元会连得更紧"——第一次提出用连接强度变化来学习。</div></div>
+        <div class="tl-item"><div class="tl-year">1958</div><div class="tl-name">感知机</div>
+          <div class="tl-desc">Rosenblatt 做出可训练的单层网络，并证明线性可分时一定收敛。</div></div>
+        <div class="tl-item"><div class="tl-year">1969</div><div class="tl-name">XOR 困境</div>
+          <div class="tl-desc">Minsky &amp; Papert 指出单层感知机连异或都学不会，神经网络研究进入第一次寒冬。</div></div>
+        <div class="tl-item"><div class="tl-year">1986</div><div class="tl-name">反向传播</div>
+          <div class="tl-desc">Rumelhart、Hinton、Williams 把链式法则用到多层网络上，多层网络终于能训练。</div></div>
+        <div class="tl-item"><div class="tl-year">1989</div><div class="tl-name">万能逼近定理</div>
+          <div class="tl-desc">一层足够宽的隐藏层就能逼近任意连续函数——但它没说要多宽、也没有说训练得出来。</div></div>
+        <div class="tl-item"><div class="tl-year">1998</div><div class="tl-name">LeNet-5</div>
+          <div class="tl-desc">卷积网络在手写数字识别上跑通，现代 CNN 的雏形。</div></div>
+        <div class="tl-item"><div class="tl-year">2006</div><div class="tl-name">深度信念网络</div>
+          <div class="tl-desc">Hinton 用逐层预训练让深层网络重新可训，"深度学习"这个名字开始流行。</div></div>
+        <div class="tl-item"><div class="tl-year">2012</div><div class="tl-name">AlexNet</div>
+          <div class="tl-desc">ImageNet 夺冠，GPU + 大数据 + 深网络三件套成立，深度学习复兴。</div></div>
+        <div class="tl-item"><div class="tl-year">2017</div><div class="tl-name">Transformer</div>
+          <div class="tl-desc">只用注意力就能建模序列，为后面的大模型铺好底座。</div></div>
+        <div class="tl-item"><div class="tl-year">2020</div><div class="tl-name">Scaling Law</div>
+          <div class="tl-desc">损失随参数、数据、算力呈幂律下降——"把模型做大"第一次有了经验依据。</div></div>
+        <div class="tl-item"><div class="tl-year">2022</div><div class="tl-name">RLHF 与对话大模型</div>
+          <div class="tl-desc">用人类偏好对齐输出，模型从"续写器"变成"助手"。</div></div>
+      </div>
+
+      <p class="tl-note"><b>怎么读这条线：</b>每隔十几年会出现一个"卡点"——1936 划边界、1969 撞墙、1986 破墙、2012 起飞、2020 找到规模化规律。技能树上的每个技术，都能在这条线上找到它的"出生证明"。</p>
+    </section>
+  </main>
+
+  <script src="../../../../assets/page.js"></script>
+</body>
+</html>

@@ -3,20 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>多层感知机 · 折纸叠加 - BG5FNH</title>
+  <title>多层感知机 · 三维折纸 - BG5FNH</title>
   <script>window.BG5FNH_ROOT = "../../../../";</script>
   <link rel="stylesheet" href="../../../../assets/style.css" />
   <style>
     .ml-lead { margin: 0 0 10px; font-size: 14px; line-height: 1.9; }
     .ml-wrap { position: relative; margin: 12px 0 0; border-radius: 12px; overflow: hidden;
-      border: 1px solid rgba(127, 212, 239, 0.3); background: #0a1620; }
-    #mlCanvas { display: block; width: 100%; height: auto; touch-action: manipulation; }
+      border: 1px solid rgba(127, 212, 239, 0.3);
+      background: radial-gradient(circle at 50% 15%, #12222e, #070f16 78%); }
+    #mlStage { display: block; width: 100%; height: 520px; touch-action: none; cursor: grab; }
+    #mlStage.dragging { cursor: grabbing; }
     .ml-hud { position: absolute; left: 10px; top: 10px; font-size: 11px; line-height: 1.7;
       color: #bfe8f6; background: rgba(6, 16, 26, 0.75); border: 1px solid rgba(127, 212, 239, 0.3);
       border-radius: 8px; padding: 7px 9px; pointer-events: none; }
     .ml-hud b { color: #fff; }
     .ml-hud .r { color: #f4a6c0; }
-    .ml-hud .b { color: #7fd4ef; }
+    .ml-tip3d { position: absolute; right: 10px; bottom: 10px; font-size: 11px; color: rgba(191,232,246,.78);
+      background: rgba(6,16,26,.72); border-radius: 8px; padding: 5px 9px; pointer-events: none; }
 
     .ml-ctrl { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; align-items: center; }
     .ml-btn { padding: 9px 16px; border-radius: 999px; border: 1px solid rgba(127, 212, 239, 0.5);
@@ -28,7 +31,7 @@
     .ml-thr input { width: 130px; accent-color: #f4a6c0; }
 
     .ml-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; font-size: 12px; color: var(--text-muted); }
-    .ml-legend i { display: inline-block; width: 12px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: 3px; }
+    .ml-legend i { display: inline-block; width: 12px; height: 4px; border-radius: 2px; margin-right: 6px; vertical-align: 3px; }
 
     .ml-note { margin: 14px 0 0; padding: 12px 14px; border-radius: 10px; font-size: 12.5px; line-height: 1.85;
       color: var(--text-muted); background: rgba(127, 212, 239, 0.05); border: 1px dashed rgba(127, 212, 239, 0.3); }
@@ -44,6 +47,7 @@
     .ml-card2 h3 { margin: 0 0 6px; font-size: 13.5px; color: #a9e4f7; font-weight: 600; }
     .ml-card2 p { margin: 4px 0; font-size: 12.5px; line-height: 1.75; color: var(--text-muted); }
     @media (max-width: 640px) {
+      #mlStage { height: 320px; }
       .ml-two { grid-template-columns: 1fr; }
       .ml-btn { padding: 8px 13px; font-size: 12.5px; min-width: 72px; }
       .ml-hud { font-size: 10px; padding: 6px 8px; }
@@ -61,29 +65,30 @@
 
   <main class="page">
     <h1 class="page-title">多层感知机</h1>
-    <p class="page-subtitle">机器学习 · 第 3 课 · 一次折纸不够，就折很多次</p>
+    <p class="page-subtitle">机器学习 · 第 3 课 · 一张三维的纸，折很多次</p>
 
     <section class="card">
-      <p class="ml-lead"><b>先玩，再看字。</b>下面是一张纸的侧面：左边平贴桌面，遇到折痕就往右上折 45°，翘成一段斜坡。那条<b>更高的横线</b>就是阈值纸片——斜坡穿过它的地方，纸面以上判 <span style="color:#f4a6c0">B</span>，以下判 <span style="color:#7fd4ef">A</span>。</p>
-      <p class="ml-lead" style="font-size:12.5px;color:var(--text-muted)">点「再折一次」：每折一次就多一个拐点，斜坡叠起来，横线一切就切出更多区间。</p>
+      <p class="ml-lead"><b>先玩，再看字。</b>这是一张真的三维纸片：平的地方贴地，遇到折痕就往上升。那张<b>半透明的粉色平面</b>是阈值纸片——纸面穿出去的部分判 <span style="color:#f4a6c0">B</span>，没穿出去的判 <span style="color:#7fd4ef">A</span>。</p>
+      <p class="ml-lead" style="font-size:12.5px;color:var(--text-muted)"><b>按住鼠标左键拖动</b>可以绕着纸片转圈看（手机单指拖动），滚轮缩放。按「再折一次」加一道 ReLU 折痕。</p>
 
       <div class="ml-wrap">
-        <canvas id="mlCanvas" width="900" height="460"></canvas>
+        <canvas id="mlStage"></canvas>
         <div class="ml-hud" id="mlHud"></div>
+        <div class="ml-tip3d">左键拖动旋转 · 滚轮缩放</div>
       </div>
 
       <div class="ml-ctrl">
         <button class="ml-btn primary" id="mlFold" type="button">再折一次</button>
         <button class="ml-btn" id="mlPlay" type="button">自动折</button>
         <button class="ml-btn" id="mlReset" type="button">重新开始</button>
-        <span class="ml-thr">阈值纸片高度<input id="mlThr" type="range" min="4" max="26" step="0.5" value="12" /></span>
+        <span class="ml-thr">阈值高度<input id="mlThr" type="range" min="1" max="14" step="0.5" value="6" /></span>
       </div>
 
       <div class="ml-legend">
-        <span><i style="background:#f4a6c0"></i>纸面以上（判 B）</span>
-        <span><i style="background:#7fd4ef"></i>纸面以下（判 A）</span>
+        <span><i style="background:#e86f9a"></i>穿过阈值面的部分（判 B）</span>
+        <span><i style="background:#2f7fb8"></i>没穿过的部分（判 A）</span>
+        <span><i style="background:#c9a86a"></i>阈值平面 θ</span>
         <span><i style="background:#ffe6a7"></i>折痕</span>
-        <span><i style="background:#c9a86a"></i>阈值纸片</span>
       </div>
     </section>
 
@@ -92,261 +97,264 @@
       <div class="ml-two">
         <div class="ml-card2">
           <h3>折的动作</h3>
-          <p>折痕在 x = k 处。折痕左边平（输出 0），右边按 45° 上升：</p>
+          <p>折痕在 x = k 处：左边平贴桌面，右边按固定斜率升起。</p>
           <p style="color:#cfeeff;font-family:Consolas,monospace">ReLU(x − k) = max(0, x − k)</p>
-          <p>这正好就是"折起来的纸"的形状：一个拐点 + 一条斜坡。</p>
+          <p>三维里看，就是纸面被折出一道棱。</p>
         </div>
         <div class="ml-card2">
           <h3>纸片一插</h3>
-          <p>阈值 θ 是一张水平的高纸片。斜坡穿过它的位置就是判定边界：</p>
-          <p style="color:#cfeeff;font-family:Consolas,monospace">ReLU(x − k) &gt; θ  ⟺  x &gt; k + θ</p>
-          <p>纸面以上的那截露出来 = B，其余 = A。</p>
+          <p>阈值 θ 是一张水平的半透明平面，穿过纸面：</p>
+          <p style="color:#cfeeff;font-family:Consolas,monospace">S(x) &gt; θ  ⟺  判 B</p>
+          <p>露在平面上方的那段 = B，其余 = A。</p>
         </div>
       </div>
     </section>
 
     <section class="card">
       <h2>很多次折纸 = 多层感知机</h2>
-      <p>每个隐藏单元只干一件事：在某处折一下。把它们的折痕<b>叠加</b>起来，就得到一条多段折线——每多一个单元，就多一个拐点。</p>
+      <p>每个隐藏单元只干一件事：在某处折一下。把折痕<b>叠加</b>起来，纸面就变成多段折线——每多一个单元，多一道棱。</p>
       <div class="ml-formula">S(x) = Σᵢ aᵢ · ReLU(wᵢ·x + bᵢ)　　判定：S(x) &gt; θ ? B : A</div>
       <ol class="ml-steps">
-        <li><b>一个单元</b>：一条折痕，只能切一刀 → 边界只有一个点，分出"A | B"两段；</li>
-        <li><b>两个单元</b>：两个拐点，叠出一段"凸起"，横线一切就能切出一个区间 → "A | B | A"，也就是"在不在这个范围里"；</li>
+        <li><b>一个单元</b>：一道棱，只能切一刀 → 边界一个点；</li>
+        <li><b>两个单元</b>：两道棱叠出一段凸起，横着一插就能切出一个区间 → "A | B | A"，也就是"在不在这个范围里"；</li>
         <li><b>四个、八个</b>：凸起变得有棱有角，区间越切越细；</li>
-        <li><b>足够多</b>：折线逼近任意曲线，任何形状的"在不在里面"都能判——这就是多层网络能拟合复杂边界的原因。</li>
+        <li><b>足够多</b>：折线逼近任意曲线，任何形状的"在不在里面"都能判。</li>
       </ol>
-      <p class="ml-note">关键点：<b>折痕本身不判断，它只负责把平面掰弯</b>。真正的判断发生在最后那张阈值纸片（输出层）上。所以"加宽"（更多折痕）和"加深"（折完再折）都是在给这张纸制造更多弯，最后用一刀切出你想要的形状。</p>
+      <p class="ml-note">关键点：<b>折痕本身不判断，它只负责把纸面折弯</b>。判断发生在最后那张阈值平面（输出层）上。加宽（更多折痕）与加深（折完再折），都是在给这张纸制造更多弯。</p>
     </section>
 
     <section class="card">
       <h2>和单层感知机的区别</h2>
-      <p>单层感知机（上一课）是<b>一张平整的纸 + 一条直线折痕</b>：只能"一刀切两半"，边界一定是直线。</p>
-      <p>多层感知机是<b>一张被反复折过的纸</b>：折痕让纸面自己带上"棱角"，再用高纸片一插，切出来的边界可以是折线、可以是多边形——二维里就能围出一个圈，把"中间这一块"单独判成 B。这正是 XOR 问题的解法：一刀切不开，两折就能围出来。</p>
-      <p><a href="perceptron.html">← 回看第 1 课：感知机（单张折纸）</a>　·　<a href="index.html">机器学习总览</a></p>
+      <p>单层感知机是<b>一张平整的纸</b>：一刀切两半，边界永远是直的。</p>
+      <p>多层感知机是<b>被反复折过的纸</b>：折痕让纸面带棱，阈值面一插，切出来的边界可以是折线、可以是多边形——二维里就能围出一块，把"中间这一团"单独判成 B。XOR 就是这么解的：一刀切不开，两折就能围出来。</p>
+      <p><a href="perceptron.html">← 回看第 1 课：感知机（单张纸）</a>　·　<a href="index.html">机器学习总览</a></p>
     </section>
   </main>
 
+  <script src="../../../../pc/js/three.min.js"></script>
   <script>
     (function () {
       'use strict';
-      var cvs = document.getElementById('mlCanvas');
-      var ctx = cvs.getContext('2d');
+      var host = document.getElementById('mlStage');
       var hud = document.getElementById('mlHud');
       var btnFold = document.getElementById('mlFold');
       var btnPlay = document.getElementById('mlPlay');
       var btnReset = document.getElementById('mlReset');
       var thrInput = document.getElementById('mlThr');
 
-      var W = 900, H = 460;
-      var PAD = { l: 52, r: 22, t: 30, b: 46 };
-      var XMAX = 100, YMAX = 30;      // 输入 0..100；YMAX 每帧按曲线高度自动定
-
-      // 折痕序列：前几个慢慢搭出"一个凸起"，后面越折越细
+      var XMAX = 92, ZW = 40;
       var FOLDS = [
-        { k: 18, a: 1.0 },    // 左边先折起一段
-        { k: 42, a: -1.05 },  // 到这儿往回折，形成第一个凸起
-        { k: 58, a: 0.95 },   // 再折上去，第二个凸起
-        { k: 80, a: -0.9 },   // 再回落
-        { k: 10, a: 0.5 },    // 更早的地方小幅折一下
-        { k: 90, a: -0.5 },
-        { k: 32, a: 0.4 },
-        { k: 68, a: -0.4 }
+        { k: 18, a: 1.0 }, { k: 42, a: -0.4 }, { k: 58, a: 1.0 },
+        { k: 72, a: -2.0 }, { k: 88, a: 1.4 }, { k: 10, a: 0.5 },
+        { k: 32, a: 0.4 }, { k: 94, a: -0.4 }
       ];
+      var used = 2, usedAnim = 2, thr = 6, playing = false;
+      var lastAdd = 0;
 
-      var used = 0;                    // 已经折了几次
-      var thr = 12;
-      var playing = false;
-      var grow = 0;                    // 0..1 折纸动画进度（最新一次折痕的生长）
-      var raf = null;
+      var renderer = new THREE.WebGLRenderer({ canvas: host, antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      var scene = new THREE.Scene();
+      var camera = new THREE.PerspectiveCamera(42, 1, 0.1, 800);
+
+      scene.add(new THREE.AmbientLight(0x88aacc, 0.95));
+      var d1 = new THREE.DirectionalLight(0xffffff, 0.85); d1.position.set(-40, 60, 40); scene.add(d1);
+      var d2 = new THREE.DirectionalLight(0x7fd4ef, 0.5); d2.position.set(60, 20, -40); scene.add(d2);
+
+      var cam = { yaw: -0.62, pitch: 0.62, dist: 182 };
+      var target = new THREE.Vector3(46, 5, 0);
+
+      function updateCamera() {
+        var sp = Math.sin(cam.pitch), cp = Math.cos(cam.pitch);
+        camera.position.set(
+          target.x + cam.dist * cp * Math.sin(cam.yaw),
+          target.y + cam.dist * sp,
+          target.z + cam.dist * cp * Math.cos(cam.yaw)
+        );
+        camera.lookAt(target);
+      }
+
+      var grid = new THREE.GridHelper(170, 17, 0x2b4a5c, 0x18303e);
+      grid.position.set(46, -0.05, 0);
+      scene.add(grid);
+
+      // 纸面
+      var NX = 180;
+      var geo = new THREE.BufferGeometry();
+      var posArr = new Float32Array((NX + 1) * 2 * 3);
+      var colArr = new Float32Array((NX + 1) * 2 * 3);
+      var idxArr = [];
+      for (var i = 0; i < NX; i++) {
+        var a0 = i * 2, a1 = i * 2 + 1, b0 = (i + 1) * 2, b1 = (i + 1) * 2 + 1;
+        idxArr.push(a0, a1, b1, a0, b1, b0);
+      }
+      geo.setIndex(idxArr);
+      geo.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
+      geo.setAttribute('color', new THREE.BufferAttribute(colArr, 3));
+      var sheet = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({
+        vertexColors: true, side: THREE.DoubleSide, shininess: 30, specular: 0x334455,
+        // 平面着色：折痕两侧法线互不影响，折纸才有硬边，而不是软塌塌的一块布
+        flatShading: true
+      }));
+      scene.add(sheet);
+
+      var edgeGeo = new THREE.BufferGeometry();
+      var edgePos = new Float32Array((NX + 1) * 2 * 3);
+      edgeGeo.setAttribute('position', new THREE.BufferAttribute(edgePos, 3));
+      var edgeLine = new THREE.LineSegments(edgeGeo, new THREE.LineBasicMaterial({ color: 0xfff0d0, transparent: true, opacity: 0.5 }));
+      scene.add(edgeLine);
+
+      // 阈值面
+      var thrGeo = new THREE.PlaneGeometry(XMAX + 12, ZW + 10);
+      var thrPlane = new THREE.Mesh(thrGeo, new THREE.MeshPhongMaterial({
+        color: 0xf4a6c0, transparent: true, opacity: 0.26, side: THREE.DoubleSide, depthWrite: false
+      }));
+      thrPlane.rotation.x = -Math.PI / 2;
+      thrPlane.position.set(XMAX / 2, thr, 0);
+      scene.add(thrPlane);
+      var thrEdge = new THREE.LineSegments(new THREE.EdgesGeometry(thrGeo),
+        new THREE.LineBasicMaterial({ color: 0xf4a6c0, transparent: true, opacity: 0.85 }));
+      thrEdge.rotation.x = -Math.PI / 2;
+      thrEdge.position.set(XMAX / 2, thr, 0);
+      scene.add(thrEdge);
+
+      // 折痕线
+      var foldGroup = new THREE.Group();
+      scene.add(foldGroup);
+      function rebuildFoldLines() {
+        while (foldGroup.children.length) foldGroup.remove(foldGroup.children[0]);
+        for (var i = 0; i < used; i++) {
+          var k = FOLDS[i].k;
+          var g = new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(k, 0, -ZW / 2),
+            new THREE.Vector3(k, 0, 0),
+            new THREE.Vector3(k, S(k), 0),
+            new THREE.Vector3(k, S(k), ZW / 2)
+          ]);
+          var l = new THREE.Line(g, new THREE.LineDashedMaterial({ color: 0xffe6a7, dashSize: 3, gapSize: 2, transparent: true, opacity: 0.9 }));
+          l.computeLineDistances();
+          foldGroup.add(l);
+        }
+      }
 
       function S(x) {
         var sum = 0;
         for (var i = 0; i < used; i++) {
           var f = FOLDS[i];
           var d = x - f.k;
-          if (d > 0) sum += f.a * d;
-        }
-        return Math.max(-4, sum);
-      }
-      // 纸面高度映射到像素
-      function toPx(x, y) {
-        var ww = W - PAD.l - PAD.r, hh = H - PAD.t - PAD.b;
-        return [PAD.l + x / XMAX * ww, PAD.t + (1 - y / YMAX) * hh];
-      }
-
-      function draw() {
-        var dpr = window.devicePixelRatio || 1;
-        var cssW = cvs.clientWidth || 900;
-        var cssH = Math.round(cssW * H / W);
-        if (cvs.width !== Math.round(cssW * dpr) || cvs.height !== Math.round(cssH * dpr)) {
-          cvs.width = Math.round(cssW * dpr); cvs.height = Math.round(cssH * dpr);
-          cvs.style.height = cssH + 'px';
-        }
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.clearRect(0, 0, cvs.width, cvs.height);
-        var s = cvs.width / W;
-        ctx.scale(s, s);
-
-        var ww = W - PAD.l - PAD.r, hh = H - PAD.t - PAD.b;
-        ctx.fillStyle = '#0c1a26';
-        ctx.fillRect(PAD.l, PAD.t, ww, hh);
-
-        // 网格
-        ctx.strokeStyle = 'rgba(127,212,239,0.08)';
-        ctx.lineWidth = 1;
-        for (var i = 0; i <= 10; i++) {
-          var gx = PAD.l + ww * i / 10;
-          ctx.beginPath(); ctx.moveTo(gx, PAD.t); ctx.lineTo(gx, PAD.t + hh); ctx.stroke();
-        }
-        for (var j = 0; j <= 6; j++) {
-          var gy = PAD.t + hh * j / 6;
-          ctx.beginPath(); ctx.moveTo(PAD.l, gy); ctx.lineTo(PAD.l + ww, gy); ctx.stroke();
-        }
-
-        // 采样纸面（先采样，再按最高点定纵轴，保证整条曲线都在画面里）
-        var N = 240, pts = [], i2, maxS = 0;
-        for (i2 = 0; i2 <= N; i2++) {
-          var x = XMAX * i2 / N;
-          var yy = S(x);
-          if (yy > maxS) maxS = yy;
-          pts.push({ x: x, y: yy });
-        }
-        YMAX = Math.max(6, Math.min(80, Math.max(thr * 1.5, maxS * 1.18, 6)));
-
-        // 纸面上下填充（B 区在上，A 区在下）
-        // B：纸面高于阈值的那些 x 区间
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(PAD.l, PAD.t, ww, hh);
-        ctx.clip();
-
-        // 先铺 A 底色（整块）
-        var p0 = toPx(0, 0), p1 = toPx(XMAX, YMAX);
-        ctx.fillStyle = 'rgba(61,142,224,0.10)';
-        ctx.fillRect(PAD.l, PAD.t, ww, hh);
-
-        // 再把 S(x) > thr 的区间涂成 B
-        var inB = false, startX = 0;
-        for (i2 = 0; i2 <= N; i2++) {
-          var hb = pts[i2].y > thr;
-          if (hb && !inB) { inB = true; startX = pts[i2].x; }
-          if ((!hb || i2 === N) && inB) {
-            inB = false;
-            var x2 = (i2 === N) ? XMAX : pts[i2].x;
-            var qa = toPx(startX, YMAX), qb = toPx(x2, 0);
-            ctx.fillStyle = 'rgba(244,166,192,0.16)';
-            ctx.fillRect(qa[0], qa[1], qb[0] - qa[0], qb[1] - qa[1]);
+          if (d > 0) {
+            var grow = Math.min(1, Math.max(0, usedAnim - i));
+            sum += f.a * 0.22 * d * grow;   // 0.22：把斜率压成缓坡，纸面不会立成一面墙
           }
         }
-
-        // 阈值纸片（一条横线 + 阴影，像插进来的卡片）
-        var t1 = toPx(0, thr), t2 = toPx(XMAX, thr);
-        ctx.save();
-        ctx.shadowColor = 'rgba(201,168,106,0.55)';
-        ctx.shadowBlur = 10;
-        ctx.strokeStyle = '#c9a86a';
-        ctx.lineWidth = 2.4;
-        ctx.beginPath(); ctx.moveTo(t1[0], t1[1]); ctx.lineTo(t2[0], t2[1]); ctx.stroke();
-        ctx.restore();
-        ctx.fillStyle = 'rgba(201,168,106,0.9)';
-        ctx.font = '11px "Microsoft YaHei", sans-serif';
-        ctx.textAlign = 'left';
-        ctx.fillText('阈值纸片 θ = ' + thr.toFixed(1), PAD.l + 6, t1[1] - 6);
-
-        // 纸面本身（粗线 + 折痕发光）
-        ctx.lineJoin = 'round';
-        ctx.strokeStyle = 'rgba(230,215,184,0.92)';
-        ctx.lineWidth = 3.2;
-        ctx.beginPath();
-        for (i2 = 0; i2 <= N; i2++) {
-          var q = toPx(pts[i2].x, pts[i2].y);
-          if (i2 === 0) ctx.moveTo(q[0], q[1]); else ctx.lineTo(q[0], q[1]);
-        }
-        ctx.stroke();
-
-        // 折痕标记
-        for (var f2 = 0; f2 < used; f2++) {
-          var fd = FOLDS[f2];
-          var qq = toPx(fd.k, 0);
-          var qy = toPx(fd.k, S(fd.k));
-          ctx.strokeStyle = 'rgba(255,230,167,0.55)';
-          ctx.lineWidth = 1.2;
-          ctx.setLineDash([3, 3]);
-          ctx.beginPath(); ctx.moveTo(qq[0], PAD.t + hh); ctx.lineTo(qq[0], qy[1]); ctx.stroke();
-          ctx.setLineDash([]);
-          ctx.fillStyle = '#ffe6a7';
-          ctx.beginPath(); ctx.arc(qy[0], qy[1], 3.4, 0, Math.PI * 2); ctx.fill();
-          ctx.font = '10px Consolas, monospace';
-          ctx.fillText('折' + (f2 + 1), qq[0] + 4, PAD.t + hh - 6);
-        }
-        ctx.restore();
-
-        // 轴
-        ctx.fillStyle = 'rgba(191,232,246,0.9)';
-        ctx.font = '12px "Microsoft YaHei", sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('输入 x（某个特征）→', PAD.l + ww / 2, H - 14);
-        ctx.save();
-        ctx.translate(16, PAD.t + hh / 2);
-        ctx.rotate(-Math.PI / 2);
-        ctx.fillText('折起来的高度', 0, 0);
-        ctx.restore();
-
-        // B / A 标注
-        ctx.textAlign = 'right';
-        ctx.fillStyle = 'rgba(244,166,192,0.95)';
-        ctx.fillText('B', PAD.l + ww - 8, PAD.t + 16);
-        ctx.fillStyle = 'rgba(127,212,239,0.95)';
-        ctx.fillText('A', PAD.l + ww - 8, PAD.t + hh - 8);
-
-        // HUD
-        hud.innerHTML = '折痕（隐藏单元）：<b class="r">' + used + '</b> 个<br>' +
-          '阈值：<b>' + thr.toFixed(1) + '</b><br>' +
-          '当前切出的区间：<b>' + intervalsText() + '</b>';
+        return sum;
       }
 
-      // 计算 S(x) > thr 的区间，返回形如 "A|B|A"
+      var cA = new THREE.Color(0x2f7fb8);
+      var cB = new THREE.Color(0xe86f9a);
+      function updateSheet() {
+        var tmp = new THREE.Color();
+        for (var i = 0; i <= NX; i++) {
+          var x = XMAX * i / NX;
+          var y = S(x);
+          var p = i * 2;
+          posArr[p * 3] = x; posArr[p * 3 + 1] = y; posArr[p * 3 + 2] = -ZW / 2;
+          posArr[(p + 1) * 3] = x; posArr[(p + 1) * 3 + 1] = y; posArr[(p + 1) * 3 + 2] = ZW / 2;
+          var above = y > thr;
+          var k2 = above ? Math.min(1, 0.55 + (y - thr) / 14) : Math.min(0.5, Math.max(0, (y - thr + 6) / 12) * 0.35);
+          tmp.copy(cA).lerp(cB, k2);
+          colArr[p * 3] = tmp.r; colArr[p * 3 + 1] = tmp.g; colArr[p * 3 + 2] = tmp.b;
+          colArr[(p + 1) * 3] = tmp.r; colArr[(p + 1) * 3 + 1] = tmp.g; colArr[(p + 1) * 3 + 2] = tmp.b;
+          edgePos[p * 3] = x; edgePos[p * 3 + 1] = y; edgePos[p * 3 + 2] = -ZW / 2;
+          edgePos[(p + 1) * 3] = x; edgePos[(p + 1) * 3 + 1] = y; edgePos[(p + 1) * 3 + 2] = ZW / 2;
+        }
+        geo.attributes.position.needsUpdate = true;
+        geo.attributes.color.needsUpdate = true;
+        geo.computeVertexNormals();
+        edgeGeo.attributes.position.needsUpdate = true;
+      }
+
       function intervalsText() {
-        var seq = [], last = null, N = 200;
-        for (var i = 0; i <= N; i++) {
-          var x = XMAX * i / N;
+        var seq = [], last = null;
+        for (var i = 0; i <= 200; i++) {
+          var x = XMAX * i / 200;
           var c = S(x) > thr ? 'B' : 'A';
           if (c !== last) { seq.push(c); last = c; }
         }
         return seq.join(' | ');
       }
 
-      function fold() {
-        if (used >= FOLDS.length) return;
-        used++;
-        grow = 0;
-        draw();
+      function updateHud() {
+        hud.innerHTML = '折痕（隐藏单元）：<b class="r">' + used + '</b> 个<br>' +
+          '阈值 θ：<b>' + thr.toFixed(1) + '</b><br>' +
+          '切出来的区间：<b>' + intervalsText() + '</b>';
       }
-      function reset() {
-        used = 0; playing = false; grow = 0;
-        btnPlay.textContent = '自动折';
-        draw();
-      }
-      btnFold.addEventListener('click', fold);
-      btnReset.addEventListener('click', reset);
+
+      btnFold.addEventListener('click', function () {
+        if (used < FOLDS.length) { used++; rebuildFoldLines(); }
+      });
+      btnReset.addEventListener('click', function () {
+        used = 0; usedAnim = 0; playing = false; btnPlay.textContent = '自动折';
+        rebuildFoldLines();
+      });
       btnPlay.addEventListener('click', function () {
         playing = !playing;
         btnPlay.textContent = playing ? '暂停' : '自动折';
       });
-      thrInput.addEventListener('input', function () { thr = parseFloat(thrInput.value); draw(); });
-      window.addEventListener('resize', draw);
+      thrInput.addEventListener('input', function () {
+        thr = parseFloat(thrInput.value);
+        thrPlane.position.y = thr;
+        thrEdge.position.y = thr;
+      });
 
-      var timer = 0;
-      function loop(now) {
-        raf = requestAnimationFrame(loop);
-        if (playing && now - timer > 900) {
-          timer = now;
-          if (used >= FOLDS.length) { playing = false; btnPlay.textContent = '自动折'; }
-          else fold();
-        }
+      var dragging = false, lastX = 0, lastY = 0;
+      host.addEventListener('pointerdown', function (e) {
+        if (e.button !== 0) return;
+        dragging = true; lastX = e.clientX; lastY = e.clientY;
+        host.classList.add('dragging');
+        if (host.setPointerCapture) host.setPointerCapture(e.pointerId);
+      });
+      host.addEventListener('pointermove', function (e) {
+        if (!dragging) return;
+        var dx = e.clientX - lastX, dy = e.clientY - lastY;
+        lastX = e.clientX; lastY = e.clientY;
+        cam.yaw -= dx * 0.008;
+        cam.pitch = Math.max(-0.12, Math.min(1.35, cam.pitch + dy * 0.006));
+      });
+      host.addEventListener('pointerup', function () { dragging = false; host.classList.remove('dragging'); });
+      host.addEventListener('pointercancel', function () { dragging = false; host.classList.remove('dragging'); });
+      host.addEventListener('wheel', function (e) {
+        e.preventDefault();
+        cam.dist = Math.max(70, Math.min(340, cam.dist + e.deltaY * 0.16));
+      }, { passive: false });
+
+      function resize() {
+        var w = host.clientWidth || 900;
+        var h = host.clientHeight || 460;
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
       }
-      reset();
-      raf = requestAnimationFrame(loop);
+      window.addEventListener('resize', resize);
+
+      function loop(now) {
+        requestAnimationFrame(loop);
+        if (usedAnim < used) usedAnim = Math.min(used, usedAnim + 0.05);
+        if (playing && now - lastAdd > 900) {
+          lastAdd = now;
+          if (used >= FOLDS.length) { playing = false; btnPlay.textContent = '自动折'; }
+          else { used++; rebuildFoldLines(); }
+        }
+        updateSheet();
+        updateHud();
+        updateCamera();
+        renderer.render(scene, camera);
+      }
+
+      resize();
+      updateSheet();
+      updateHud();
+      updateCamera();
+      loop(0);
     })();
   </script>
   <script src="../../../../assets/page.js"></script>
