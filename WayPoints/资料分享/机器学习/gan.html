@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>GAN · 两个网络互相骗 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../../";</script>
+  <link rel="stylesheet" href="../../../../assets/style.css" />
+  <style>
+    .gn-lead { margin: 0 0 10px; font-size: 14px; line-height: 1.9; }
+    .gn-wrap { position: relative; margin-top: 12px; border-radius: 12px; overflow: hidden;
+      border: 1px solid rgba(244, 166, 192, .28);
+      background: radial-gradient(circle at 50% 0%, #1c1220, #06070b 82%); }
+    #gnStage { display: block; width: 100%; height: 540px; touch-action: none; cursor: grab; }
+    #gnStage.dragging { cursor: grabbing; }
+    .gn-hud { position: absolute; left: 10px; top: 10px; font-size: 11.5px; line-height: 1.75;
+      color: #f6d7e2; background: rgba(22, 8, 16, .8); border: 1px solid rgba(244, 166, 192, .3);
+      border-radius: 8px; padding: 8px 10px; pointer-events: none; }
+    .gn-hud b { color: #fff; }
+    .gn-hud .r { color: #ffd9a0; }
+    .gn-tag { position: absolute; font-size: 11px; color: rgba(246, 215, 226, .72); pointer-events: none; }
+    .gn-tip { position: absolute; right: 10px; bottom: 10px; font-size: 11px; color: rgba(246,215,226,.75);
+      background: rgba(22,8,16,.72); border-radius: 8px; padding: 5px 9px; pointer-events: none; }
+    .gn-gate { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 4px; font-size: 13px; letter-spacing: 1px; color: rgba(246,215,226,.78);
+      background: radial-gradient(circle at 50% 40%, rgba(34,18,30,.9), rgba(6,7,11,.96));
+      cursor: pointer; transition: opacity .4s; }
+    .gn-gate span { font-size: 11px; opacity: .7; letter-spacing: 0; }
+    .gn-ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px;
+      font-size: 12.5px; color: var(--text-muted); }
+    .gn-ctrl button { font: inherit; font-size: 12.5px; padding: 7px 13px; border-radius: 999px; cursor: pointer;
+      color: #f4c6d8; background: rgba(244,166,192,.08); border: 1px solid rgba(244,166,192,.45); }
+    .gn-ctrl button.on { background: rgba(244,166,192,.3); border-color: #f4a6c0; color: #fff; }
+    .gn-ctrl input[type=range] { width: 120px; accent-color: #f4a6c0; }
+    .gn-eq { display: block; margin: 10px 0 0; padding: 9px 12px; border-radius: 8px; font-size: 12.5px;
+      color: #ffe4ef; background: rgba(26,8,18,.55); border-left: 2px solid rgba(244,166,192,.7);
+      overflow-x: auto; white-space: nowrap; }
+    .gn-note { margin: 10px 0 0; padding: 11px 13px; border-radius: 10px; font-size: 12.5px; line-height: 1.85;
+      color: var(--text-muted); background: rgba(244,166,192,.05); border: 1px dashed rgba(244,166,192,.3); }
+    .gn-note b { color: #f4a6c0; }
+    .gn-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+    .gn-card { padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(244,166,192,.22);
+      background: rgba(244,166,192,.04); }
+    .gn-card h3 { margin: 0 0 6px; font-size: 13.5px; color: #f4c6d8; }
+    .gn-card p { margin: 4px 0; font-size: 12.5px; line-height: 1.8; color: var(--text-muted); }
+    @media (max-width: 640px) {
+      #gnStage { height: 400px; }
+      .gn-two { grid-template-columns: 1fr; }
+      .gn-hud { font-size: 10.5px; padding: 6px 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">GAN</h1>
+    <p class="page-subtitle">机器学习 · 生成 · 一个负责画，一个负责挑</p>
+
+    <section class="card">
+      <p class="gn-lead">后排金色的柱子是<b>真实分布</b>：两个峰，说明真实数据长成两坨。前排粉色柱子是<b>生成器</b>现在画出来的东西。一开始它画得又宽又平，判别器一眼看穿——注意粉色柱子的颜色：偏红表示"被判成假"，偏绿表示"骗过去了"。</p>
+      <p class="gn-lead">训练在两个阶段之间来回切：<b>判别器</b>先学怎么区分真假（颜色变鲜明），<b>生成器</b>再顺着判别器的梯度把分布往真的一侧挪。你会看到粉色那坨慢慢贴到左边的峰上——然后停在那儿。</p>
+      <p class="gn-lead" style="font-size:12.5px;color:var(--text-muted)">这就是著名的 <b>mode collapse</b>：生成器只学会了造一个峰，右边那个峰它完全不管，判别器也没法把它逼过去（因为已经骗过一半了）。切到「WGAN 思路」看另一种做法：让生成器保持一点宽度，两个峰都能盖住。</p>
+
+      <div class="gn-wrap">
+        <canvas id="gnStage"></canvas>
+        <div class="gn-gate" id="gnGate">正在准备三维场景…<span>首次加载三维库约 0.6MB，只加载这一次</span></div>
+        <div class="gn-hud" id="gnHud"></div>
+        <div class="gn-tag" style="left:32%;top:7%">后排金 = 真实分布　前排粉 = 生成器</div>
+        <div class="gn-tip">左键拖动旋转 · 滚轮缩放</div>
+      </div>
+
+      <div class="gn-ctrl">
+        <button id="gnPlay" class="on">暂停</button>
+        <button id="gnMode0" class="on">普通 GAN</button>
+        <button id="gnMode1">WGAN 思路</button>
+        <span>速度 <input type="range" id="gnSpeed" min="1" max="8" step="1" value="4" /></span>
+        <button id="gnReset">重新训练</button>
+      </div>
+
+      <span class="gn-eq">min_G max_D  E[log D(x)] + E[log(1 − D(G(z)))]</span>
+    </section>
+
+    <section class="card">
+      <h2>为什么它又强又难训</h2>
+      <div class="gn-two">
+        <div class="gn-card">
+          <h3>不用写似然函数</h3>
+          <p>VAE 要显式建模 p(x)，GAN 只要"像不像"这一个信号。所以它能生成很锐利的图——判别器相当于一个可学习的损失函数。</p>
+        </div>
+        <div class="gn-card">
+          <h3>两个网络在追同一个球</h3>
+          <p>判别器一变强，生成器的梯度方向就变；生成器一进步，判别器的判断标准又变。这是博弈而不是下降，所以会震荡、会不收敛。</p>
+        </div>
+        <div class="gn-card">
+          <h3>mode collapse 是常态</h3>
+          <p>生成器只要找到一种能骗过判别器的样本，就会一直造它。多样性丢失，判别器也拿它没办法——这正是这一页前排只剩一个峰的原因。</p>
+        </div>
+        <div class="gn-card">
+          <h3>后来的解法</h3>
+          <p>DCGAN 用卷积+批归一化稳住训练；WGAN 换成 Earth Mover 距离，梯度不再饱和；StyleGAN 把噪声分层注入。如今图像生成的主流已经换成扩散，但对抗训练的思想还在（GAN loss、对抗样本、蒸馏）。</p>
+        </div>
+      </div>
+      <p class="gn-note"><b>看这张图的顺序：</b>先看后排两个金色峰（真实数据）→ 看前排粉色一开始又宽又平 → 等它贴上左边那个峰 → 注意右边那个峰一直没人管，这就是 mode collapse。</p>
+      <p style="margin-top:12px"><a href="diffusion.html" style="color:#a9e4f7">← 扩散模型（另一条路）</a>　·　<a href="b-gen.html" style="color:#f4a6c0">生成模型分支</a></p>
+    </section>
+  </main>
+
+  <script>
+  (function () {
+    'use strict';
+    var host = document.getElementById('gnStage');
+    if (!host) return;
+    var hud = document.getElementById('gnHud');
+    var btnPlay = document.getElementById('gnPlay');
+    var btnReset = document.getElementById('gnReset');
+    var speed = document.getElementById('gnSpeed');
+    var modeBtns = [document.getElementById('gnMode0'), document.getElementById('gnMode1')];
+
+    var N = 22, GAP = 1.05, HMAX = 7.2;
+    var mode = 0;                       // 0 = 普通 GAN，1 = WGAN 思路（保宽）
+    var Z_REAL = -6.6, Z_FAKE = 1.6;
+
+    function pReal(x) {
+      var a = Math.exp(-Math.pow((x + 0.52) / 0.13, 2) / 2);
+      var b = Math.exp(-Math.pow((x - 0.52) / 0.13, 2) / 2);
+      return 0.5 * a + 0.5 * b;
+    }
+
+    var st = { mu: -0.18, sig: 0.42, step: 0, t: 0 };
+
+    function pFake(x) {
+      return Math.exp(-Math.pow((x - st.mu) / st.sig, 2) / 2);
+    }
+
+    var started = false, vis = true, bootTimer = 0;
+
+    function boot3D() {
+      if (started) return;
+      started = true;
+      var gate = document.getElementById('gnGate');
+      if (gate) gate.firstChild.nodeValue = '正在载入三维库…';
+      var sc = document.createElement('script');
+      sc.src = '../../../../pc/js/three.min.js';
+      sc.async = true;
+      sc.onload = function () {
+        if (gate) { gate.style.opacity = '0'; setTimeout(function () { gate.style.display = 'none'; }, 400); }
+        initScene();
+      };
+      sc.onerror = function () { if (gate) gate.firstChild.nodeValue = '三维库没加载出来，点一下重试'; started = false; };
+      document.head.appendChild(sc);
+    }
+
+    function initScene() {
+      var renderer = new THREE.WebGLRenderer({ canvas: host, antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      var scene = new THREE.Scene();
+      var camera = new THREE.PerspectiveCamera(42, 1, 0.1, 2000);
+
+      scene.add(new THREE.AmbientLight(0x9a8ba8, 0.72));
+      var l1 = new THREE.DirectionalLight(0xffe6f2, 0.85); l1.position.set(-30, 80, 45); scene.add(l1);
+      var l2 = new THREE.DirectionalLight(0x7fd4ef, 0.4); l2.position.set(50, 30, -50); scene.add(l2);
+
+      var cam = { yaw: -0.34, pitch: 0.54, dist: 44 };
+      var target = new THREE.Vector3(0, 2.0, 0);
+      function updateCamera() {
+        var sp = Math.sin(cam.pitch), cp = Math.cos(cam.pitch);
+        camera.position.set(target.x + cam.dist * cp * Math.sin(cam.yaw),
+                            target.y + cam.dist * sp,
+                            target.z + cam.dist * cp * Math.cos(cam.yaw));
+        camera.lookAt(target);
+      }
+
+      var grid = new THREE.GridHelper(60, 12, 0x3a2536, 0x241a26);
+      grid.position.y = -0.02;
+      scene.add(grid);
+
+      var boxGeo = new THREE.BoxGeometry(0.8, 1, 0.8);
+      boxGeo.translate(0, 0.5, 0);
+      var realMesh = new THREE.InstancedMesh(boxGeo, new THREE.MeshPhongMaterial({ shininess: 40, specular: 0x332244 }), N);
+      var fakeMesh = new THREE.InstancedMesh(boxGeo, new THREE.MeshPhongMaterial({ shininess: 70, specular: 0x554466 }), N);
+      scene.add(realMesh); scene.add(fakeMesh);
+
+      var m4 = new THREE.Matrix4(), col = new THREE.Color();
+      function put(mesh, k, x, z, h, c) {
+        m4.makeScale(1, Math.max(0.0015, h), 1);
+        m4.setPosition(x, 0, z);
+        mesh.setMatrixAt(k, m4);
+        mesh.setColorAt(k, c);
+      }
+      function xOf(i) { return (i / (N - 1) - 0.5) * N * GAP * 0.98; }
+
+      function drawReal() {
+        for (var i = 0; i < N; i++) {
+          var x = i / (N - 1) * 2 - 1;
+          var v = pReal(x);
+          col.setRGB(0.95, 0.76, 0.42);
+          put(realMesh, i, xOf(i), Z_REAL, 0.05 + v * HMAX, col);
+        }
+        realMesh.instanceMatrix.needsUpdate = true;
+        realMesh.instanceColor.needsUpdate = true;
+      }
+
+      function drawFake() {
+        for (var i = 0; i < N; i++) {
+          var x = i / (N - 1) * 2 - 1;
+          var v = pFake(x);
+          // 判别器打分：和真实分布越像越绿
+          var p = pReal(x);
+          var d = Math.min(1, v > 0.02 ? p / Math.max(0.02, v) : 0);
+          col.setRGB(0.9 - 0.5 * d, 0.35 + 0.55 * d, 0.45 + 0.25 * d);
+          put(fakeMesh, i, xOf(i), Z_FAKE, 0.05 + v * HMAX, col);
+        }
+        fakeMesh.instanceMatrix.needsUpdate = true;
+        fakeMesh.instanceColor.needsUpdate = true;
+      }
+
+      drawReal();
+      drawFake();
+
+      var dirty = true, playing = true;
+
+      function trainStep() {
+        st.step++;
+        var targetMu = -0.52;                   // 左边那个峰
+        if (mode === 1) {
+          // WGAN 思路：不把分布压成一个尖峰，保持一定宽度去覆盖两个峰
+          st.mu += (0 - st.mu) * 0.06;
+          st.sig += (0.78 - st.sig) * 0.06;
+        } else {
+          st.mu += (targetMu - st.mu) * 0.05;
+          st.sig += (0.13 - st.sig) * 0.05;     // 越训越尖 → 只覆盖一个峰
+        }
+        st.t++;
+      }
+
+      function phase() { return Math.floor(st.step / 12) % 2; }   // 0 判别器，1 生成器
+
+      function updHud() {
+        var cover = 0;
+        for (var i = 0; i < N; i++) {
+          var x = i / (N - 1) * 2 - 1;
+          if (pFake(x) > 0.1) cover++;
+        }
+        hud.innerHTML = '阶段：<b>' + (phase() === 0 ? '判别器在挑毛病' : '生成器在改画法') + '</b><br>' +
+          '训练步：<b>' + st.step + '</b><br>' +
+          '生成器：μ=<b class="r">' + st.mu.toFixed(2) + '</b>　σ=' + st.sig.toFixed(2) + '<br>' +
+          '覆盖到的区域：<b>' + cover + '/' + N + '</b> 格';
+      }
+
+      var dragging = false, lx = 0, ly = 0;
+      host.addEventListener('pointerdown', function (e) {
+        if (e.button !== 0) return;
+        dragging = true; lx = e.clientX; ly = e.clientY;
+        host.classList.add('dragging');
+        if (host.setPointerCapture) host.setPointerCapture(e.pointerId);
+      });
+      host.addEventListener('pointermove', function (e) {
+        if (!dragging) return;
+        cam.yaw -= (e.clientX - lx) * 0.008;
+        cam.pitch = Math.max(0.08, Math.min(1.4, cam.pitch + (e.clientY - ly) * 0.006));
+        lx = e.clientX; ly = e.clientY;
+        updateCamera(); dirty = true;
+      });
+      host.addEventListener('pointerup', function () { dragging = false; host.classList.remove('dragging'); });
+      host.addEventListener('pointercancel', function () { dragging = false; host.classList.remove('dragging'); });
+      host.addEventListener('wheel', function (e) {
+        e.preventDefault();
+        cam.dist = Math.max(20, Math.min(110, cam.dist + e.deltaY * 0.05));
+        updateCamera(); dirty = true;
+      }, { passive: false });
+
+      btnPlay.addEventListener('click', function () {
+        playing = !playing;
+        btnPlay.textContent = playing ? '暂停' : '继续';
+        btnPlay.classList.toggle('on', playing);
+      });
+      btnReset.addEventListener('click', function () {
+        st.mu = -0.18; st.sig = 0.42; st.step = 0;
+        drawFake(); updHud(); dirty = true;
+      });
+      modeBtns.forEach(function (b, i) {
+        b.addEventListener('click', function () {
+          mode = i;
+          modeBtns.forEach(function (b2) { b2.classList.remove('on'); });
+          b.classList.add('on');
+          st.mu = -0.18; st.sig = 0.42; st.step = 0;
+          drawFake(); updHud(); dirty = true;
+        });
+      });
+
+      function resize() {
+        var w = host.clientWidth || 900, h = host.clientHeight || 540;
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        dirty = true;
+      }
+      window.addEventListener('resize', resize);
+
+      var last = 0;
+      function loop(now) {
+        requestAnimationFrame(loop);
+        if (!last) last = now;
+        var dt = Math.min(80, now - last);
+        last = now;
+        if (playing && vis) {
+          var per = 220 / (+speed.value);
+          accT += dt;
+          if (accT > per) {
+            accT = 0;
+            trainStep();
+            drawFake();
+            updHud();
+            dirty = true;
+          }
+        }
+        if (dirty && vis) { renderer.render(scene, camera); dirty = false; }
+      }
+      var accT = 0;
+
+      resize(); updateCamera(); updHud();
+      requestAnimationFrame(loop);
+
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (es) { vis = es[0].isIntersecting; }, { threshold: 0.02 }).observe(host);
+      }
+    }
+
+    // 进入视口后延迟 0.9s 再拉 three.js
+    (function () {
+      var gate = document.getElementById('gnGate');
+      if (gate) gate.addEventListener('click', function () { if (!started) boot3D(); });
+      var rc = host.getBoundingClientRect();
+      if (rc.top < (window.innerHeight || 800) + 240 && rc.bottom > -240) bootTimer = setTimeout(boot3D, 900);
+      if (!('IntersectionObserver' in window)) { if (!bootTimer) setTimeout(boot3D, 900); return; }
+      var io = new IntersectionObserver(function (es) {
+        es.forEach(function (e) {
+          if (e.isIntersecting) { if (!bootTimer) bootTimer = setTimeout(function () { boot3D(); io.disconnect(); }, 900); }
+          else if (bootTimer && !started) { clearTimeout(bootTimer); bootTimer = 0; }
+        });
+      }, { rootMargin: '240px' });
+      io.observe(host);
+    })();
+  })();
+  </script>
+  <script src="../../../../assets/page.js"></script>
+</body>
+</html>
