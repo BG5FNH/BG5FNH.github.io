@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>训练与工程 · 机器学习 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../../";</script>
+  <link rel="stylesheet" href="../../../../assets/style.css" />
+  <style>
+    .ml-node { scroll-margin-top: 20px; padding: 12px 14px; border-radius: 10px; margin-top: 10px;
+      border: 1px solid rgba(127,212,239,.26); background: linear-gradient(135deg, rgba(127,212,239,.06), rgba(244,166,192,.05)); }
+    .ml-node h3 { margin: 0 0 6px; font-size: 14px; color: #a9e4f7; letter-spacing: .5px; font-weight: 600; }
+    .ml-node.core { border-color: rgba(127,212,239,.55); background: linear-gradient(135deg, rgba(127,212,239,.14), rgba(244,166,192,.1)); }
+    .ml-node.core h3 { color: #d9f4ff; font-size: 15px; }
+    .ml-node.leaf { border-color: rgba(244,166,192,.24); }
+    .ml-node.leaf h3 { color: #f4a6c0; font-size: 13px; }
+    .ml-node p { margin: 4px 0; font-size: 13px; line-height: 1.78; }
+    .ml-node .k { color: var(--text-muted); font-size: 11.5px; }
+    .tag { font-size: 10px; color: #06101a; background: #7fd4ef; border-radius: 4px; padding: 1px 5px; margin-left: 6px; vertical-align: 2px; }
+    .ml-back { display: inline-block; margin-top: 14px; font-size: 12.5px; color: #a9e4f7; }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+  <main class="page">
+    <h1 class="page-title">训练与工程</h1>
+    <p class="page-subtitle">机器学习 · 科技树 · 12 个节点</p>
+    <section class="card">
+      <p>同样的模型，工程做得好坏能差出几倍效果与成本：数据、增强、蒸馏、量化、分布式。</p>
+      <p class="ml-back">← 回到 <a href="index.html" style="color:#a9e4f7">机器学习总览</a></p>
+        <div class="ml-node main" id="eng"><h3>训练与工程</h3><p>同样的模型，工程做得好坏差出几倍效果与成本。</p></div>
+        <div class="ml-node main" id="aug"><h3>数据增强</h3><p>裁剪、翻转、混合、CutMix——最便宜的正则化。</p></div>
+        <div class="ml-node main" id="transfer"><h3>迁移学习</h3><p>拿预训练权重起步，小数据也能打。</p></div>
+        <div class="ml-node main" id="distill"><h3>知识蒸馏</h3><p>大模型教小模型，把小模型的精度拉上来。</p></div>
+        <div class="ml-node leaf" id="prune"><h3>剪枝</h3><p>去掉不重要的权重/通道。</p></div>
+        <div class="ml-node main" id="quant"><h3>量化</h3><p>FP32→INT8/INT4，推理快几倍、显存降几倍。</p></div>
+        <div class="ml-node main" id="dist"><h3>分布式训练</h3><p>数据并行 / 张量并行 / 流水并行 + 梯度同步。</p></div>
+        <div class="ml-node leaf" id="amp"><h3>混合精度</h3><p>FP16/BF16 前向反向，FP32 更新参数。</p></div>
+        <div class="ml-node leaf" id="ckpt"><h3>梯度检查点</h3><p>用算力换显存，长序列训练的必需品。</p></div>
+        <div class="ml-node core" id="data"><h3>数据工程 <span class="tag">核心</span></h3><p>清洗、去重、配比、防泄漏——决定上限的那 80%。</p></div>
+        <div class="ml-node main" id="eval"><h3>评估与划分</h3><p>训练/验证/测试、交叉验证、指标选择。</p></div>
+        <div class="ml-node main" id="leak"><h3>数据泄漏</h3><p>特征里混进了标签信息，离线指标虚高、上线就崩。</p></div>
+    </section>
+  </main>
+  <script src="../../../../assets/page.js"></script>
+</body>
+</html>

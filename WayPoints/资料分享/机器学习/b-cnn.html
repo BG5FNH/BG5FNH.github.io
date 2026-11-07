@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CNN 卷积网络 · 机器学习 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../../";</script>
+  <link rel="stylesheet" href="../../../../assets/style.css" />
+  <style>
+    .ml-node { scroll-margin-top: 20px; padding: 12px 14px; border-radius: 10px; margin-top: 10px;
+      border: 1px solid rgba(127,212,239,.26); background: linear-gradient(135deg, rgba(127,212,239,.06), rgba(244,166,192,.05)); }
+    .ml-node h3 { margin: 0 0 6px; font-size: 14px; color: #a9e4f7; letter-spacing: .5px; font-weight: 600; }
+    .ml-node.core { border-color: rgba(127,212,239,.55); background: linear-gradient(135deg, rgba(127,212,239,.14), rgba(244,166,192,.1)); }
+    .ml-node.core h3 { color: #d9f4ff; font-size: 15px; }
+    .ml-node.leaf { border-color: rgba(244,166,192,.24); }
+    .ml-node.leaf h3 { color: #f4a6c0; font-size: 13px; }
+    .ml-node p { margin: 4px 0; font-size: 13px; line-height: 1.78; }
+    .ml-node .k { color: var(--text-muted); font-size: 11.5px; }
+    .tag { font-size: 10px; color: #06101a; background: #7fd4ef; border-radius: 4px; padding: 1px 5px; margin-left: 6px; vertical-align: 2px; }
+    .ml-back { display: inline-block; margin-top: 14px; font-size: 12.5px; color: #a9e4f7; }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+  <main class="page">
+    <h1 class="page-title">CNN 卷积网络</h1>
+    <p class="page-subtitle">机器学习 · 科技树 · 13 个节点</p>
+    <section class="card">
+      <p>卷积把“图像相邻像素相关”这个先验写进结构里，参数少了、平移也认得出。这条线从 LeNet 一直走到 ResNet，再到端侧与分割检测。</p>
+      <p class="ml-back">← 回到 <a href="index.html" style="color:#a9e4f7">机器学习总览</a></p>
+        <div class="ml-node core" id="cnn"><h3>CNN <span class="tag">核心</span></h3><p>利用“局部相关 + 平移不变”，把图像参数量降几个数量级。</p><p class="k">出处：LeCun et al., 1989</p></div>
+        <div class="ml-node main" id="conv"><h3>卷积</h3><p>滑窗共享权重；池化降分辨率。感受野随层数指数增长。</p></div>
+        <div class="ml-node leaf" id="lenet"><h3>LeNet-5</h3><p>1998 手写数字识别，现代 CNN 的雏形。</p></div>
+        <div class="ml-node main" id="alexnet"><h3>AlexNet</h3><p>2012 ImageNet 夺冠，深度学习复兴的起点。</p><p class="k">出处：Krizhevsky et al., NIPS 2012</p></div>
+        <div class="ml-node leaf" id="vgg"><h3>VGG</h3><p>只用 3×3 卷积堆深，结构极简。</p></div>
+        <div class="ml-node leaf" id="googlenet"><h3>Inception</h3><p>多尺度并行卷积 + 1×1 降维。</p></div>
+        <div class="ml-node core" id="resnet"><h3>ResNet 残差 <span class="tag">核心</span></h3><p>跳连让梯度有高速公路，深度从 20 层推到 100+ 层。</p><p class="k">出处：He et al., CVPR 2016</p></div>
+        <div class="ml-node leaf" id="densenet"><h3>DenseNet</h3><p>每层连到后面所有层，特征复用。</p></div>
+        <div class="ml-node main" id="mobilenet"><h3>MobileNet</h3><p>把卷积拆成 depthwise + pointwise，端侧部署主力。</p></div>
+        <div class="ml-node leaf" id="effnet"><h3>EfficientNet</h3><p>用复合缩放统一调深度/宽度/分辨率。</p></div>
+        <div class="ml-node main" id="unet"><h3>U-Net</h3><p>编码-解码 + 跳连，分割与扩散模型的主干。</p></div>
+        <div class="ml-node main" id="yolo"><h3>YOLO 系列</h3><p>单阶段检测，把检测变成回归问题，实时。</p></div>
+        <div class="ml-node leaf" id="seg"><h3>检测/分割</h3><p>下游视觉任务的三大类出口。</p></div>
+    </section>
+  </main>
+  <script src="../../../../assets/page.js"></script>
+</body>
+</html>

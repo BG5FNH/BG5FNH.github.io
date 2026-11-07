@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>生成模型 · 机器学习 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../../";</script>
+  <link rel="stylesheet" href="../../../../assets/style.css" />
+  <style>
+    .ml-node { scroll-margin-top: 20px; padding: 12px 14px; border-radius: 10px; margin-top: 10px;
+      border: 1px solid rgba(127,212,239,.26); background: linear-gradient(135deg, rgba(127,212,239,.06), rgba(244,166,192,.05)); }
+    .ml-node h3 { margin: 0 0 6px; font-size: 14px; color: #a9e4f7; letter-spacing: .5px; font-weight: 600; }
+    .ml-node.core { border-color: rgba(127,212,239,.55); background: linear-gradient(135deg, rgba(127,212,239,.14), rgba(244,166,192,.1)); }
+    .ml-node.core h3 { color: #d9f4ff; font-size: 15px; }
+    .ml-node.leaf { border-color: rgba(244,166,192,.24); }
+    .ml-node.leaf h3 { color: #f4a6c0; font-size: 13px; }
+    .ml-node p { margin: 4px 0; font-size: 13px; line-height: 1.78; }
+    .ml-node .k { color: var(--text-muted); font-size: 11.5px; }
+    .tag { font-size: 10px; color: #06101a; background: #7fd4ef; border-radius: 4px; padding: 1px 5px; margin-left: 6px; vertical-align: 2px; }
+    .ml-back { display: inline-block; margin-top: 14px; font-size: 12.5px; color: #a9e4f7; }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+  <main class="page">
+    <h1 class="page-title">生成模型</h1>
+    <p class="page-subtitle">机器学习 · 科技树 · 15 个节点</p>
+    <section class="card">
+      <p>学分布再采样：自编码器 → VAE → GAN → 扩散。今天的文生图、图生视频都在这条线上。</p>
+      <p class="ml-back">← 回到 <a href="index.html" style="color:#a9e4f7">机器学习总览</a></p>
+        <div class="ml-node main" id="gen"><h3>生成模型</h3><p>学数据分布，然后采样出新样本。</p></div>
+        <div class="ml-node main" id="ae"><h3>自编码器</h3><p>编码到低维再重建，学的是压缩表示。</p></div>
+        <div class="ml-node main" id="vae"><h3>VAE</h3><p>潜空间加高斯先验，可采样可插值。</p><p class="k">出处：Kingma & Welling, ICLR 2014</p></div>
+        <div class="ml-node core" id="gan"><h3>GAN <span class="tag">核心</span></h3><p>生成器骗判别器，判别器拆招，对抗中逼近真实分布。</p><p class="k">出处：Goodfellow et al., NIPS 2014</p></div>
+        <div class="ml-node leaf" id="dcgan"><h3>DCGAN</h3><p>把卷积塞进 GAN，训练稳定下来。</p></div>
+        <div class="ml-node leaf" id="wgan"><h3>WGAN / 梯度惩罚</h3><p>用 Wasserstein 距离替代 JS 散度，缓解模式崩塌。</p></div>
+        <div class="ml-node main" id="stylegan"><h3>StyleGAN</h3><p>风格分层控制，人脸生成的分水岭。</p></div>
+        <div class="ml-node leaf" id="cyclegan"><h3>CycleGAN</h3><p>无配对图像翻译（马↔斑马）。</p></div>
+        <div class="ml-node core" id="diff"><h3>扩散模型 <span class="tag">核心</span></h3><p>学着一步步去噪，从纯噪声还原出数据。</p><p class="k">出处：Ho et al., NeurIPS 2020</p></div>
+        <div class="ml-node main" id="ddpm"><h3>DDPM</h3><p>前向加噪 + 反向去噪，训练目标化简成预测噪声。</p></div>
+        <div class="ml-node leaf" id="ddim"><h3>DDIM</h3><p>少步采样，把几百步压到几十步。</p></div>
+        <div class="ml-node main" id="ldm"><h3>Latent Diffusion</h3><p>在潜空间扩散，算力降一个量级，文生图爆发点。</p></div>
+        <div class="ml-node leaf" id="controlnet"><h3>ControlNet</h3><p>用边缘、姿态、深度图精确控制生成结果。</p></div>
+        <div class="ml-node leaf" id="flow"><h3>归一化流</h3><p>用可逆变换做精确似然估计。</p></div>
+        <div class="ml-node leaf" id="tts"><h3>声码器</h3><p>从文本或特征生成波形。</p></div>
+    </section>
+  </main>
+  <script src="../../../../assets/page.js"></script>
+</body>
+</html>

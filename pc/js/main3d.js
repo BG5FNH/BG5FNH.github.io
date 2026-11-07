@@ -888,8 +888,14 @@
     var spanV = (maxV - minV) / 2 * unit;
     var pad = unit * 1.2;
     var dist = fitDistance(spanH, spanV, pad);
-    // 手机竖屏可视宽度窄，宇宙一宽就被切边：上限放宽，宁可拉远也不切字
-    dist = Math.max(20, Math.min(MOBILE_LAYOUT ? 64 : 40, dist));
+    // 节点特别多的宇宙（机器学习那棵 105 点的树）：fitDistance 按窄边算会切边，
+    // 直接按「最长的那个方向要占满屏幕」再放大一点，保证整棵树都在画面里。
+    if (pts.length > 40) {
+      var big = Math.max(Math.abs(midH) + spanH / unit, Math.abs(midV) + spanV / unit);
+      dist = Math.max(dist, big * unit * 2.1);
+    }
+    // 大宇宙上限放宽到装得下整棵树
+    dist = Math.max(20, Math.min(MOBILE_LAYOUT ? 220 : 200, dist));
     var c = entry.centerPos;
     if (MOBILE_LAYOUT) {
       // 手机端：pos[1] 落在 -Z，pos[0] 落在 +X

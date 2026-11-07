@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>强化学习 · 机器学习 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../../";</script>
+  <link rel="stylesheet" href="../../../../assets/style.css" />
+  <style>
+    .ml-node { scroll-margin-top: 20px; padding: 12px 14px; border-radius: 10px; margin-top: 10px;
+      border: 1px solid rgba(127,212,239,.26); background: linear-gradient(135deg, rgba(127,212,239,.06), rgba(244,166,192,.05)); }
+    .ml-node h3 { margin: 0 0 6px; font-size: 14px; color: #a9e4f7; letter-spacing: .5px; font-weight: 600; }
+    .ml-node.core { border-color: rgba(127,212,239,.55); background: linear-gradient(135deg, rgba(127,212,239,.14), rgba(244,166,192,.1)); }
+    .ml-node.core h3 { color: #d9f4ff; font-size: 15px; }
+    .ml-node.leaf { border-color: rgba(244,166,192,.24); }
+    .ml-node.leaf h3 { color: #f4a6c0; font-size: 13px; }
+    .ml-node p { margin: 4px 0; font-size: 13px; line-height: 1.78; }
+    .ml-node .k { color: var(--text-muted); font-size: 11.5px; }
+    .tag { font-size: 10px; color: #06101a; background: #7fd4ef; border-radius: 4px; padding: 1px 5px; margin-left: 6px; vertical-align: 2px; }
+    .ml-back { display: inline-block; margin-top: 14px; font-size: 12.5px; color: #a9e4f7; }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+  <main class="page">
+    <h1 class="page-title">强化学习</h1>
+    <p class="page-subtitle">机器学习 · 科技树 · 7 个节点</p>
+    <section class="card">
+      <p>没有标签，只有奖励。从值函数到策略梯度，再到 PPO 与自博弈，这条线训练出了 AlphaGo，也训练出了对齐后的大模型。</p>
+      <p class="ml-back">← 回到 <a href="index.html" style="color:#a9e4f7">机器学习总览</a></p>
+        <div class="ml-node core" id="rl"><h3>强化学习 <span class="tag">核心</span></h3><p>没有标准答案，只有奖励；学一个策略让长期回报最大。</p></div>
+        <div class="ml-node main" id="mdp"><h3>MDP</h3><p>状态、动作、奖励、转移；贝尔曼方程是核心。</p></div>
+        <div class="ml-node main" id="qlearn"><h3>DQN</h3><p>学动作价值 Q；DQN 用经验回放 + 目标网络稳住训练。</p><p class="k">出处：Mnih et al., Nature 2015</p></div>
+        <div class="ml-node main" id="pg"><h3>策略梯度</h3><p>直接对策略求梯度，方差大但能处理连续动作。</p></div>
+        <div class="ml-node core" id="ppo"><h3>PPO <span class="tag">核心</span></h3><p>裁剪重要性比率，稳定又简单，RLHF 的默认算法。</p><p class="k">出处：Schulman et al., 2017</p></div>
+        <div class="ml-node leaf" id="sac"><h3>SAC</h3><p>离线/连续控制的强基线。</p></div>
+        <div class="ml-node leaf" id="marl"><h3>自博弈</h3><p>AlphaGo / AlphaZero 路线：自己跟自己下。</p></div>
+    </section>
+  </main>
+  <script src="../../../../assets/page.js"></script>
+</body>
+</html>

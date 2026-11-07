@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>基础构件 · 机器学习 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../../";</script>
+  <link rel="stylesheet" href="../../../../assets/style.css" />
+  <style>
+    .ml-node { scroll-margin-top: 20px; padding: 12px 14px; border-radius: 10px; margin-top: 10px;
+      border: 1px solid rgba(127,212,239,.26); background: linear-gradient(135deg, rgba(127,212,239,.06), rgba(244,166,192,.05)); }
+    .ml-node h3 { margin: 0 0 6px; font-size: 14px; color: #a9e4f7; letter-spacing: .5px; font-weight: 600; }
+    .ml-node.core { border-color: rgba(127,212,239,.55); background: linear-gradient(135deg, rgba(127,212,239,.14), rgba(244,166,192,.1)); }
+    .ml-node.core h3 { color: #d9f4ff; font-size: 15px; }
+    .ml-node.leaf { border-color: rgba(244,166,192,.24); }
+    .ml-node.leaf h3 { color: #f4a6c0; font-size: 13px; }
+    .ml-node p { margin: 4px 0; font-size: 13px; line-height: 1.78; }
+    .ml-node .k { color: var(--text-muted); font-size: 11.5px; }
+    .tag { font-size: 10px; color: #06101a; background: #7fd4ef; border-radius: 4px; padding: 1px 5px; margin-left: 6px; vertical-align: 2px; }
+    .ml-back { display: inline-block; margin-top: 14px; font-size: 12.5px; color: #a9e4f7; }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+  <main class="page">
+    <h1 class="page-title">基础构件</h1>
+    <p class="page-subtitle">机器学习 · 科技树 · 18 个节点</p>
+    <section class="card">
+      <p>所有网络都由这几样拼出来：线性变换、激活、损失、梯度、优化器、正则化。先把这一页吃透，后面的模型都是换组合。</p>
+      <p class="ml-back">← 回到 <a href="index.html" style="color:#a9e4f7">机器学习总览</a></p>
+        <div class="ml-node main" id="found"><h3>基础构件</h3><p>所有网络都由这几样拼出来：线性变换、激活、损失、梯度、优化。</p></div>
+        <div class="ml-node main" id="linear"><h3>线性层</h3><p>y = Wx + b，网络的“乘法”部分。</p></div>
+        <div class="ml-node main" id="act"><h3>激活函数</h3><p>给网络引入非线性，没有它叠多少层都等价于一层线性变换。</p></div>
+        <div class="ml-node main" id="relu"><h3>ReLU</h3><p>max(0,x)：便宜、不饱和，深层网络能训起来的关键。</p><p class="k">出处：Nair & Hinton, 2010</p></div>
+        <div class="ml-node leaf" id="gelu"><h3>GELU</h3><p>更平滑的激活，Transformer 与大模型里常用。</p></div>
+        <div class="ml-node main" id="loss"><h3>损失函数</h3><p>把“预测有多错”变成一个数，反向传播靠它。</p></div>
+        <div class="ml-node main" id="ce"><h3>交叉熵</h3><p>分类的标准损失；配合 softmax 梯度形式极简。</p></div>
+        <div class="ml-node leaf" id="mse"><h3>MSE</h3><p>回归任务用；对异常值的敏感度不同。</p></div>
+        <div class="ml-node core" id="bp"><h3>反向传播 <span class="tag">核心</span></h3><p>链式法则 + 计算图，把误差一层层乘回每个权重。</p><p class="k">出处：Rumelhart et al., Nature 1986</p></div>
+        <div class="ml-node main" id="autodiff"><h3>自动微分</h3><p>框架替你算梯度：前向记录计算图，反向按图求导。</p></div>
+        <div class="ml-node main" id="opt"><h3>优化器</h3><p>决定参数怎么走：步长、动量、二阶信息。</p></div>
+        <div class="ml-node main" id="sgd"><h3>SGD 系列</h3><p>最朴素的梯度下降；加动量能穿过狭长谷。</p></div>
+        <div class="ml-node main" id="adam"><h3>AdamW</h3><p>自适应学习率，默认就能用；AdamW 把权重衰减解耦。</p><p class="k">出处：Kingma & Ba, ICLR 2015</p></div>
+        <div class="ml-node main" id="reg"><h3>正则化</h3><p>防止把训练集背下来：约束参数、加噪声、早停。</p></div>
+        <div class="ml-node main" id="dropout"><h3>Dropout</h3><p>训练时随机丢神经元，逼网络学冗余表示。</p><p class="k">出处：Srivastava et al., 2014</p></div>
+        <div class="ml-node main" id="bn"><h3>Normalization</h3><p>归一化每层输入，稳定训练、允许更大学习率。</p></div>
+        <div class="ml-node leaf" id="init"><h3>初始化</h3><p>Xavier / He 初始化：让每层方差大致守恒，避免一开始就爆炸。</p></div>
+        <div class="ml-node leaf" id="lr"><h3>学习率调度</h3><p>warmup + 余弦退火，几乎是大模型标配。</p></div>
+    </section>
+  </main>
+  <script src="../../../../assets/page.js"></script>
+</body>
+</html>
