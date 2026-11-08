@@ -34,19 +34,19 @@
     <section class="card">
       <p>卷积把“图像相邻像素相关”这个先验写进结构里，参数少了、平移也认得出。这条线从 LeNet 一直走到 ResNet，再到端侧与分割检测。</p>
       <p class="ml-back">← 回到 <a href="index.html" style="color:#a9e4f7">机器学习总览</a></p>
-        <div class="ml-node core" id="cnn"><h3>CNN <span class="tag">核心</span></h3><div class="ml-demo" data-demo="stack" data-args='{"n":4,"caption":"卷积 → 激活 → 池化 → 全连接"}'></div><p>利用“局部相关 + 平移不变”，把图像参数量降几个数量级。</p><p class="k">出处：LeCun et al., 1989</p></div>
+        <div class="ml-node core" id="cnn"><h3>CNN <span class="tag">核心</span></h3><div class="ml-demo" data-key="cnn" data-demo="stack" data-args='{"n":4,"caption":"卷积 → 激活 → 池化 → 全连接"}'></div><p>利用“局部相关 + 平移不变”，把图像参数量降几个数量级。</p><p class="k">出处：LeCun et al., 1989</p></div>
         <div class="ml-node main" id="conv"><h3>卷积 <a href="conv.html" style="font-size:11px;color:#a9e4f7;margin-left:8px">▶ 看它在浮雕上滑</a> <a href="pool.html" style="font-size:11px;color:#f4a6c0;margin-left:6px">▶ 池化怎么缩图</a></h3><p class="ml-jump">▶ <a href="conv.html">看完整的三维动画</a></p><p>滑窗共享权重；池化降分辨率。感受野随层数指数增长。</p></div>
-        <div class="ml-node leaf" id="lenet"><h3>LeNet-5</h3><div class="ml-demo" data-demo="stack" data-args='{"n":5,"caption":"LeNet-5：最早的手写数字网络"}'></div><p>1998 手写数字识别，现代 CNN 的雏形。</p></div>
-        <div class="ml-node main" id="alexnet"><h3>AlexNet</h3><div class="ml-demo" data-demo="stack" data-args='{"n":8,"caption":"AlexNet：8 层，2012 的转折点"}'></div><p>2012 ImageNet 夺冠，深度学习复兴的起点。</p><p class="k">出处：Krizhevsky et al., NIPS 2012</p></div>
-        <div class="ml-node leaf" id="vgg"><h3>VGG</h3><div class="ml-demo" data-demo="stack" data-args='{"n":6,"caption":"VGG：只用 3×3 堆深"}'></div><p>只用 3×3 卷积堆深，结构极简。</p></div>
-        <div class="ml-node leaf" id="googlenet"><h3>Inception</h3><div class="ml-demo" data-demo="grid" data-args='{"n":6,"win":2,"caption":"Inception：多尺度并行"}'></div><p>多尺度并行卷积 + 1×1 降维。</p></div>
-        <div class="ml-node core" id="resnet"><h3>ResNet 残差 <span class="tag">核心</span></h3><div class="ml-demo" data-demo="flow" data-args='{"items":["x","F(x)","+x","输出"]}'></div><p>跳连让梯度有高速公路，深度从 20 层推到 100+ 层。</p><p class="k">出处：He et al., CVPR 2016</p></div>
-        <div class="ml-node leaf" id="densenet"><h3>DenseNet</h3><div class="ml-demo" data-demo="graph" data-args='{"n":5,"caption":"DenseNet：每层连到后面所有层"}'></div><p>每层连到后面所有层，特征复用。</p></div>
-        <div class="ml-node main" id="mobilenet"><h3>MobileNet</h3><div class="ml-demo" data-demo="flow" data-args='{"items":["3×3 深度卷积","1×1 逐点","输出"]}'></div><p>把卷积拆成 depthwise + pointwise，端侧部署主力。</p></div>
-        <div class="ml-node leaf" id="effnet"><h3>EfficientNet</h3><div class="ml-demo" data-demo="bars" data-args='{"h":[0.4,0.6,0.8,0.95],"caption":"复合缩放：深度/宽度/分辨率一起调"}'></div><p>用复合缩放统一调深度/宽度/分辨率。</p></div>
-        <div class="ml-node main" id="unet"><h3>U-Net</h3><div class="ml-demo" data-demo="tower" data-args='{"left":["编码"],"right":["解码"],"caption":"U 型 + 跳连接"}'></div><p>编码-解码 + 跳连，分割与扩散模型的主干。</p></div>
-        <div class="ml-node main" id="yolo"><h3>YOLO 系列</h3><div class="ml-demo" data-demo="grid" data-args='{"n":7,"win":2,"caption":"把图切格子，每格回归框"}'></div><p>单阶段检测，把检测变成回归问题，实时。</p></div>
-        <div class="ml-node leaf" id="seg"><h3>检测/分割</h3><div class="ml-demo" data-demo="grid" data-args='{"n":8,"win":3,"caption":"分割：逐像素分类"}'></div><p>下游视觉任务的三大类出口。</p></div>
+        <div class="ml-node leaf" id="lenet"><h3>LeNet-5</h3><div class="ml-demo" data-key="lenet" data-demo="stack" data-args='{"n":5,"caption":"LeNet-5：最早的手写数字网络"}'></div><p>1998 手写数字识别，现代 CNN 的雏形。</p></div>
+        <div class="ml-node main" id="alexnet"><h3>AlexNet</h3><div class="ml-demo" data-key="alexnet" data-demo="stack" data-args='{"n":8,"caption":"AlexNet：8 层，2012 的转折点"}'></div><p>2012 ImageNet 夺冠，深度学习复兴的起点。</p><p class="k">出处：Krizhevsky et al., NIPS 2012</p></div>
+        <div class="ml-node leaf" id="vgg"><h3>VGG</h3><div class="ml-demo" data-key="vgg" data-demo="stack" data-args='{"n":6,"caption":"VGG：只用 3×3 堆深"}'></div><p>只用 3×3 卷积堆深，结构极简。</p></div>
+        <div class="ml-node leaf" id="googlenet"><h3>Inception</h3><div class="ml-demo" data-key="googlenet" data-demo="grid" data-args='{"n":6,"win":2,"caption":"Inception：多尺度并行"}'></div><p>多尺度并行卷积 + 1×1 降维。</p></div>
+        <div class="ml-node core" id="resnet"><h3>ResNet 残差 <span class="tag">核心</span></h3><div class="ml-demo" data-key="resnet" data-demo="flow" data-args='{"items":["x","F(x)","+x","输出"]}'></div><p>跳连让梯度有高速公路，深度从 20 层推到 100+ 层。</p><p class="k">出处：He et al., CVPR 2016</p></div>
+        <div class="ml-node leaf" id="densenet"><h3>DenseNet</h3><div class="ml-demo" data-key="densenet" data-demo="graph" data-args='{"n":5,"caption":"DenseNet：每层连到后面所有层"}'></div><p>每层连到后面所有层，特征复用。</p></div>
+        <div class="ml-node main" id="mobilenet"><h3>MobileNet</h3><div class="ml-demo" data-key="mobilenet" data-demo="flow" data-args='{"items":["3×3 深度卷积","1×1 逐点","输出"]}'></div><p>把卷积拆成 depthwise + pointwise，端侧部署主力。</p></div>
+        <div class="ml-node leaf" id="effnet"><h3>EfficientNet</h3><div class="ml-demo" data-key="effnet" data-demo="bars" data-args='{"h":[0.4,0.6,0.8,0.95],"caption":"复合缩放：深度/宽度/分辨率一起调"}'></div><p>用复合缩放统一调深度/宽度/分辨率。</p></div>
+        <div class="ml-node main" id="unet"><h3>U-Net</h3><div class="ml-demo" data-key="unet" data-demo="tower" data-args='{"left":["编码"],"right":["解码"],"caption":"U 型 + 跳连接"}'></div><p>编码-解码 + 跳连，分割与扩散模型的主干。</p></div>
+        <div class="ml-node main" id="yolo"><h3>YOLO 系列</h3><div class="ml-demo" data-key="yolo" data-demo="grid" data-args='{"n":7,"win":2,"caption":"把图切格子，每格回归框"}'></div><p>单阶段检测，把检测变成回归问题，实时。</p></div>
+        <div class="ml-node leaf" id="seg"><h3>检测/分割</h3><div class="ml-demo" data-key="seg" data-demo="grid" data-args='{"n":8,"win":3,"caption":"分割：逐像素分类"}'></div><p>下游视觉任务的三大类出口。</p></div>
     </section>
   </main>
 
@@ -57,6 +57,7 @@
       .ml-jump a { color: #a9e4f7; text-decoration: none; }
       .ml-jump a:hover { text-decoration: underline; }
     </style>
+    <script src="../../../../assets/mldemos-bespoke.js"></script>
     <script src="../../../../assets/mldemo.js"></script>
   <script src="../../../../assets/page.js"></script>
 </body>

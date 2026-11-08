@@ -303,9 +303,11 @@
     if (box.__mounted) return;
     box.__mounted = true;
     var type = box.getAttribute('data-demo');
+    var key = box.getAttribute('data-key') || type;
     var args = {};
     try { args = JSON.parse(box.getAttribute('data-args') || '{}'); } catch (e) {}
-    var fn = DRAW[type] || DRAW.bars;
+    var bespoke = (window.ML_BESPOKE || {})[key];
+    var fn = bespoke || DRAW[type] || DRAW.bars;
 
     var cv = document.createElement('canvas');
     cv.style.display = 'block';

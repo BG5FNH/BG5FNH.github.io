@@ -34,24 +34,24 @@
     <section class="card">
       <p>所有网络都由这几样拼出来：线性变换、激活、损失、梯度、优化器、正则化。先把这一页吃透，后面的模型都是换组合。</p>
       <p class="ml-back">← 回到 <a href="index.html" style="color:#a9e4f7">机器学习总览</a></p>
-        <div class="ml-node core" id="mlp"><h3>多层感知机 <span class="tag">核心</span></h3><div class="ml-demo" data-demo="stack" data-args='{"n":4,"caption":"多层感知机：一层层往上"}'></div><p>把感知机叠成层、把阶跃换成可导激活，就能拟合曲线。学习的第二步：从一条直线到折线。</p><p class="k">出处：Rumelhart et al., 1986</p></div>
-        <div class="ml-node main" id="linear"><h3>线性层</h3><div class="ml-demo" data-demo="flow" data-args='{"items":["x","w·x+b","ŷ"]}'></div><p>y = Wx + b，网络的“乘法”部分。</p></div>
-        <div class="ml-node main" id="act"><h3>激活函数 <a href="relu.html" style="font-size:11px;color:#a9e4f7;margin-left:8px">▶ 看那把刀</a></h3><div class="ml-demo" data-demo="curve" data-args='{"fn":"relu","caption":"激活：给网络一个折角"}'></div><p>给网络引入非线性，没有它叠多少层都等价于一层线性变换。</p></div>
+        <div class="ml-node core" id="mlp"><h3>多层感知机 <span class="tag">核心</span></h3><div class="ml-demo" data-key="mlp" data-demo="stack" data-args='{"n":4,"caption":"多层感知机：一层层往上"}'></div><p>把感知机叠成层、把阶跃换成可导激活，就能拟合曲线。学习的第二步：从一条直线到折线。</p><p class="k">出处：Rumelhart et al., 1986</p></div>
+        <div class="ml-node main" id="linear"><h3>线性层</h3><div class="ml-demo" data-key="linear" data-demo="flow" data-args='{"items":["x","w·x+b","ŷ"]}'></div><p>y = Wx + b，网络的“乘法”部分。</p></div>
+        <div class="ml-node main" id="act"><h3>激活函数 <a href="relu.html" style="font-size:11px;color:#a9e4f7;margin-left:8px">▶ 看那把刀</a></h3><div class="ml-demo" data-key="act" data-demo="curve" data-args='{"fn":"relu","caption":"激活：给网络一个折角"}'></div><p>给网络引入非线性，没有它叠多少层都等价于一层线性变换。</p></div>
         <div class="ml-node main" id="relu"><h3>ReLU</h3><p class="ml-jump">▶ <a href="relu.html">看完整的三维动画</a></p><p>max(0,x)：便宜、不饱和，深层网络能训起来的关键。</p><p class="k">出处：Nair & Hinton, 2010</p></div>
-        <div class="ml-node leaf" id="gelu"><h3>GELU</h3><div class="ml-demo" data-demo="curve" data-args='{"fn":"gelu","caption":"GELU：把折角磨圆"}'></div><p>更平滑的激活，Transformer 与大模型里常用。</p></div>
-        <div class="ml-node main" id="loss"><h3>损失函数</h3><div class="ml-demo" data-demo="curve" data-args='{"fn":"ce","caption":"损失：预测错了就变大"}'></div><p>把“预测有多错”变成一个数，反向传播靠它。</p></div>
-        <div class="ml-node main" id="ce"><h3>交叉熵</h3><div class="ml-demo" data-demo="bars" data-args='{"h":[0.85,0.3,0.12,0.05],"caption":"交叉熵：只在正确类上压低"}'></div><p>分类的标准损失；配合 softmax 梯度形式极简。</p></div>
-        <div class="ml-node leaf" id="mse"><h3>MSE</h3><div class="ml-demo" data-demo="decay" data-args='{"k":2.2,"caption":"平方误差：差得越远罚得越狠"}'></div><p>回归任务用；对异常值的敏感度不同。</p></div>
-        <div class="ml-node core" id="bp"><h3>反向传播 <span class="tag">核心</span></h3><div class="ml-demo" data-demo="flow" data-args='{"items":["前向","损失","梯度","更新"]}'></div><p>链式法则 + 计算图，把误差一层层乘回每个权重。</p><p class="k">出处：Rumelhart et al., Nature 1986</p></div>
-        <div class="ml-node main" id="autodiff"><h3>自动微分</h3><div class="ml-demo" data-demo="flow" data-args='{"items":["表达式","计算图","反向","梯度"]}'></div><p>框架替你算梯度：前向记录计算图，反向按图求导。</p></div>
-        <div class="ml-node main" id="opt"><h3>优化器</h3><div class="ml-demo" data-demo="points" data-args='{"n":22,"clusters":1,"caption":"参数在损失面上往下挪"}'></div><p>决定参数怎么走：步长、动量、二阶信息。</p></div>
-        <div class="ml-node main" id="sgd"><h3>SGD 系列</h3><div class="ml-demo" data-demo="points" data-args='{"n":18,"clusters":2,"caption":"SGD：一步一拐地走"}'></div><p>最朴素的梯度下降；加动量能穿过狭长谷。</p></div>
-        <div class="ml-node main" id="adam"><h3>AdamW</h3><div class="ml-demo" data-demo="bars" data-args='{"h":[0.4,0.55,0.7,0.85],"caption":"Adam：每个维度自适应步长"}'></div><p>自适应学习率，默认就能用；AdamW 把权重衰减解耦。</p><p class="k">出处：Kingma & Ba, ICLR 2015</p></div>
-        <div class="ml-node main" id="reg"><h3>正则化</h3><div class="ml-demo" data-demo="decay" data-args='{"k":1.6,"caption":"正则化：把权重往小压"}'></div><p>防止把训练集背下来：约束参数、加噪声、早停。</p></div>
-        <div class="ml-node main" id="dropout"><h3>Dropout</h3><div class="ml-demo" data-demo="grid" data-args='{"n":8,"win":1,"caption":"每次训练随机打掉一部分"}'></div><p>训练时随机丢神经元，逼网络学冗余表示。</p><p class="k">出处：Srivastava et al., 2014</p></div>
-        <div class="ml-node main" id="bn"><h3>Normalization</h3><div class="ml-demo" data-demo="bars" data-args='{"h":[0.3,0.5,0.7,0.5,0.3],"caption":"批归一化：把分布拉回稳定区间"}'></div><p>归一化每层输入，稳定训练、允许更大学习率。</p></div>
-        <div class="ml-node leaf" id="init"><h3>初始化</h3><div class="ml-demo" data-demo="bars" data-args='{"h":[0.2,0.5,0.9,0.5,0.2],"caption":"初始化：权重大小要合适"}'></div><p>Xavier / He 初始化：让每层方差大致守恒，避免一开始就爆炸。</p></div>
-        <div class="ml-node leaf" id="lr"><h3>学习率调度</h3><div class="ml-demo" data-demo="curve" data-args='{"fn":"warmup","caption":"学习率：先热身，再余弦衰减"}'></div><p>warmup + 余弦退火，几乎是大模型标配。</p></div>
+        <div class="ml-node leaf" id="gelu"><h3>GELU</h3><div class="ml-demo" data-key="gelu" data-demo="curve" data-args='{"fn":"gelu","caption":"GELU：把折角磨圆"}'></div><p>更平滑的激活，Transformer 与大模型里常用。</p></div>
+        <div class="ml-node main" id="loss"><h3>损失函数</h3><div class="ml-demo" data-key="loss" data-demo="curve" data-args='{"fn":"ce","caption":"损失：预测错了就变大"}'></div><p>把“预测有多错”变成一个数，反向传播靠它。</p></div>
+        <div class="ml-node main" id="ce"><h3>交叉熵</h3><div class="ml-demo" data-key="ce" data-demo="bars" data-args='{"h":[0.85,0.3,0.12,0.05],"caption":"交叉熵：只在正确类上压低"}'></div><p>分类的标准损失；配合 softmax 梯度形式极简。</p></div>
+        <div class="ml-node leaf" id="mse"><h3>MSE</h3><div class="ml-demo" data-key="mse" data-demo="decay" data-args='{"k":2.2,"caption":"平方误差：差得越远罚得越狠"}'></div><p>回归任务用；对异常值的敏感度不同。</p></div>
+        <div class="ml-node core" id="bp"><h3>反向传播 <span class="tag">核心</span></h3><div class="ml-demo" data-key="bp" data-demo="flow" data-args='{"items":["前向","损失","梯度","更新"]}'></div><p>链式法则 + 计算图，把误差一层层乘回每个权重。</p><p class="k">出处：Rumelhart et al., Nature 1986</p></div>
+        <div class="ml-node main" id="autodiff"><h3>自动微分</h3><div class="ml-demo" data-key="autodiff" data-demo="flow" data-args='{"items":["表达式","计算图","反向","梯度"]}'></div><p>框架替你算梯度：前向记录计算图，反向按图求导。</p></div>
+        <div class="ml-node main" id="opt"><h3>优化器</h3><div class="ml-demo" data-key="opt" data-demo="points" data-args='{"n":22,"clusters":1,"caption":"参数在损失面上往下挪"}'></div><p>决定参数怎么走：步长、动量、二阶信息。</p></div>
+        <div class="ml-node main" id="sgd"><h3>SGD 系列</h3><div class="ml-demo" data-key="sgd" data-demo="points" data-args='{"n":18,"clusters":2,"caption":"SGD：一步一拐地走"}'></div><p>最朴素的梯度下降；加动量能穿过狭长谷。</p></div>
+        <div class="ml-node main" id="adam"><h3>AdamW</h3><div class="ml-demo" data-key="adam" data-demo="bars" data-args='{"h":[0.4,0.55,0.7,0.85],"caption":"Adam：每个维度自适应步长"}'></div><p>自适应学习率，默认就能用；AdamW 把权重衰减解耦。</p><p class="k">出处：Kingma & Ba, ICLR 2015</p></div>
+        <div class="ml-node main" id="reg"><h3>正则化</h3><div class="ml-demo" data-key="reg" data-demo="decay" data-args='{"k":1.6,"caption":"正则化：把权重往小压"}'></div><p>防止把训练集背下来：约束参数、加噪声、早停。</p></div>
+        <div class="ml-node main" id="dropout"><h3>Dropout</h3><div class="ml-demo" data-key="dropout" data-demo="grid" data-args='{"n":8,"win":1,"caption":"每次训练随机打掉一部分"}'></div><p>训练时随机丢神经元，逼网络学冗余表示。</p><p class="k">出处：Srivastava et al., 2014</p></div>
+        <div class="ml-node main" id="bn"><h3>Normalization</h3><div class="ml-demo" data-key="bn" data-demo="bars" data-args='{"h":[0.3,0.5,0.7,0.5,0.3],"caption":"批归一化：把分布拉回稳定区间"}'></div><p>归一化每层输入，稳定训练、允许更大学习率。</p></div>
+        <div class="ml-node leaf" id="init"><h3>初始化</h3><div class="ml-demo" data-key="init" data-demo="bars" data-args='{"h":[0.2,0.5,0.9,0.5,0.2],"caption":"初始化：权重大小要合适"}'></div><p>Xavier / He 初始化：让每层方差大致守恒，避免一开始就爆炸。</p></div>
+        <div class="ml-node leaf" id="lr"><h3>学习率调度</h3><div class="ml-demo" data-key="lr" data-demo="curve" data-args='{"fn":"warmup","caption":"学习率：先热身，再余弦衰减"}'></div><p>warmup + 余弦退火，几乎是大模型标配。</p></div>
     </section>
   </main>
 
@@ -62,6 +62,7 @@
       .ml-jump a { color: #a9e4f7; text-decoration: none; }
       .ml-jump a:hover { text-decoration: underline; }
     </style>
+    <script src="../../../../assets/mldemos-bespoke.js"></script>
     <script src="../../../../assets/mldemo.js"></script>
   <script src="../../../../assets/page.js"></script>
 </body>

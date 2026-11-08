@@ -34,18 +34,18 @@
     <section class="card">
       <p>同样的模型，工程做得好坏能差出几倍效果与成本：数据、增强、蒸馏、量化、分布式。</p>
       <p class="ml-back">← 回到 <a href="index.html" style="color:#a9e4f7">机器学习总览</a></p>
-        <div class="ml-node main" id="eng"><h3>训练与工程</h3><div class="ml-demo" data-demo="stack" data-args='{"n":5,"caption":"训练与工程：决定成败的那 80%"}'></div><p>同样的模型，工程做得好坏差出几倍效果与成本。</p></div>
-        <div class="ml-node main" id="aug"><h3>数据增强</h3><div class="ml-demo" data-demo="grid" data-args='{"n":6,"win":2,"caption":"数据增强：同一张图的多种变体"}'></div><p>裁剪、翻转、混合、CutMix——最便宜的正则化。</p></div>
-        <div class="ml-node main" id="transfer"><h3>迁移学习</h3><div class="ml-demo" data-demo="flow" data-args='{"items":["预训练","微调","部署"]}'></div><p>拿预训练权重起步，小数据也能打。</p></div>
-        <div class="ml-node main" id="distill"><h3>知识蒸馏</h3><div class="ml-demo" data-demo="tower" data-args='{"left":["教师"],"right":["学生"],"caption":"把大模型的行为压进小模型"}'></div><p>大模型教小模型，把小模型的精度拉上来。</p></div>
-        <div class="ml-node leaf" id="prune"><h3>剪枝</h3><div class="ml-demo" data-demo="decay" data-args='{"k":2.6,"caption":"剪枝：小权重直接归零"}'></div><p>去掉不重要的权重/通道。</p></div>
-        <div class="ml-node main" id="quant"><h3>量化</h3><div class="ml-demo" data-demo="bars" data-args='{"h":[0.9,0.66,0.33,0.1],"caption":"量化：连续值压成几档"}'></div><p>FP32→INT8/INT4，推理快几倍、显存降几倍。</p></div>
-        <div class="ml-node main" id="dist"><h3>分布式训练</h3><div class="ml-demo" data-demo="graph" data-args='{"n":6,"caption":"多卡之间同步梯度"}'></div><p>数据并行 / 张量并行 / 流水并行 + 梯度同步。</p></div>
-        <div class="ml-node leaf" id="amp"><h3>混合精度</h3><div class="ml-demo" data-demo="decay" data-args='{"k":1.2,"caption":"混合精度：一半算力换精度"}'></div><p>FP16/BF16 前向反向，FP32 更新参数。</p></div>
-        <div class="ml-node leaf" id="ckpt"><h3>梯度检查点</h3><div class="ml-demo" data-demo="flow" data-args='{"items":["前向","存激活","重算","反传"]}'></div><p>用算力换显存，长序列训练的必需品。</p></div>
-        <div class="ml-node core" id="data"><h3>数据工程 <span class="tag">核心</span></h3><div class="ml-demo" data-demo="points" data-args='{"n":28,"clusters":3,"caption":"采样、去重、清洗"}'></div><p>清洗、去重、配比、防泄漏——决定上限的那 80%。</p></div>
-        <div class="ml-node main" id="eval"><h3>评估与划分</h3><div class="ml-demo" data-demo="compare" data-args='{"caption":"验证集 vs 测试集"}'></div><p>训练/验证/测试、交叉验证、指标选择。</p></div>
-        <div class="ml-node main" id="leak"><h3>数据泄漏</h3><div class="ml-demo" data-demo="compare" data-args='{"shift":0.28,"caption":"数据泄漏：测试信息漏进训练"}'></div><p>特征里混进了标签信息，离线指标虚高、上线就崩。</p></div>
+        <div class="ml-node main" id="eng"><h3>训练与工程</h3><div class="ml-demo" data-key="eng" data-demo="stack" data-args='{"n":5,"caption":"训练与工程：决定成败的那 80%"}'></div><p>同样的模型，工程做得好坏差出几倍效果与成本。</p></div>
+        <div class="ml-node main" id="aug"><h3>数据增强</h3><div class="ml-demo" data-key="aug" data-demo="grid" data-args='{"n":6,"win":2,"caption":"数据增强：同一张图的多种变体"}'></div><p>裁剪、翻转、混合、CutMix——最便宜的正则化。</p></div>
+        <div class="ml-node main" id="transfer"><h3>迁移学习</h3><div class="ml-demo" data-key="transfer" data-demo="flow" data-args='{"items":["预训练","微调","部署"]}'></div><p>拿预训练权重起步，小数据也能打。</p></div>
+        <div class="ml-node main" id="distill"><h3>知识蒸馏</h3><div class="ml-demo" data-key="distill" data-demo="tower" data-args='{"left":["教师"],"right":["学生"],"caption":"把大模型的行为压进小模型"}'></div><p>大模型教小模型，把小模型的精度拉上来。</p></div>
+        <div class="ml-node leaf" id="prune"><h3>剪枝</h3><div class="ml-demo" data-key="prune" data-demo="decay" data-args='{"k":2.6,"caption":"剪枝：小权重直接归零"}'></div><p>去掉不重要的权重/通道。</p></div>
+        <div class="ml-node main" id="quant"><h3>量化</h3><div class="ml-demo" data-key="quant" data-demo="bars" data-args='{"h":[0.9,0.66,0.33,0.1],"caption":"量化：连续值压成几档"}'></div><p>FP32→INT8/INT4，推理快几倍、显存降几倍。</p></div>
+        <div class="ml-node main" id="dist"><h3>分布式训练</h3><div class="ml-demo" data-key="dist" data-demo="graph" data-args='{"n":6,"caption":"多卡之间同步梯度"}'></div><p>数据并行 / 张量并行 / 流水并行 + 梯度同步。</p></div>
+        <div class="ml-node leaf" id="amp"><h3>混合精度</h3><div class="ml-demo" data-key="amp" data-demo="decay" data-args='{"k":1.2,"caption":"混合精度：一半算力换精度"}'></div><p>FP16/BF16 前向反向，FP32 更新参数。</p></div>
+        <div class="ml-node leaf" id="ckpt"><h3>梯度检查点</h3><div class="ml-demo" data-key="ckpt" data-demo="flow" data-args='{"items":["前向","存激活","重算","反传"]}'></div><p>用算力换显存，长序列训练的必需品。</p></div>
+        <div class="ml-node core" id="data"><h3>数据工程 <span class="tag">核心</span></h3><div class="ml-demo" data-key="data" data-demo="points" data-args='{"n":28,"clusters":3,"caption":"采样、去重、清洗"}'></div><p>清洗、去重、配比、防泄漏——决定上限的那 80%。</p></div>
+        <div class="ml-node main" id="eval"><h3>评估与划分</h3><div class="ml-demo" data-key="eval" data-demo="compare" data-args='{"caption":"验证集 vs 测试集"}'></div><p>训练/验证/测试、交叉验证、指标选择。</p></div>
+        <div class="ml-node main" id="leak"><h3>数据泄漏</h3><div class="ml-demo" data-key="leak" data-demo="compare" data-args='{"shift":0.28,"caption":"数据泄漏：测试信息漏进训练"}'></div><p>特征里混进了标签信息，离线指标虚高、上线就崩。</p></div>
     </section>
   </main>
 
@@ -56,6 +56,7 @@
       .ml-jump a { color: #a9e4f7; text-decoration: none; }
       .ml-jump a:hover { text-decoration: underline; }
     </style>
+    <script src="../../../../assets/mldemos-bespoke.js"></script>
     <script src="../../../../assets/mldemo.js"></script>
   <script src="../../../../assets/page.js"></script>
 </body>

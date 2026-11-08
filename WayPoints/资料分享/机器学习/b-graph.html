@@ -34,9 +34,9 @@
     <section class="card">
       <p>不规则结构（分子、社交网络、点云）用图神经网络做消息传递；NeRF 用 MLP 表示三维场景。</p>
       <p class="ml-back">← 回到 <a href="index.html" style="color:#a9e4f7">机器学习总览</a></p>
-        <div class="ml-node main" id="gnn"><h3>GNN</h3><div class="ml-demo" data-demo="graph" data-args='{"n":5,"caption":"邻居聚合"}'></div><p>在图上做消息传递：邻居聚合 + 更新。</p></div>
-        <div class="ml-node main" id="gcn"><h3>GCN</h3><div class="ml-demo" data-demo="matrix" data-args='{"n":5,"seed":2,"caption":"邻接矩阵上的卷积"}'></div><p>谱方法 / 注意力式聚合，分子、社交网络常用。</p></div>
-        <div class="ml-node leaf" id="nerf"><h3>NeRF</h3><div class="ml-demo" data-demo="points" data-args='{"n":30,"clusters":3,"caption":"沿射线采样，重建三维"}'></div><p>用 MLP 表示辐射场，多视角合成新视角。</p></div>
+        <div class="ml-node main" id="gnn"><h3>GNN</h3><div class="ml-demo" data-key="gnn" data-demo="graph" data-args='{"n":5,"caption":"邻居聚合"}'></div><p>在图上做消息传递：邻居聚合 + 更新。</p></div>
+        <div class="ml-node main" id="gcn"><h3>GCN</h3><div class="ml-demo" data-key="gcn" data-demo="matrix" data-args='{"n":5,"seed":2,"caption":"邻接矩阵上的卷积"}'></div><p>谱方法 / 注意力式聚合，分子、社交网络常用。</p></div>
+        <div class="ml-node leaf" id="nerf"><h3>NeRF</h3><div class="ml-demo" data-key="nerf" data-demo="points" data-args='{"n":30,"clusters":3,"caption":"沿射线采样，重建三维"}'></div><p>用 MLP 表示辐射场，多视角合成新视角。</p></div>
     </section>
   </main>
 
@@ -47,6 +47,7 @@
       .ml-jump a { color: #a9e4f7; text-decoration: none; }
       .ml-jump a:hover { text-decoration: underline; }
     </style>
+    <script src="../../../../assets/mldemos-bespoke.js"></script>
     <script src="../../../../assets/mldemo.js"></script>
   <script src="../../../../assets/page.js"></script>
 </body>

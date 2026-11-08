@@ -34,13 +34,13 @@
     <section class="card">
       <p>没有标签，只有奖励。从值函数到策略梯度，再到 PPO 与自博弈，这条线训练出了 AlphaGo，也训练出了对齐后的大模型。</p>
       <p class="ml-back">← 回到 <a href="index.html" style="color:#a9e4f7">机器学习总览</a></p>
-        <div class="ml-node core" id="rl"><h3>强化学习 <span class="tag">核心</span></h3><div class="ml-demo" data-demo="flow" data-args='{"items":["状态","策略","动作","奖励"]}'></div><p>没有标准答案，只有奖励；学一个策略让长期回报最大。</p></div>
-        <div class="ml-node main" id="mdp"><h3>MDP</h3><div class="ml-demo" data-demo="graph" data-args='{"n":4,"caption":"状态-动作-奖励的转移"}'></div><p>状态、动作、奖励、转移；贝尔曼方程是核心。</p></div>
-        <div class="ml-node main" id="qlearn"><h3>DQN</h3><div class="ml-demo" data-demo="matrix" data-args='{"n":5,"seed":5,"caption":"Q 表：状态 × 动作"}'></div><p>学动作价值 Q；DQN 用经验回放 + 目标网络稳住训练。</p><p class="k">出处：Mnih et al., Nature 2015</p></div>
-        <div class="ml-node main" id="pg"><h3>策略梯度</h3><div class="ml-demo" data-demo="curve" data-args='{"fn":"warmup","caption":"策略梯度：按回报调概率"}'></div><p>直接对策略求梯度，方差大但能处理连续动作。</p></div>
-        <div class="ml-node core" id="ppo"><h3>PPO <span class="tag">核心</span></h3><div class="ml-demo" data-demo="bars" data-args='{"h":[0.55,0.75,0.9,0.6],"caption":"PPO：把更新幅度裁住"}'></div><p>裁剪重要性比率，稳定又简单，RLHF 的默认算法。</p><p class="k">出处：Schulman et al., 2017</p></div>
-        <div class="ml-node leaf" id="sac"><h3>SAC</h3><div class="ml-demo" data-demo="compare" data-args='{"caption":"SAC：探索与利用的平衡"}'></div><p>离线/连续控制的强基线。</p></div>
-        <div class="ml-node leaf" id="marl"><h3>自博弈</h3><div class="ml-demo" data-demo="graph" data-args='{"n":6,"caption":"多智能体互相观察"}'></div><p>AlphaGo / AlphaZero 路线：自己跟自己下。</p></div>
+        <div class="ml-node core" id="rl"><h3>强化学习 <span class="tag">核心</span></h3><div class="ml-demo" data-key="rl" data-demo="flow" data-args='{"items":["状态","策略","动作","奖励"]}'></div><p>没有标准答案，只有奖励；学一个策略让长期回报最大。</p></div>
+        <div class="ml-node main" id="mdp"><h3>MDP</h3><div class="ml-demo" data-key="mdp" data-demo="graph" data-args='{"n":4,"caption":"状态-动作-奖励的转移"}'></div><p>状态、动作、奖励、转移；贝尔曼方程是核心。</p></div>
+        <div class="ml-node main" id="qlearn"><h3>DQN</h3><div class="ml-demo" data-key="qlearn" data-demo="matrix" data-args='{"n":5,"seed":5,"caption":"Q 表：状态 × 动作"}'></div><p>学动作价值 Q；DQN 用经验回放 + 目标网络稳住训练。</p><p class="k">出处：Mnih et al., Nature 2015</p></div>
+        <div class="ml-node main" id="pg"><h3>策略梯度</h3><div class="ml-demo" data-key="pg" data-demo="curve" data-args='{"fn":"warmup","caption":"策略梯度：按回报调概率"}'></div><p>直接对策略求梯度，方差大但能处理连续动作。</p></div>
+        <div class="ml-node core" id="ppo"><h3>PPO <span class="tag">核心</span></h3><div class="ml-demo" data-key="ppo" data-demo="bars" data-args='{"h":[0.55,0.75,0.9,0.6],"caption":"PPO：把更新幅度裁住"}'></div><p>裁剪重要性比率，稳定又简单，RLHF 的默认算法。</p><p class="k">出处：Schulman et al., 2017</p></div>
+        <div class="ml-node leaf" id="sac"><h3>SAC</h3><div class="ml-demo" data-key="sac" data-demo="compare" data-args='{"caption":"SAC：探索与利用的平衡"}'></div><p>离线/连续控制的强基线。</p></div>
+        <div class="ml-node leaf" id="marl"><h3>自博弈</h3><div class="ml-demo" data-key="marl" data-demo="graph" data-args='{"n":6,"caption":"多智能体互相观察"}'></div><p>AlphaGo / AlphaZero 路线：自己跟自己下。</p></div>
     </section>
   </main>
 
@@ -51,6 +51,7 @@
       .ml-jump a { color: #a9e4f7; text-decoration: none; }
       .ml-jump a:hover { text-decoration: underline; }
     </style>
+    <script src="../../../../assets/mldemos-bespoke.js"></script>
     <script src="../../../../assets/mldemo.js"></script>
   <script src="../../../../assets/page.js"></script>
 </body>
