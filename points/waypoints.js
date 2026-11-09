@@ -329,25 +329,25 @@ window.BG5FNH_WAYPOINTS = {
               { key: 'vc', path: 'vc', name: '虚拟币', pos: [0, 0], scale: 1.35, labelScale: 1.05, color: '#fff0cc', lineColor: '#c9a86a', url: '资料分享/虚拟币/index.html' },
 
               // —— 0 钱与账本 ——
-              { key: 'vc0', path: 'vc0', parent: 'vc', name: '0 钱与账本', pos: [5.00, 0.00], scale: 1.25, labelScale: 1.8, color: '#ffd79a', lineColor: '#a5762f', url: '资料分享/虚拟币/ch0.html' },
+              { key: 'vc0', path: 'vc0', parent: 'vc', name: '0 钱与账本', pos: [5.00, 0.00], scale: 1.25, labelScale: 1.8, labelAbove: true, color: '#ffd79a', lineColor: '#a5762f', url: '资料分享/虚拟币/ch0.html' },
               { key: 'vc0a', path: 'vc0a', parent: 'vc0', name: '现金与余额', pos: [7.90, 2.60], scale: 0.92, labelScale: 1.5, color: '#f0b45a', lineColor: '#a5762f', url: '资料分享/虚拟币/ch0.html' },
               { key: 'vc0b', path: 'vc0b', parent: 'vc0', name: '账本三铁律', pos: [7.90, 4.90], scale: 0.92, labelScale: 1.5, color: '#f0b45a', lineColor: '#a5762f', url: '资料分享/虚拟币/ch0.html' },
 
               // —— 1 转账与共识 ——
-              { key: 'vc1', path: 'vc1', parent: 'vc0', name: '1 转账与共识', pos: [10.00, 0.00], scale: 1.25, labelScale: 1.8, color: '#ffd79a', lineColor: '#a5762f', url: '资料分享/虚拟币/ch1.html' },
+              { key: 'vc1', path: 'vc1', parent: 'vc0', name: '1 转账与共识', pos: [10.00, 0.00], scale: 1.25, labelScale: 1.8, labelAbove: true, color: '#ffd79a', lineColor: '#a5762f', url: '资料分享/虚拟币/ch1.html' },
               { key: 'vc1a', path: 'vc1a', parent: 'vc1', name: '双重支付', pos: [12.90, -2.60], scale: 0.92, labelScale: 1.5, color: '#f0b45a', lineColor: '#a5762f', url: '资料分享/虚拟币/ch1.html' },
               { key: 'vc1b', path: 'vc1b', parent: 'vc1', name: '两种解法', pos: [12.90, -4.90], scale: 0.92, labelScale: 1.5, color: '#f0b45a', lineColor: '#a5762f', url: '资料分享/虚拟币/ch1.html' },
               { key: 'vc1c', path: 'vc1c', parent: 'vc1', name: '确认数', pos: [12.90, -7.20], scale: 0.92, labelScale: 1.5, color: '#f0b45a', lineColor: '#a5762f', url: '资料分享/虚拟币/ch1.html' },
 
               // —— 2 区块链三件套 ——
-              { key: 'vc2', path: 'vc2', parent: 'vc1', name: '2 区块链三件套', pos: [15.00, 0.00], scale: 1.25, labelScale: 1.8, color: '#ffd79a', lineColor: '#a5762f', url: '资料分享/虚拟币/ch2.html' },
+              { key: 'vc2', path: 'vc2', parent: 'vc1', name: '2 区块链三件套', pos: [15.00, 0.00], scale: 1.25, labelScale: 1.8, labelAbove: true, color: '#ffd79a', lineColor: '#a5762f', url: '资料分享/虚拟币/ch2.html' },
               { key: 'vc2a', path: 'vc2a', parent: 'vc2', name: '哈希指纹', pos: [17.90, 2.60], scale: 0.92, labelScale: 1.5, color: '#f0b45a', lineColor: '#a5762f', url: '资料分享/虚拟币/ch2.html' },
               { key: 'vc2b', path: 'vc2b', parent: 'vc2', name: '区块与链', pos: [17.90, 4.90], scale: 0.92, labelScale: 1.5, color: '#f0b45a', lineColor: '#a5762f', url: '资料分享/虚拟币/ch2.html' },
               { key: 'vc2c', path: 'vc2c', parent: 'vc2', name: '难度调整', pos: [17.90, 7.20], scale: 0.92, labelScale: 1.5, color: '#f0b45a', lineColor: '#a5762f', url: '资料分享/虚拟币/ch2.html' },
               { key: 'vc2d', path: 'vc2d', parent: 'vc2', name: '全节点', pos: [17.90, 9.50], scale: 0.92, labelScale: 1.5, color: '#f0b45a', lineColor: '#a5762f', url: '资料分享/虚拟币/ch2.html' },
 
               // —— 3 比特币 ——
-              { key: 'vc3', path: 'vc3', parent: 'vc2', name: '3 比特币', pos: [20.00, 0.00], scale: 1.25, labelScale: 1.8, color: '#ffe6b8', lineColor: '#b58540', url: '资料分享/虚拟币/ch3.html' },
+              { key: 'vc3', path: 'vc3', parent: 'vc2', name: '3 比特币', pos: [20.00, 0.00], scale: 1.25, labelScale: 1.8, labelAbove: true, color: '#ffe6b8', lineColor: '#b58540', url: '资料分享/虚拟币/ch3.html' },
               { key: 'vc3a', path: 'vc3a', parent: 'vc3', name: 'UTXO 现金模型', pos: [22.90, -2.60], scale: 0.92, labelScale: 1.5, color: '#f5c877', lineColor: '#b58540', url: '资料分享/虚拟币/ch3.html' },
               { key: 'vc3b', path: 'vc3b', parent: 'vc3', name: '手续费', pos: [22.90, -4.90], scale: 0.92, labelScale: 1.5, color: '#f5c877', lineColor: '#b58540', url: '资料分享/虚拟币/ch3.html' },
               { key: 'vc3c', path: 'vc3c', parent: 'vc3', name: '减半 2100 万', pos: [22.90, -7.20], scale: 0.92, labelScale: 1.5, color: '#f5c877', lineColor: '#b58540', url: '资料分享/虚拟币/ch3.html' },
@@ -356,7 +356,7 @@ window.BG5FNH_WAYPOINTS = {
               { key: 'vc3f', path: 'vc3f', parent: 'vc3', name: '闪电网络', pos: [22.90, -14.10], scale: 0.92, labelScale: 1.5, color: '#f5c877', lineColor: '#b58540', url: '资料分享/虚拟币/ch3.html' },
 
               // —— 4 以太坊 ——
-              { key: 'vc4', path: 'vc4', parent: 'vc3', name: '4 以太坊', pos: [25.00, 0.00], scale: 1.25, labelScale: 1.8, color: '#ffe6b8', lineColor: '#b58540', url: '资料分享/虚拟币/ch4.html' },
+              { key: 'vc4', path: 'vc4', parent: 'vc3', name: '4 以太坊', pos: [25.00, 0.00], scale: 1.25, labelScale: 1.8, labelAbove: true, color: '#ffe6b8', lineColor: '#b58540', url: '资料分享/虚拟币/ch4.html' },
               { key: 'vc4a', path: 'vc4a', parent: 'vc4', name: '账户模型', pos: [27.90, 2.60], scale: 0.92, labelScale: 1.5, color: '#f5c877', lineColor: '#b58540', url: '资料分享/虚拟币/ch4.html' },
               { key: 'vc4b', path: 'vc4b', parent: 'vc4', name: '智能合约', pos: [27.90, 4.90], scale: 0.92, labelScale: 1.5, color: '#f5c877', lineColor: '#b58540', url: '资料分享/虚拟币/ch4.html' },
               { key: 'vc4c', path: 'vc4c', parent: 'vc4', name: 'Gas 油费', pos: [27.90, 7.20], scale: 0.92, labelScale: 1.5, color: '#f5c877', lineColor: '#b58540', url: '资料分享/虚拟币/ch4.html' },
@@ -365,20 +365,20 @@ window.BG5FNH_WAYPOINTS = {
               { key: 'vc4f', path: 'vc4f', parent: 'vc4', name: 'Layer2', pos: [27.90, 14.10], scale: 0.92, labelScale: 1.5, color: '#f5c877', lineColor: '#b58540', url: '资料分享/虚拟币/ch4.html' },
 
               // —— 5 钱包与钥匙 ——
-              { key: 'vc5', path: 'vc5', parent: 'vc4', name: '5 钱包与钥匙', pos: [30.00, 0.00], scale: 1.25, labelScale: 1.8, color: '#bcd6e8', lineColor: '#5f7f96', url: '资料分享/虚拟币/ch5.html' },
+              { key: 'vc5', path: 'vc5', parent: 'vc4', name: '5 钱包与钥匙', pos: [30.00, 0.00], scale: 1.25, labelScale: 1.8, labelAbove: true, color: '#bcd6e8', lineColor: '#5f7f96', url: '资料分享/虚拟币/ch5.html' },
               { key: 'vc5a', path: 'vc5a', parent: 'vc5', name: '私钥与地址', pos: [32.90, -2.60], scale: 0.92, labelScale: 1.5, color: '#a8c6dc', lineColor: '#5f7f96', url: '资料分享/虚拟币/ch5.html' },
               { key: 'vc5b', path: 'vc5b', parent: 'vc5', name: '助记词', pos: [32.90, -4.90], scale: 0.92, labelScale: 1.5, color: '#a8c6dc', lineColor: '#5f7f96', url: '资料分享/虚拟币/ch5.html' },
               { key: 'vc5c', path: 'vc5c', parent: 'vc5', name: '派生路径', pos: [32.90, -7.20], scale: 0.92, labelScale: 1.5, color: '#a8c6dc', lineColor: '#5f7f96', url: '资料分享/虚拟币/ch5.html' },
               { key: 'vc5d', path: 'vc5d', parent: 'vc5', name: '冷热钱包', pos: [32.90, -9.50], scale: 0.92, labelScale: 1.5, color: '#a8c6dc', lineColor: '#5f7f96', url: '资料分享/虚拟币/ch5.html' },
 
               // —— 6 稳定币与交易所 ——
-              { key: 'vc6', path: 'vc6', parent: 'vc5', name: '6 稳定币与交易所', pos: [35.00, 0.00], scale: 1.25, labelScale: 1.8, color: '#bcd6e8', lineColor: '#5f7f96', url: '资料分享/虚拟币/ch6.html' },
+              { key: 'vc6', path: 'vc6', parent: 'vc5', name: '6 稳定币与交易所', pos: [35.00, 0.00], scale: 1.25, labelScale: 1.8, labelAbove: true, color: '#bcd6e8', lineColor: '#5f7f96', url: '资料分享/虚拟币/ch6.html' },
               { key: 'vc6a', path: 'vc6a', parent: 'vc6', name: '稳定币真相', pos: [37.90, 2.60], scale: 0.92, labelScale: 1.5, color: '#a8c6dc', lineColor: '#5f7f96', url: '资料分享/虚拟币/ch6.html' },
               { key: 'vc6b', path: 'vc6b', parent: 'vc6', name: '转错链', pos: [37.90, 4.90], scale: 0.92, labelScale: 1.5, color: '#a8c6dc', lineColor: '#5f7f96', url: '资料分享/虚拟币/ch6.html' },
               { key: 'vc6c', path: 'vc6c', parent: 'vc6', name: '托管风险', pos: [37.90, 7.20], scale: 0.92, labelScale: 1.5, color: '#a8c6dc', lineColor: '#5f7f96', url: '资料分享/虚拟币/ch6.html' },
 
               // —— 7 DeFi ——
-              { key: 'vc7', path: 'vc7', parent: 'vc6', name: '7 DeFi', pos: [40.00, 0.00], scale: 1.25, labelScale: 1.8, color: '#bcd6e8', lineColor: '#5f7f96', url: '资料分享/虚拟币/ch7.html' },
+              { key: 'vc7', path: 'vc7', parent: 'vc6', name: '7 DeFi', pos: [40.00, 0.00], scale: 1.25, labelScale: 1.8, labelAbove: true, color: '#bcd6e8', lineColor: '#5f7f96', url: '资料分享/虚拟币/ch7.html' },
               { key: 'vc7a', path: 'vc7a', parent: 'vc7', name: 'AMM 与滑点', pos: [42.90, -2.60], scale: 0.92, labelScale: 1.5, color: '#a8c6dc', lineColor: '#5f7f96', url: '资料分享/虚拟币/ch7.html' },
               { key: 'vc7b', path: 'vc7b', parent: 'vc7', name: '无常损失', pos: [42.90, -4.90], scale: 0.92, labelScale: 1.5, color: '#a8c6dc', lineColor: '#5f7f96', url: '资料分享/虚拟币/ch7.html' },
               { key: 'vc7c', path: 'vc7c', parent: 'vc7', name: '借贷与清算', pos: [42.90, -7.20], scale: 0.92, labelScale: 1.5, color: '#a8c6dc', lineColor: '#5f7f96', url: '资料分享/虚拟币/ch7.html' },
@@ -386,27 +386,27 @@ window.BG5FNH_WAYPOINTS = {
               { key: 'vc7e', path: 'vc7e', parent: 'vc7', name: '跨链桥', pos: [42.90, -11.80], scale: 0.92, labelScale: 1.5, color: '#a8c6dc', lineColor: '#5f7f96', url: '资料分享/虚拟币/ch7.html' },
 
               // —— 8 风险与安全 ——
-              { key: 'vc8', path: 'vc8', parent: 'vc7', name: '8 风险与安全', pos: [45.00, 0.00], scale: 1.25, labelScale: 1.8, color: '#bcd6e8', lineColor: '#5f7f96', url: '资料分享/虚拟币/ch8.html' },
+              { key: 'vc8', path: 'vc8', parent: 'vc7', name: '8 风险与安全', pos: [45.00, 0.00], scale: 1.25, labelScale: 1.8, labelAbove: true, color: '#bcd6e8', lineColor: '#5f7f96', url: '资料分享/虚拟币/ch8.html' },
               { key: 'vc8a', path: 'vc8a', parent: 'vc8', name: '钓鱼', pos: [47.90, 2.60], scale: 0.92, labelScale: 1.5, color: '#a8c6dc', lineColor: '#5f7f96', url: '资料分享/虚拟币/ch8.html' },
               { key: 'vc8b', path: 'vc8b', parent: 'vc8', name: '授权陷阱', pos: [47.90, 4.90], scale: 0.92, labelScale: 1.5, color: '#a8c6dc', lineColor: '#5f7f96', url: '资料分享/虚拟币/ch8.html' },
               { key: 'vc8c', path: 'vc8c', parent: 'vc8', name: '地址投毒', pos: [47.90, 7.20], scale: 0.92, labelScale: 1.5, color: '#a8c6dc', lineColor: '#5f7f96', url: '资料分享/虚拟币/ch8.html' },
               { key: 'vc8d', path: 'vc8d', parent: 'vc8', name: '自保清单', pos: [47.90, 9.50], scale: 0.92, labelScale: 1.5, color: '#a8c6dc', lineColor: '#5f7f96', url: '资料分享/虚拟币/ch8.html' },
 
               // —— 9 监管与税务 ——
-              { key: 'vc9', path: 'vc9', parent: 'vc8', name: '9 监管与税务', pos: [50.00, 0.00], scale: 1.25, labelScale: 1.8, color: '#d8c8a8', lineColor: '#8a7348', url: '资料分享/虚拟币/ch9.html' },
+              { key: 'vc9', path: 'vc9', parent: 'vc8', name: '9 监管与税务', pos: [50.00, 0.00], scale: 1.25, labelScale: 1.8, labelAbove: true, color: '#d8c8a8', lineColor: '#8a7348', url: '资料分享/虚拟币/ch9.html' },
               { key: 'vc9a', path: 'vc9a', parent: 'vc9', name: '内地规则', pos: [52.90, -2.60], scale: 0.92, labelScale: 1.5, color: '#c3ac82', lineColor: '#8a7348', url: '资料分享/虚拟币/ch9.html' },
               { key: 'vc9b', path: 'vc9b', parent: 'vc9', name: '香港发牌', pos: [52.90, -4.90], scale: 0.92, labelScale: 1.5, color: '#c3ac82', lineColor: '#8a7348', url: '资料分享/虚拟币/ch9.html' },
               { key: 'vc9c', path: 'vc9c', parent: 'vc9', name: '美国 ETF', pos: [52.90, -7.20], scale: 0.92, labelScale: 1.5, color: '#c3ac82', lineColor: '#8a7348', url: '资料分享/虚拟币/ch9.html' },
               { key: 'vc9d', path: 'vc9d', parent: 'vc9', name: '税务', pos: [52.90, -9.50], scale: 0.92, labelScale: 1.5, color: '#c3ac82', lineColor: '#8a7348', url: '资料分享/虚拟币/ch9.html' },
 
               // —— 10 价格与市场 ——
-              { key: 'vc10', path: 'vc10', parent: 'vc9', name: '10 价格与市场', pos: [55.00, 0.00], scale: 1.25, labelScale: 1.8, color: '#d8c8a8', lineColor: '#8a7348', url: '资料分享/虚拟币/ch10.html' },
+              { key: 'vc10', path: 'vc10', parent: 'vc9', name: '10 价格与市场', pos: [55.00, 0.00], scale: 1.25, labelScale: 1.8, labelAbove: true, color: '#d8c8a8', lineColor: '#8a7348', url: '资料分享/虚拟币/ch10.html' },
               { key: 'vc10a', path: 'vc10a', parent: 'vc10', name: '市值幻觉', pos: [57.90, 2.60], scale: 0.92, labelScale: 1.5, color: '#c3ac82', lineColor: '#8a7348', url: '资料分享/虚拟币/ch10.html' },
               { key: 'vc10b', path: 'vc10b', parent: 'vc10', name: '杠杆爆仓', pos: [57.90, 4.90], scale: 0.92, labelScale: 1.5, color: '#c3ac82', lineColor: '#8a7348', url: '资料分享/虚拟币/ch10.html' },
               { key: 'vc10c', path: 'vc10c', parent: 'vc10', name: '链上数据', pos: [57.90, 7.20], scale: 0.92, labelScale: 1.5, color: '#c3ac82', lineColor: '#8a7348', url: '资料分享/虚拟币/ch10.html' },
 
               // —— 11 进阶实验 ——
-              { key: 'vc11', path: 'vc11', parent: 'vc10', name: '11 进阶实验', pos: [60.00, 0.00], scale: 1.25, labelScale: 1.8, color: '#d8c8a8', lineColor: '#8a7348', url: '资料分享/虚拟币/ch11.html' },
+              { key: 'vc11', path: 'vc11', parent: 'vc10', name: '11 进阶实验', pos: [60.00, 0.00], scale: 1.25, labelScale: 1.8, labelAbove: true, color: '#d8c8a8', lineColor: '#8a7348', url: '资料分享/虚拟币/ch11.html' },
               { key: 'vc11a', path: 'vc11a', parent: 'vc11', name: '虚荣助记词', pos: [62.90, -2.60], scale: 0.92, labelScale: 1.5, color: '#c3ac82', lineColor: '#8a7348', url: '资料分享/虚拟币/ch11.html' },
               { key: 'vc11b', path: 'vc11b', parent: 'vc11', name: '哈希会循环吗', pos: [62.90, -4.90], scale: 0.92, labelScale: 1.5, color: '#c3ac82', lineColor: '#8a7348', url: '资料分享/虚拟币/ch11.html' },
               { key: 'vc11c', path: 'vc11c', parent: 'vc11', name: 'MEV 三明治', pos: [62.90, -7.20], scale: 0.92, labelScale: 1.5, color: '#c3ac82', lineColor: '#8a7348', url: '资料分享/虚拟币/ch11.html' },
