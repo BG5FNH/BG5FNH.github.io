@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>第 11 章 · 进阶实验：自己动手验证 - 虚拟币 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../";</script>
+  <link rel="stylesheet" href="../../../assets/style.css" />
+  <link rel="stylesheet" href="vc.css" />
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">进阶实验：自己动手验证</h1>
+    <p class="page-subtitle">虚拟币 · 第 11 章 · 把"听说"变成"我算过"</p>
+
+    <section class="card">
+      <p class="vc-lead">前面十章都是别人告诉你的事。这一章是两个我亲手做过的实验：一个是把<a class="t" data-t="助记词">助记词</a>做成"你想要的字母开头"，一个是试着造一条"<a class="t" data-t="哈希">哈希</a>会循环的链"。两个都能用零依赖的脚本复现，也都能得出干净的结论。</p>
+
+      <div class="vc-sec">
+        <h2><i>1</i>实验一：虚荣助记词 <em>能不能让 12 个词都按我的字母开头</em></h2>
+        <p class="vc-lead">起因很朴素：<a class="t" data-t="助记词">助记词</a>丢了，绝大多数不是因为被破解，而是<b>抄错了一个字</b>。如果 12 个词的开头字母有规律——比如全是 N、I、L、O——那抄错的时候一眼就能看出来。所以问题变成：能不能"定制"首字母？</p>
+        <p class="vc-lead">能，而且便宜得离谱。原因是 BIP-39 的 2048 个词里，<b>首字母的分布极不均匀</b>：</p>
+        <table class="vc-table">
+          <tr><th>字母</th><th>词数</th><th>占比</th><th>平均要试几次</th></tr>
+          <tr><td>s</td><td>250</td><td>12.21%</td><td>8</td></tr>
+          <tr><td>c</td><td>186</td><td>9.08%</td><td>11</td></tr>
+          <tr><td><b>n</b></td><td><b>41</b></td><td><b>2.00%</b></td><td><b>50</b></td></tr>
+          <tr><td>y / z</td><td>6 / 4</td><td>0.29% / 0.20%</td><td>341 / 512</td></tr>
+          <tr><td><b>x</b></td><td><b>0</b></td><td><b>0%</b></td><td><b>永远搜不到</b></td></tr>
+        </table>
+        <p class="vc-lead" style="margin-top:10px">所以约束一个首字母，成本只有 1/50 左右，而不是 1/2048。实测速度（Node，单线程，无优化）<b>588,000 次/秒</b>，<a class="t" data-t="难度">难度</a>阶梯是这样的：</p>
+        <table class="vc-table">
+          <tr><th>目标</th><th>期望尝试次数</th><th>实测耗时</th><th>安全评级</th></tr>
+          <tr><td>NIL</td><td>约 5.0 万</td><td>85 毫秒</td><td>极高</td></tr>
+          <tr><td>NILO</td><td>约 187 万</td><td>3.2 秒</td><td>极高</td></tr>
+          <tr><td>NILOV</td><td>约 8,309 万</td><td>2.4 分钟</td><td>高</td></tr>
+          <tr><td>LUCKY</td><td>约 6.07 亿</td><td>17.2 分钟</td><td>高</td></tr>
+          <tr><td>NILOVE</td><td>约 17 亿</td><td>48.2 分钟</td><td>高</td></tr>
+          <tr><td>NILOVER</td><td>约 322 亿</td><td>15.2 小时</td><td>中</td></tr>
+        </table>
+        <p class="vc-lead" style="margin-top:10px"><b>代价要算清楚。</b>每约束 L 个字母，大约损失 4.7 × L 位的熵（常见字母），稀有的 y/z/q 会到 8 × L 位。做 6 个字母，从 128 位掉到 97 位左右——依然远超可暴力破解的范围，但<b>确实变弱了</b>。</p>
+        <div class="vc-warn"><b>更关键的风险不在数学，在过程。</b>生成过程必须在一台<b>从不联网</b>的干净机器上完成，脚本自己写、自己审；生成过的机器不留下任何记录；跑完立刻离线保存助记词。如果你用别人给的脚本、在联网电脑上跑、或者在线网站上"生成"，那你的钱在生成那一刻就已经不是你的了。</div>
+        <div class="vc-box"><b>结论：</b>技术上完全可行，4 个字母 3 秒、6 个字母 48 分钟；但它把"防抄错"的好处，换成了"生成环节必须绝对干净"的责任。对大多数人，手抄三遍 + 核对恢复，比定制首字母更划算。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>2</i>实验二：能不能造一条"哈希会循环"的链</h2>
+        <p class="vc-lead">问题是从比特币的链式结构想到的：每个块都含有上一块的<a class="t" data-t="哈希">哈希</a>，那如果某一刻"这一块的哈希恰好等于前面某一块的哈希"，链不就绕回来了？绕回来的链会怎样？</p>
+        <p class="vc-lead">先把想法拆成三种可能的理解：</p>
+        <table class="vc-table">
+          <tr><th>你指的可能是什么</th><th>数学本质</th><th>结论</th></tr>
+          <tr><td>反复做 x = hash(x)，会不会回到起点</td><td>有限集合上的迭代</td><td>一定会，但 256 位下环长约 10³⁸ 步</td></tr>
+          <tr><td>造一个 hash(x) == x 的自环</td><td>求哈希不动点</td><td>能造，但要把输出空间缩到 16 位</td></tr>
+          <tr><td>造一条"最后一块指回第一块"的环形<a class="t" data-t="账本">账本</a></td><td>环形引用</td><td>能造，但<a class="t" data-t="账本">账本</a>立刻失去意义</td></tr>
+        </table>
+        <p class="vc-lead" style="margin-top:10px">第一条是鸽巢原理：输出空间有限（2²⁵⁶），迭代次数无限，必然有两个输入落到同一个输出，从那一刻起就进环。真实形状不是圆圈，而是希腊字母 <b>ρ</b>：先有一段尾巴，然后进环。理论期望环长 λ ≈ 1.25·√N。实测（截断 SHA-256 制造小空间）：</p>
+        <table class="vc-table">
+          <tr><th>输出宽度</th><th>空间大小</th><th>尾巴长度</th><th>环长（实测）</th><th>耗时</th></tr>
+          <tr><td>24 bit</td><td>1.7×10⁷</td><td>1,899</td><td>2,140</td><td>32 毫秒</td></tr>
+          <tr><td>32 bit</td><td>4.3×10⁹</td><td>16,725</td><td>35,317</td><td>330 毫秒</td></tr>
+          <tr><td>40 bit</td><td>1.1×10¹²</td><td>2,204,720</td><td>196,109</td><td>9.9 秒</td></tr>
+        </table>
+        <p class="vc-lead" style="margin-top:10px">外推到真实宽度：32 位约 9 万个环长，64 位约 2.3×10¹⁰，<b>256 位约 4.2×10³⁸ 步</b>。就算每秒算 10 亿次，也要 10²² 年。所以"哈希会循环"是对的，但永远观测不到——这恰恰是密码学想要的效果。</p>
+        <p class="vc-lead">第二个实验更狠：把输出压到 16 位，穷举就能找到不动点。实测 134 毫秒找到一个：<b>x = 0x5dde，hash(x) = 0x5dde，环长 1</b>。同时发现一件反直觉的事——<b>不动点不是必然存在的</b>。随机映射的不动点个数服从泊松分布（期望 1 个），有 37% 的概率一个都没有。</p>
+        <div class="vc-box"><b>结论：</b>循环必然存在，也确实造得出来；但一条"最后一块指回第一块"的环形账本，意味着<b>没有起点，也就没有"先发生"</b>——而<a class="t" data-t="区块">区块</a>链<a class="t" data-t="区块">区块</a>链的全部安全性都建立在"顺序不可更改"上。所以它不再是账本，只是一个数学玩具。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>3</i>隐私：为什么"混币"不是答案</h2>
+        <p class="vc-lead">比特币是<b>假名</b>不是匿名：<a class="t" data-t="地址">地址</a>不写名字，但每一笔都永久公开。一旦某个<a class="t" data-t="地址">地址</a>和你的身份挂上钩（<a class="t" data-t="交易所">交易所</a>提币、商家收款、<a class="t" data-t="KYC">KYC</a>），你过去所有流水都能被还原。</p>
+        <div class="vc-grid">
+          <div><b>环<a class="t" data-t="签名">签名</a> / 隐匿地址</b>门罗币（XMR）的做法：一笔交易有多个可能<a class="t" data-t="签名">签名</a>者，外部无法确定是谁。技术上更彻底。</div>
+          <div><b>零知识证明</b>zk 方案能证明"我有资格花这笔钱"而不暴露是哪个地址。zk 混币（如 Tornado 类）就靠这个。</div>
+          <div><b>链下混币服务</b>把很多人的币打乱再发出。问题：运营方跑路、被执法盯上、记录泄露。</div>
+          <div><b>现实提醒</b>混过的币常被<a class="t" data-t="交易所">交易所</a>标记为"高风险"，入金可能被拒或冻结。隐私工具的成本，往往出现在你最需要变现的那一刻。</div>
+        </div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>4</i>MEV：你被"夹"的时候是什么感觉</h2>
+        <p class="vc-lead"><a class="t" data-t="MEV">MEV</a> 直译是"最大可提取价值"，说人话：<b>谁有权决定交易顺序，谁就能靠调整顺序赚钱。</b></p>
+        <p class="vc-lead">最常见的三明治攻击：你在 <a class="t" data-t="DEX">DEX</a> 上挂了一笔大额买单，机器人看到后——</p>
+        <div class="vc-flow"><span>先替你买（推高价格）</span><i>→</i><span>你的单以更差的价格成交</span><i>→</i><span>它立刻卖出</span><i>→</i><span>差价进它口袋</span></div>
+        <p class="vc-lead">你感受到的只是"<a class="t" data-t="滑点">滑点</a>比预期大"。防法：设紧的<a class="t" data-t="滑点">滑点</a>上限、拆单、用带 <a class="t" data-t="MEV">MEV</a> 保护的 RPC（如 Flashbots Protect），或者干脆走聚合器。</p>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>5</i>做实验的四条守则</h2>
+        <ul class="vc-steps">
+          <li><b>只在测试网或本地链上玩。</b>Sepolia、本地 Anvil/Hardhat，随便炸，不花真钱。</li>
+          <li><b>生成密钥的机器要干净。</b>离线、无第三方脚本、跑完不留痕。</li>
+          <li><b>所有"别人的脚本"都当成恶意代码审。</b>包括我上面提到的那两个——你得能读懂每一行再运行。</li>
+          <li><b>结论比数字重要。</b>实验的价值不是"我跑出了一个漂亮结果"，而是"我知道了这个机制的边界在哪"。</li>
+        </ul>
+      </div>
+
+      <div class="vc-key">
+        <h3>本节记住三句话</h3>
+        <ol>
+          <li>定制助记词首字母很便宜（4 字母 3 秒），但熵会掉，生成环节必须绝对干净。</li>
+          <li>哈希必然循环，256 位下的环长是 10³⁸ 步量级，永远观测不到。</li>
+          <li>环形账本可以造，但一旦成环就失去了"顺序"，也就不再是账本。</li>
+        </ol>
+      </div>
+
+      <div class="vc-nav">
+        <a href="ch10.html"><span>第 10 章</span><b>← 价格与市场</b></a>
+        <a class="next" href="index.html"><span>回到目录</span><b>12 章总览 →</b></a>
+      </div>
+    </section>
+  </main>
+
+  <script src="../../../assets/page.js"></script>
+  <script src="../../../assets/glossary.js"></script>
+</body>
+</html>

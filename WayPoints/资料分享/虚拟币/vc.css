@@ -1,0 +1,124 @@
+/* 虚拟币宇宙 · 章节页共用样式（暖橙 + 石板灰，和机器学习的水蓝区分开） */
+:root {
+  --vc-btc: #f0b45a;
+  --vc-btc2: #ffd79a;
+  --vc-slate: #cfe0ea;
+  --vc-dim: #8fa6b6;
+  --vc-line: rgba(240, 180, 90, .28);
+}
+
+.vc-lead { margin: 0 0 10px; font-size: 14px; line-height: 1.95; color: #dce9f2; }
+.vc-lead b { color: var(--vc-btc2); }
+
+.vc-sec { margin: 22px 0 0; }
+.vc-sec > h2 {
+  margin: 0 0 8px; font-size: 17px; letter-spacing: .5px; color: var(--vc-btc);
+  display: flex; align-items: center; gap: 9px; line-height: 1.5;
+}
+.vc-sec > h2 i {
+  flex: none; width: 24px; height: 24px; border-radius: 7px; font-style: normal;
+  font-size: 12px; display: flex; align-items: center; justify-content: center;
+  color: #1a1206; background: linear-gradient(140deg, var(--vc-btc2), var(--vc-btc));
+  font-weight: 700;
+}
+.vc-sec > h2 em { font-style: normal; font-size: 11.5px; color: var(--vc-dim); font-weight: 400; }
+
+.vc-box {
+  margin: 10px 0; padding: 10px 13px; border-radius: 10px; font-size: 13px; line-height: 1.9;
+  color: var(--vc-slate); background: rgba(240, 180, 90, .07);
+  border-left: 2px solid rgba(240, 180, 90, .65);
+}
+.vc-box b { color: var(--vc-btc2); }
+
+.vc-warn {
+  margin: 10px 0; padding: 10px 13px; border-radius: 10px; font-size: 12.5px; line-height: 1.85;
+  color: #f2c9c9; background: rgba(214, 96, 96, .09);
+  border: 1px dashed rgba(214, 120, 120, .45);
+}
+.vc-warn b { color: #ffb3b3; }
+
+.vc-myth {
+  margin: 10px 0; padding: 10px 13px; border-radius: 10px; font-size: 12.5px; line-height: 1.85;
+  color: #c6d6e2; background: rgba(140, 170, 200, .07);
+  border: 1px dashed rgba(160, 190, 215, .3);
+}
+.vc-myth s { color: #9fb0bd; }
+.vc-myth b { color: #a9e4f7; }
+
+.vc-steps { margin: 10px 0 0; padding: 0; list-style: none; counter-reset: vc; }
+.vc-steps > li {
+  position: relative; margin: 0 0 8px; padding: 9px 12px 9px 40px; border-radius: 9px;
+  font-size: 13px; line-height: 1.85; color: #d3e2ec;
+  background: rgba(255, 255, 255, .025); border: 1px solid rgba(240, 180, 90, .16);
+  counter-increment: vc;
+}
+.vc-steps > li::before {
+  content: counter(vc); position: absolute; left: 11px; top: 9px;
+  width: 19px; height: 19px; border-radius: 50%; font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  color: #1a1206; background: rgba(240, 180, 90, .85);
+}
+.vc-steps > li b { color: var(--vc-btc2); }
+
+.vc-table { width: 100%; border-collapse: collapse; margin: 10px 0 0; font-size: 12.5px; }
+.vc-table th, .vc-table td {
+  padding: 8px 10px; text-align: left; line-height: 1.7;
+  border-bottom: 1px solid rgba(255, 255, 255, .07); vertical-align: top;
+}
+.vc-table th { color: var(--vc-btc); font-weight: 600; background: rgba(240, 180, 90, .06); }
+.vc-table td { color: #c8d8e3; }
+.vc-table tr:last-child td { border-bottom: none; }
+
+.vc-key {
+  margin: 16px 0 0; padding: 12px 14px; border-radius: 11px; font-size: 12.8px; line-height: 2;
+  color: #e8f2f8; background: linear-gradient(135deg, rgba(240, 180, 90, .12), rgba(120, 150, 180, .07));
+  border: 1px solid rgba(240, 180, 90, .35);
+}
+.vc-key h3 { margin: 0 0 6px; font-size: 13px; color: var(--vc-btc2); letter-spacing: 1px; }
+.vc-key ol { margin: 0; padding-left: 20px; }
+
+.vc-nav { display: flex; gap: 10px; margin: 18px 0 6px; flex-wrap: wrap; }
+.vc-nav a {
+  flex: 1 1 200px; display: block; padding: 10px 13px; border-radius: 10px; text-decoration: none;
+  border: 1px solid rgba(240, 180, 90, .28); background: rgba(240, 180, 90, .05);
+  font-size: 12.5px; color: #d7e6f0; line-height: 1.7;
+}
+.vc-nav a:hover { border-color: var(--vc-btc); background: rgba(240, 180, 90, .12); }
+.vc-nav a span { display: block; font-size: 10.5px; color: var(--vc-dim); letter-spacing: 1px; }
+.vc-nav a b { color: var(--vc-btc2); font-weight: 600; }
+.vc-nav a.next { text-align: right; }
+
+.vc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+.vc-grid > div {
+  padding: 11px 13px; border-radius: 10px; font-size: 12.5px; line-height: 1.8; color: #c8d8e3;
+  border: 1px solid rgba(240, 180, 90, .2); background: rgba(240, 180, 90, .04);
+}
+.vc-grid > div b { display: block; margin-bottom: 3px; color: var(--vc-btc2); font-size: 13px; }
+
+.vc-stat { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 10px; }
+.vc-stat > div {
+  padding: 10px 6px; text-align: center; border-radius: 9px;
+  border: 1px solid rgba(240, 180, 90, .22); background: rgba(240, 180, 90, .05);
+}
+.vc-stat b { display: block; font-size: 19px; color: var(--vc-btc2); letter-spacing: .5px; }
+.vc-stat span { display: block; margin-top: 3px; font-size: 11px; color: var(--vc-dim); line-height: 1.5; }
+
+.vc-flow {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin: 10px 0;
+  font-size: 12px; color: #d7e6f0;
+}
+.vc-flow span {
+  padding: 5px 10px; border-radius: 7px; background: rgba(240, 180, 90, .1);
+  border: 1px solid rgba(240, 180, 90, .28);
+}
+.vc-flow i { color: var(--vc-dim); font-style: normal; }
+
+.vc-note { margin: 8px 0 0; font-size: 11.5px; color: var(--vc-dim); line-height: 1.8; }
+
+@media (max-width: 640px) {
+  .vc-lead { font-size: 13.5px; }
+  .vc-grid { grid-template-columns: 1fr; }
+  .vc-stat { grid-template-columns: 1fr; }
+  .vc-table { font-size: 12px; }
+  .vc-table th, .vc-table td { padding: 7px 8px; }
+}

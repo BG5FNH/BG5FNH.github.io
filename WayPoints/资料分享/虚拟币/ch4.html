@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>第 4 章 · 以太坊：给账本装上大脑 - 虚拟币 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../";</script>
+  <link rel="stylesheet" href="../../../assets/style.css" />
+  <link rel="stylesheet" href="vc.css" />
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">以太坊：给账本装上大脑</h1>
+    <p class="page-subtitle">虚拟币 · 第 4 章 · 从"只能转账"到"能跑程序"</p>
+
+    <section class="card">
+      <p class="vc-lead">比特币是一台只能做一件事的机器：转账。2015 年上线的以太坊问了一个新问题——<b>如果这个<a class="t" data-t="账本">账本</a>能执行代码呢？</b>从此它不再只是钱，而是一台全世界共用、谁都能写程序的计算机。</p>
+
+      <div class="vc-sec">
+        <h2><i>1</i>账户模型：回到你熟悉的样子</h2>
+        <p class="vc-lead">比特币用 <a class="t" data-t="UTXO">UTXO</a>（一叠钞票），以太坊改用<b>账户</b>：每个<a class="t" data-t="地址">地址</a>就是一个账户，直接记着余额、随机数、代码。</p>
+        <table class="vc-table">
+          <tr><th></th><th>比特币 <a class="t" data-t="UTXO">UTXO</a></th><th>以太坊账户</th></tr>
+          <tr><td>记什么</td><td>一堆"没花掉的收款"</td><td>一个<a class="t" data-t="地址">地址</a> → 余额</td></tr>
+          <tr><td>转账像什么</td><td>递钞票、找零</td><td>改两个数字</td></tr>
+          <tr><td>有没有代码</td><td>没有</td><td>可以有（合约账户）</td></tr>
+          <tr><td>并行处理</td><td>较容易</td><td>难（怕同时改同一个账户）</td></tr>
+        </table>
+        <p class="vc-lead" style="margin-top:10px">所以以太坊的余额是"真的存着"的，不像比特币要靠<a class="t" data-t="钱包">钱包</a>软件去加总。代价是：所有交易必须严格排队执行，这也是它慢的原因之一。</p>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>2</i>智能合约：自动售货机</h2>
+        <p class="vc-lead"><a class="t" data-t="智能合约">智能合约</a>就是部署在链上的程序。它有几个跟普通程序完全不同的性质：</p>
+        <ul class="vc-steps">
+          <li><b>公开。</b>任何人都能读到它的代码和全部状态，包括里面锁着多少钱。</li>
+          <li><b>不可改。</b>部署后代码就固定了（除非作者一开始就留了升级开关）。写错一个字符，没人能帮你打补丁。</li>
+          <li><b>自动执行。</b>条件满足就跑，没有"人工审核"这一步，也没有"客服介入"。</li>
+          <li><b>能被任何人调用。</b>没有登录、没有白名单（除非代码里写了）。它是 API，也是攻击面。</li>
+        </ul>
+        <div class="vc-box"><b>举例：</b>一个最简单的合约可以写"谁给我转 1 ETH，我就把这行字改成他的名字"。它不会骗你，也不会通融——因为"通融"这件事没被写进去。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>3</i>EVM 与 Gas：为什么每步都要收钱</h2>
+        <p class="vc-lead"><a class="t" data-t="EVM">EVM</a>（以太坊虚拟机）是一台假想的计算机，全世界每个<a class="t" data-t="节点">节点</a>都在自己的机器上模拟它。你发一笔交易调用合约，所有<a class="t" data-t="节点">节点</a>都执行一遍，结果必须完全一致。</p>
+        <p class="vc-lead">问题来了：如果有人写个死循环，全网节点岂不是被拖死？解法就是 <a class="t" data-t="Gas">Gas</a>——每条指令都要付费，钱烧完就强制停机。</p>
+        <table class="vc-table">
+          <tr><th>操作</th><th>大致 <a class="t" data-t="Gas">Gas</a></th><th>换算成人话</th></tr>
+          <tr><td>纯转账</td><td>21,000</td><td>最便宜</td></tr>
+          <tr><td><a class="t" data-t="ERC-20">ERC-20</a> 转账</td><td>约 50,000</td><td>贵一倍多</td></tr>
+          <tr><td>Uniswap 换币</td><td>150,000–250,000</td><td>贵十倍</td></tr>
+          <tr><td>部署合约</td><td>几十万到几百万</td><td>最贵</td></tr>
+        </table>
+        <p class="vc-lead" style="margin-top:10px">总费用 = <a class="t" data-t="Gas">Gas</a> 用量 × Gas 价格。价格用 gwei 表示（1 gwei = 0.000000001 ETH）。网络空闲时可能 5 gwei，拥堵时能到 100 gwei 以上——同样的操作，费差 20 倍。</p>
+        <div class="vc-warn"><b>新手最容易亏钱的地方：</b>交易失败也会扣 Gas。比如合约里判断"余额不足"直接回滚，你的钱没动，但<a class="t" data-t="手续费">手续费</a>照扣。所以设<a class="t" data-t="滑点">滑点</a>、设限额不是可选项。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>4</i>ERC-20：为什么钱包能识别几万种币</h2>
+        <p class="vc-lead"><a class="t" data-t="ERC-20">ERC-20</a> 不是一种币，是一套<b>接口约定</b>：必须实现 transfer、balanceOf、approve、transferFrom 这几个函数，名字和参数固定。</p>
+        <p class="vc-lead">因为大家都遵守同一个规格，<a class="t" data-t="钱包">钱包</a>只要写一份代码，就能显示所有 <a class="t" data-t="ERC-20">ERC-20</a> 代币；<a class="t" data-t="交易所">交易所</a>只要接一次，就能上架所有符合标准的币。这就是 2017 年 ICO 大爆发的原因——发一个币，成本不到一小时。</p>
+        <div class="vc-flow"><span>写合约</span><i>→</i><span>部署到以太坊</span><i>→</i><span>自动获得钱包支持</span><i>→</i><span>加<a class="t" data-t="流动性">流动性</a>就能交易</span></div>
+        <p class="vc-lead">反过来说，这也意味着<b>发币零门槛 = 骗局零门槛</b>。任何人都能在 5 分钟内造一个"马斯克火星币"，代码里还可以写"只有我能卖、你不能卖"。</p>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>5</i>NFT：链上只有编号，图片在链下</h2>
+        <p class="vc-lead"><a class="t" data-t="NFT">NFT</a> 用的是 ERC-721 标准：每个 tokenId 唯一，谁持有记录在链上，可以转让。听起来像"数字产权"，但必须说清一件事：</p>
+        <div class="vc-box"><b>链上通常只存一个链接（tokenURI），指向图片所在的服务器或 IPFS。</b>如果那个服务器关了、IPFS 没人做冗余、或者作者把链接改了，你的 <a class="t" data-t="NFT">NFT</a> 就变成一个指向空气的编号。所谓"永久保存"只在有人真的保存时才成立。</div>
+        <p class="vc-lead">它的真实用途是：会员凭证、门票、域名、游戏道具、链上身份。头像炒作是它最出名的一段历史，不是它的全部。</p>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>6</i>从 PoW 到 PoS：2022 年的"合并"</h2>
+        <p class="vc-lead">以太坊原本也靠<a class="t" data-t="挖矿">挖矿</a>。2022 年 9 月它切换到<a class="t" data-t="权益证明">权益证明</a>：不再比算力，而是让<a class="t" data-t="质押">质押</a> 32 ETH 的<a class="t" data-t="验证者">验证者</a>按押金比例被随机选中出块。作恶会被没收押金（slashing）。</p>
+        <div class="vc-stat">
+          <div><b>≈99.95%</b><span>能耗下降幅度</span></div>
+          <div><b>32 ETH</b><span>自建<a class="t" data-t="验证者">验证者</a>门槛</span></div>
+          <div><b>约 3–4%</b><span><a class="t" data-t="质押">质押</a>年化（随参与率浮动）</span></div>
+        </div>
+        <p class="vc-lead" style="margin-top:10px">代价是：<b>有钱人更容易赚钱</b>（押得多，中签多），去中心化程度不如<a class="t" data-t="挖矿">挖矿</a>那么"任何人都能进场"。这是加密圈至今仍在吵的话题。</p>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>7</i>Layer2：为什么便宜 100 倍</h2>
+        <p class="vc-lead">主链（L1）每秒只能处理十几笔，费又贵。解法是把计算搬到链下，再把结果或证明交回主链——这就是 <a class="t" data-t="Rollup">Rollup</a>。</p>
+        <table class="vc-table">
+          <tr><th>类型</th><th>怎么保证安全</th><th>代表</th><th>提现回主链</th></tr>
+          <tr><td>Optimistic</td><td>先默认正确，7 天内可被挑战</td><td>Arbitrum、Optimism、Base</td><td>约 7 天（可用第三方桥加速）</td></tr>
+          <tr><td>ZK</td><td>直接提交数学证明，立刻可验</td><td>zkSync、StarkNet、Linea</td><td>几分钟到几小时</td></tr>
+        </table>
+        <p class="vc-lead" style="margin-top:10px">在 L2 上转账，费常常只要几分钱。但要注意：<b>L2 上的资产不是"在主链上"</b>，它的安全依赖于排序器和桥，桥出问题就麻烦。这也是<a class="t" data-t="跨链桥">跨链桥</a>被黑最惨的原因。</p>
+      </div>
+
+      <div class="vc-key">
+        <h3>本节记住三句话</h3>
+        <ol>
+          <li>以太坊 = <a class="t" data-t="账本">账本</a> + 一台全世界共用的计算机，程序一旦部署就改不了。</li>
+          <li>Gas 是防止死循环的收费闸门，失败也收费。</li>
+          <li>ERC-20 让发币变成一小时的事，所以币多 ≠ 项目真。</li>
+        </ol>
+      </div>
+
+      <div class="vc-nav">
+        <a href="ch3.html"><span>第 3 章</span><b>← 比特币</b></a>
+        <a class="next" href="ch5.html"><span>第 5 章</span><b>钱包与钥匙：最重要的一章 →</b></a>
+      </div>
+    </section>
+  </main>
+
+  <script src="../../../assets/page.js"></script>
+  <script src="../../../assets/glossary.js"></script>
+</body>
+</html>

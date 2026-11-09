@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>第 7 章 · DeFi：没有银行的银行 - 虚拟币 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../";</script>
+  <link rel="stylesheet" href="../../../assets/style.css" />
+  <link rel="stylesheet" href="vc.css" />
+  <style>
+    .am-wrap { margin: 12px 0 0; padding: 13px; border-radius: 12px;
+      border: 1px solid rgba(240,180,90,.3); background: radial-gradient(circle at 50% 0%, #141008, #08090c 80%); }
+    .am-row { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: #d8e6f0; flex-wrap: wrap; }
+    .am-row input[type=range] { flex: 1 1 180px; accent-color: #f0b45a; }
+    .am-row b { color: #ffd79a; min-width: 62px; text-align: right; font-variant-numeric: tabular-nums; }
+    .am-out { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
+    .am-out > div { padding: 8px 10px; border-radius: 8px; font-size: 11.5px; line-height: 1.7;
+      color: #cfe0ea; background: rgba(240,180,90,.06); border: 1px solid rgba(240,180,90,.2); }
+    .am-out b { display: block; font-size: 15px; color: #ffd79a; font-variant-numeric: tabular-nums; }
+    .am-out span { color: #8fa6b6; font-size: 10.5px; }
+    .am-tip { margin-top: 8px; font-size: 11px; color: #8fa6b6; line-height: 1.8; }
+    @media (max-width: 640px) { .am-out { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">DeFi：没有银行的银行</h1>
+    <p class="page-subtitle">虚拟币 · 第 7 章 · 把借贷和交易写成代码，谁来都一样</p>
+
+    <section class="card">
+      <p class="vc-lead"><a class="t" data-t="DeFi">DeFi</a> 是 Decentralized Finance 的缩写。听起来宏大，实际就三个动作：<b>换币、存币赚息、抵押借钱</b>。区别在于执行者不是银行柜员，而是<a class="t" data-t="智能合约">智能合约</a>。</p>
+
+      <div class="vc-sec">
+        <h2><i>1</i>没有订单簿，怎么定价</h2>
+        <p class="vc-lead">传统<a class="t" data-t="交易所">交易所</a>靠"撮合"：有人挂 10 块卖，有人挂 10 块买，成交。<a class="t" data-t="DeFi">DeFi</a> 的 <a class="t" data-t="DEX">DEX</a> 大多不这么干，它用<a class="t" data-t="AMM">AMM</a>（自动做市商）——一个池子里放着两种币，谁来换都按公式算价格。</p>
+        <div class="vc-box"><b>核心公式：x · y = k</b><br>池子里 ETH 数量 × USDC 数量 = 一个常数。你拿走 ETH，池里 ETH 变少，为了保持 k 不变，USDC 必须变多——也就是你要付更多钱。价格不是谁定的，是算出来的。</div>
+        <p class="vc-lead">这带来一个直接后果：<b>你买得越多，均价越贵</b>。这就是<a class="t" data-t="滑点">滑点</a>。下面可以自己拖动感受：</p>
+
+        <div class="am-wrap">
+          <div class="am-row">
+            <span>我要买</span>
+            <input type="range" id="amBuy" min="0.1" max="60" step="0.1" value="5" />
+            <b><span id="amBuyVal">5.0</span> ETH</b>
+          </div>
+          <div class="am-out">
+            <div><span>要付的 USDC</span><b id="amCost">—</b><span>从池子里实时算出来的</span></div>
+            <div><span>平均成交价</span><b id="amAvg">—</b><span>总付款 ÷ 买到的数量</span></div>
+            <div><span>成交后的新价格</span><b id="amNew">—</b><span>池子比例变了，价格就变了</span></div>
+            <div><span><a class="t" data-t="滑点">滑点</a></span><b id="amSlip">—</b><span>相对买入前的价格</span></div>
+          </div>
+          <div class="am-tip">初始池子：100 ETH + 200,000 USDC（k = 20,000,000），起始价 2,000 USDC/ETH。注意买 60 ETH 的时候<a class="t" data-t="滑点">滑点</a>有多恐怖——现实中没人会这么干，会被拆单或者直接被 <a class="t" data-t="MEV">MEV</a> 吃掉。</div>
+        </div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>2</i>谁在提供这些币：流动性池</h2>
+        <p class="vc-lead"><a class="t" data-t="流动性池">流动性池</a>里的币是用户存进去的。你按当时比例存入两种币，拿到一张"份额凭证"（LP 代币），之后所有经过这个池子的交易，<a class="t" data-t="手续费">手续费</a>按份额分给你。</p>
+        <p class="vc-lead">听起来是躺赚，但有个坑：<b>币价变了，你的持仓结构会被动改变</b>。这叫<a class="t" data-t="无常损失">无常损失</a>。</p>
+        <div class="vc-box"><b>算一遍就懂：</b>你往池子里放 1 ETH + 2,000 USDC（当时 ETH = 2,000）。后来 ETH 涨到 4,000。套利者会不断用 USDC 从池子里买走 ETH，直到池内价格也变成 4,000。此时池子里是 0.707 ETH + 2,828 USDC，总值 5,657。<br>
+        而你如果当初什么都不做，就是 1 ETH + 2,000 = 6,000。<b>差额 343 美元，就是<a class="t" data-t="无常损失">无常损失</a></b>——涨得越猛，损失越大。它靠<a class="t" data-t="手续费">手续费</a>收入来补，补不补得回来看运气。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>3</i>借贷：当铺模式</h2>
+        <p class="vc-lead"><a class="t" data-t="借贷协议">借贷协议</a>（Aave、Compound）的规则跟当铺一样：押东西借钱，跌价就处理。</p>
+        <ul class="vc-steps">
+          <li><b>抵押。</b>存入 1,500 美元的 ETH。</li>
+          <li><b>借款。</b>协议规定抵押率 150%，你最多借 1,000 美元等值的 USDC。</li>
+          <li><b>付息。</b>利率由"资金利用率"自动算：池子里借出去的比例越高，利率越高。</li>
+          <li><b><a class="t" data-t="清算">清算</a>。</b>ETH 跌到某个价位，你的抵押物价值逼近 1,000 × 安全阈值，任何人都可以替你还债、拿走你的抵押物，并额外拿 5–10% 的<a class="t" data-t="清算">清算</a>罚金。</li>
+        </ul>
+        <div class="vc-warn"><b>为什么 DeFi 借贷不需要信用审核？</b>因为它根本不在乎你是谁——抵押物超额覆盖，你不还钱它就直接卖掉。所以它只解决"有资产的人短期缺<a class="t" data-t="流动性">流动性</a>"，解决不了"没钱的人想借钱"。这是它和银行最根本的区别。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>4</i>预言机：链上怎么知道 ETH 多少钱</h2>
+        <p class="vc-lead">合约自己看不见外面。它不知道 ETH 在币安是 2,000 还是 3,000，所以<a class="t" data-t="清算">清算</a>根本没法触发。<a class="t" data-t="预言机">预言机</a>就是那个报信的人：Chainlink 从几十个<a class="t" data-t="交易所">交易所</a>取价、去掉异常值、取中位数，再写到链上。</p>
+        <p class="vc-lead">这里是历史上被攻击最多的地方之一。经典套路：攻击者用一笔巨款在某个小 <a class="t" data-t="DEX">DEX</a> 上把价格瞬间拉高 → <a class="t" data-t="预言机">预言机</a>读到了这个假价格 → 协议按假价格放贷 → 攻击者借走真钱跑路。<b>所以"用了<a class="t" data-t="预言机">预言机</a>"不等于安全，"用了足够多源、足够抗操纵的预言机"才算。</b></p>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>5</i>收益农场：那些 300% 年化是什么</h2>
+        <p class="vc-lead">你在各种网站看到的"年化 300%"，通常不是真的利息，而是<b>项目方在发自己的币补贴你</b>。这类币往往一上线就跌，你赚的补贴可能还不够本金缩水。</p>
+        <table class="vc-table">
+          <tr><th>收益来源</th><th>真实吗</th><th>说明</th></tr>
+          <tr><td>交易手续费分成</td><td>真实、可持续</td><td>通常年化个位数到几十，看交易量</td></tr>
+          <tr><td>借款利息</td><td>真实</td><td>由利用率决定，牛市高</td></tr>
+          <tr><td>协议代币补贴</td><td>不可持续</td><td>补贴停了，年化立刻归零，币价同时崩</td></tr>
+          <tr><td>"存进去每天返 3%"</td><td>庞氏</td><td>用后来人的钱付前面的人，数学上必然崩</td></tr>
+        </table>
+        <div class="vc-myth"><s>误解：</s>年化高是因为策略聪明。<br><b>实际：</b>无风险利率在全球都是个位数。任何远超这个数的"稳定收益"，钱要么来自新入场者，要么来自你自己本金。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>6</i>桥：最危险的一环</h2>
+        <p class="vc-lead"><a class="t" data-t="跨链桥">跨链桥</a>让资产从一条链搬到另一条。常见做法是"锁定 + 铸造"：在以太坊锁住 100 USDC，在 Arbitrum 上给你铸 100 个"凭证 USDC"。</p>
+        <p class="vc-lead">问题在于：<b>那条链上的一百个凭证，背后是否真的锁着一百个真币？</b>桥的合约里通常躺着几亿美金，是黑客眼里最肥的目标。Ronin 桥被盗 6.24 亿美元，Wormhole 3.26 亿，Nomad 1.9 亿——这类事件每隔几个月就有一起。</p>
+        <div class="vc-box"><b>实践建议：</b>大额跨链尽量用官方桥或主流 L2 官方通道；不要在不知名桥上放长期资产；跨过去的资产尽量尽快用完。</div>
+      </div>
+
+      <div class="vc-key">
+        <h3>本节记住三句话</h3>
+        <ol>
+          <li><a class="t" data-t="AMM">AMM</a> 的价格是公式算的，买得越多越贵，这就是滑点。</li>
+          <li>做市赚手续费，但承担<a class="t" data-t="无常损失">无常损失</a>；贷款要超额抵押，跌价就清算。</li>
+          <li>高年化几乎都来自发币补贴，补贴停了就是零。</li>
+        </ol>
+      </div>
+
+      <div class="vc-nav">
+        <a href="ch6.html"><span>第 6 章</span><b>← 稳定币与交易所</b></a>
+        <a class="next" href="ch8.html"><span>第 8 章</span><b>风险与安全 →</b></a>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+      var X0 = 100, Y0 = 200000, K = X0 * Y0, P0 = Y0 / X0;
+      var slider = document.getElementById('amBuy');
+      var out = {
+        buy: document.getElementById('amBuyVal'),
+        cost: document.getElementById('amCost'),
+        avg: document.getElementById('amAvg'),
+        nw: document.getElementById('amNew'),
+        slip: document.getElementById('amSlip')
+      };
+      function fmt(n, d) {
+        return n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+      }
+      function update() {
+        var dx = parseFloat(slider.value);
+        if (!(dx > 0)) dx = 0.1;
+        if (dx > X0 * 0.92) dx = X0 * 0.92;
+        var cost = Y0 - K / (X0 - dx);          // 恒定乘积：付出多少 USDC
+        var avg = cost / dx;
+        var newP = (K / (X0 - dx)) / (X0 - dx); // 成交后池内价格
+        var slip = (avg / P0 - 1) * 100;
+        out.buy.textContent = dx.toFixed(1);
+        out.cost.textContent = fmt(cost, 0) + ' USDC';
+        out.avg.textContent = fmt(avg, 1);
+        out.nw.textContent = fmt(newP, 1);
+        out.slip.textContent = slip.toFixed(2) + '%';
+      }
+      slider.addEventListener('input', update);
+      update();
+    })();
+  </script>
+  <script src="../../../assets/page.js"></script>
+  <script src="../../../assets/glossary.js"></script>
+</body>
+</html>

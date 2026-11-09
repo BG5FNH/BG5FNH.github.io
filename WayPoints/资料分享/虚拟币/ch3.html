@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>第 3 章 · 比特币：第一个成功的实验 - 虚拟币 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../";</script>
+  <link rel="stylesheet" href="../../../assets/style.css" />
+  <link rel="stylesheet" href="vc.css" />
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">比特币：第一个成功的实验</h1>
+    <p class="page-subtitle">虚拟币 · 第 3 章 · 2009 年那 9 页纸到底写了什么</p>
+
+    <section class="card">
+      <p class="vc-lead">前面两章的道理，1990 年代就有人想到了，但都失败了。比特币的突破不是"想到了<a class="t" data-t="区块">区块</a>链<a class="t" data-t="区块">区块</a>链"，而是<b>把激励机制接上了</b>：让维护<a class="t" data-t="账本">账本</a>这件事本身能赚钱。这一章讲它具体怎么运作。</p>
+
+      <div class="vc-sec">
+        <h2><i>1</i>2008 年的那份白皮书 <em>9 页，没有一句废话</em></h2>
+        <p class="vc-lead">2008 年 10 月 31 日，一个叫"中本聪"（Satoshi Nakamoto）的匿名账号在一个密码学邮件列表里发了个链接：《比特币：一种点对点的电子现金系统》。9 页，没有公式堆砌，没有融资，没有公司。</p>
+        <p class="vc-lead">2009 年 1 月 3 日，第一个<a class="t" data-t="区块">区块</a>（创世块）被挖出来，里面嵌了一行报纸标题：<i>"The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"</i>——当天英国财政大臣正准备第二次救银行。这行字是时间戳，也是一句讽刺：<b>这里不需要救。</b></p>
+        <div class="vc-box"><b>中本聪是谁？</b>没人知道。他（或他们）在 2010 年底彻底消失，把项目交给了开发者。他名下的约 100 万个比特币从未动过。这份"缺席"反而成了比特币最强的背书：没有创始人，就没有人能拍板改规则，也没有人能被抓。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>2</i>比特币怎么记余额：UTXO <em>没有账户，只有钞票</em></h2>
+        <p class="vc-lead">这是新手最容易卡住的地方。银行记的是"你有 5000 元"，比特币记的是"<b>有一张面额 10 的、编号 A 的票，归你</b>"。这种"未花费的收款"叫 <a class="t" data-t="UTXO">UTXO</a>。</p>
+        <p class="vc-lead">举例：你收到过三笔钱——3、5、2，一共 10。现在要付 7：</p>
+        <div class="vc-flow">
+          <span>选 3 + 5 = 8</span><i>→</i><span>7 给商家</span><i>→</i><span>1 找零给自己（新<a class="t" data-t="地址">地址</a>）</span><i>→</i><span>原来那 3 和 5 作废</span>
+        </div>
+        <p class="vc-lead">跟现金一模一样。所以：</p>
+        <ul class="vc-steps">
+          <li><b><a class="t" data-t="钱包">钱包</a>里的"余额"是算出来的</b>，不是存着的。App 扫一遍链上属于你的票，加起来给你看。</li>
+          <li><b>找零<a class="t" data-t="地址">地址</a>通常是新生成的。</b>这就是为什么你的地址会变——为了隐私，不让人一眼看出这些钱都是你的。</li>
+          <li><b>票越碎，<a class="t" data-t="手续费">手续费</a>越高。</b>手里全是 0.001 的小票，付一笔大钱要把几十张票塞进一笔交易，字节数变大，费就贵。这叫"<a class="t" data-t="UTXO">UTXO</a> 碎片化"。</li>
+        </ul>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>3</i>手续费到底怎么算 <em>按体积，不按金额</em></h2>
+        <p class="vc-lead">转 1 万美元和转 10 美元，<a class="t" data-t="手续费">手续费</a>可能一样。因为<a class="t" data-t="手续费">手续费</a>付的是"占了多少区块空间"，单位是 sat/vB（每虚拟字节多少聪）。</p>
+        <table class="vc-table">
+          <tr><th>情况</th><th>典型体积</th><th>说明</th></tr>
+          <tr><td>1 进 2 出（含找零）</td><td>约 140 vB</td><td>最常见</td></tr>
+          <tr><td>5 进 2 出</td><td>约 400 vB</td><td>票多，费近 3 倍</td></tr>
+          <tr><td>拥堵时费率</td><td>50–300 sat/vB</td><td>牛市、大事件时飙升</td></tr>
+        </table>
+        <p class="vc-lead" style="margin-top:10px">内存在排队，矿工从高费率往下挑。你出得太低，交易会卡在<a class="t" data-t="内存池">内存池</a>里几小时甚至几天。两种补救：等（多数<a class="t" data-t="钱包">钱包</a>会自动重广播），或者用 RBF（Replace-By-Fee）加钱把自己顶上去。</p>
+        <div class="vc-warn"><b>真实提醒：</b>2024 年 Ordinals 铭文热潮时，一笔普通转账的手续费一度超过 30 美元。手续费是市场价，不是"平台抽成"，没有客服能给你退。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>4</i>2100 万与减半 <em>一个硬上限</em></h2>
+        <p class="vc-lead">比特币的发行规则写死在代码里：每 10 分钟出一个块，出块奖励从 50 开始，每 21 万块（约 4 年）砍一半。</p>
+        <div class="vc-stat">
+          <div><b>50 → 25 → 12.5</b><span>2009 / 2012 / 2016</span></div>
+          <div><b>6.25 → 3.125</b><span>2020 / 2024</span></div>
+          <div><b>21,000,000</b><span>总量上限（约 2140 年挖完）</span></div>
+        </div>
+        <p class="vc-lead" style="margin-top:10px">因为总量固定在 2100 万，它常被叫作"数字黄金"。但要说清两点：</p>
+        <ul class="vc-steps">
+          <li><b>它不"锚定"任何东西。</b>黄金有工业需求托底，比特币没有。它的价格完全由买卖双方对"未来还有人要"的<a class="t" data-t="共识">共识</a>决定。</li>
+          <li><b>丢失的币永远消失。</b><a class="t" data-t="私钥">私钥</a>丢了就等于销毁，实际流通量长期低于 2100 万。这反而让它更稀缺，但对丢币的人毫无安慰。</li>
+        </ul>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>5</i>51% 攻击：能做什么，不能做什么</h2>
+        <p class="vc-lead">如果某人掌握了全网一半以上的算力，他能：</p>
+        <div class="vc-grid">
+          <div><b>能做</b>抢先出块、把某些交易排除在外（审查）、把自己刚付出的币通过重组区块"收回来"（双花）、让网络短时拥堵。</div>
+          <div><b>做不到</b>偷别人地址里的币（没有<a class="t" data-t="私钥">私钥</a>）、凭空造币（其他<a class="t" data-t="节点">节点</a>会拒绝）、改 2010 年的老账（成本天文数字）。</div>
+        </div>
+        <p class="vc-lead" style="margin-top:10px">对小币种这是现实威胁——租算力就能打。对比特币，攻击一小时的成本以千万美元计，而且币价会先崩，攻击者手里的币也一起归零。<b>所以真正的护城河不是算力，是"攻击者自己也持有这个资产"。</b></p>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>6</i>分叉：社区吵架的产物</h2>
+        <p class="vc-lead">2017 年，比特币社区为"区块要不要扩容"吵了三年。一派坚持小区块 + 二层网络，一派要直接把区块从 1MB 改大。谈不拢，于是硬<a class="t" data-t="分叉">分叉</a>，后者变成了 Bitcoin Cash（BCH）。</p>
+        <table class="vc-table">
+          <tr><th>类型</th><th>含义</th><th>例子</th></tr>
+          <tr><td>软<a class="t" data-t="分叉">分叉</a></td><td>收紧规则，老<a class="t" data-t="节点">节点</a>仍认新块</td><td>2017 SegWit（隔离见证）、2021 Taproot</td></tr>
+          <tr><td>硬分叉</td><td>放宽/改变规则，两边永久分裂</td><td>BTC / BCH（2017）、ETH / ETC（2016）</td></tr>
+        </table>
+        <p class="vc-lead" style="margin-top:10px">硬分叉时你手里的币会"复制"成两份，各拿一份——但这不等于白送钱，因为分叉币通常没人要，价格极低。</p>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>7</i>闪电网络：小额支付的正解</h2>
+        <p class="vc-lead">比特币主链 7 笔/秒左右，买咖啡不现实。<a class="t" data-t="闪电网络">闪电网络</a>的做法是：两人先把一笔币锁进一个"共同账户"（通道），之后在通道里随便转多少次都不上链，只在关闭时把净额结算一次。</p>
+        <div class="vc-flow"><span>开通道（1 笔链上交易）</span><i>→</i><span>通道内转 1000 次</span><i>→</i><span>关通道（1 笔链上交易）</span></div>
+        <p class="vc-lead">通过多跳路由，你不需要和收款人直接开通道——网络会帮你连起来，像转账经过好几个中间人，但每个中间人都看不到全额、也拿不走钱。手续费经常不到 1 分钱。</p>
+        <div class="vc-myth"><s>误解：</s><a class="t" data-t="闪电网络">闪电网络</a>是另一条链、另一种币。<br><b>实际：</b>它锁的还是真 BTC，只是把"记账"搬到了链下。风险是通道要在线、大额<a class="t" data-t="流动性">流动性</a>不易路由、以及实现层面的漏洞。</div>
+      </div>
+
+      <div class="vc-key">
+        <h3>本节记住三句话</h3>
+        <ol>
+          <li>比特币没有账户余额，只有一张张"没花掉的收款"（<a class="t" data-t="UTXO">UTXO</a>），像现金。</li>
+          <li>手续费买的是区块空间，按体积算，跟金额无关。</li>
+          <li>2100 万 + <a class="t" data-t="减半">减半</a> = 供应写死；51% 能篡改近期顺序，但偷不走别人的币。</li>
+        </ol>
+      </div>
+
+      <div class="vc-nav">
+        <a href="ch2.html"><span>第 2 章</span><b>← 区块链的三件套</b></a>
+        <a class="next" href="ch4.html"><span>第 4 章</span><b>以太坊：给账本装上大脑 →</b></a>
+      </div>
+    </section>
+  </main>
+
+  <script src="../../../assets/page.js"></script>
+  <script src="../../../assets/glossary.js"></script>
+</body>
+</html>

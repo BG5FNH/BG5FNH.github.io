@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>第 6 章 · 稳定币与交易所 - 虚拟币 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../";</script>
+  <link rel="stylesheet" href="../../../assets/style.css" />
+  <link rel="stylesheet" href="vc.css" />
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">稳定币与交易所</h1>
+    <p class="page-subtitle">虚拟币 · 第 6 章 · 钱从法币进圈的第一道门</p>
+
+    <section class="card">
+      <p class="vc-lead">你不可能拿人民币直接去买一个 <a class="t" data-t="NFT">NFT</a>。整个币圈的"水电"是<a class="t" data-t="稳定币">稳定币</a>，而"大门"是<a class="t" data-t="交易所">交易所</a>。这一章讲这两样东西怎么运作，以及它们各自会在哪儿出问题。</p>
+
+      <div class="vc-sec">
+        <h2><i>1</i>为什么需要稳定币</h2>
+        <p class="vc-lead">比特币一天能波动 5%。你要是想在里面做交易、借贷、结算，就需要一个"不动"的计价单位。总不能用"0.00023 个比特币"标价一杯咖啡。</p>
+        <p class="vc-lead"><a class="t" data-t="稳定币">稳定币</a>就是为此设计的：<b>目标价永远 1 美元</b>。你在<a class="t" data-t="交易所">交易所</a>用法币买它，进圈后用它在各条链上流转，出圈时再换回法币。</p>
+        <div class="vc-box"><b>它其实是"链上的美元代金券"。</b>你持有的不是美元，是某家公司承诺"凭票付你一美元"的欠条。理解这一点，你就理解了它全部的风险来源。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>2</i>三种稳定币，三种风险</h2>
+        <table class="vc-table">
+          <tr><th>类型</th><th>怎么维持 1 美元</th><th>代表</th><th>主要风险</th></tr>
+          <tr><td>法币抵押</td><td>发行方真的持有等额美元/美债</td><td><a class="t" data-t="USDT">USDT</a>、USDC</td><td>储备是否真实、能否赎回、发行方被冻结</td></tr>
+          <tr><td>加密超额抵押</td><td>锁 150 美元的 ETH 才发 100 DAI</td><td>DAI / RAI</td><td>抵押物暴跌 → <a class="t" data-t="清算">清算</a>不过来 → <a class="t" data-t="脱锚">脱锚</a></td></tr>
+          <tr><td>算法稳定</td><td>靠另一个币的套利机制维持</td><td>UST（已归零）</td><td>信心一崩就是死亡螺旋</td></tr>
+        </table>
+        <p class="vc-lead" style="margin-top:10px">2022 年 5 月，UST 在一周内从 1 美元跌到 0.01 美元，四百多亿美元蒸发。它的机制是"用 LUNA 燃烧换 UST"，理论上永远能套利——但只要有人先跑、信心崩了，机制就变成加速器。</p>
+        <div class="vc-warn"><b>判断一个<a class="t" data-t="稳定币">稳定币</a>安不安全，看三件事：</b>① 储备是什么、谁审计的；② 赎回通道是否对普通人开放；③ 发行方是谁、受哪国监管。三样都说不清的，别当现金用。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>3</i>同一个 USDT，不同的链 <em>最容易丢钱的坑</em></h2>
+        <p class="vc-lead"><a class="t" data-t="USDT">USDT</a> 在以太坊上叫 <a class="t" data-t="ERC-20">ERC-20</a> <a class="t" data-t="USDT">USDT</a>，在波场上叫 TRC-20 USDT，在 Solana 上又是另一个合约<a class="t" data-t="地址">地址</a>。它们<b>价值一样，但是不同的东西</b>，就像同一笔钱分别存在三家不同的银行。</p>
+        <div class="vc-steps">
+          <li>对方给你一个<a class="t" data-t="地址">地址</a>，先确认是哪条链。TRC-20 地址是 T 开头，<a class="t" data-t="ERC-20">ERC-20</a> 是 0x 开头。</li>
+          <li>从交易所提币时，"网络"下拉框必须和对方一致。选错，钱会打进一个没人有钥匙的地址。</li>
+          <li>转错链基本等于丢失。有些交易所可以帮你找回，收几十到几百美元<a class="t" data-t="手续费">手续费</a>，且不保证成功。</li>
+        </div>
+        <div class="vc-box"><b>小额测试原则：</b>第一次给某个地址转账，先发 1 美元等值，确认到账再发大额。这三十秒能省掉全部身家。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>4</i>中心化交易所：你其实没有币</h2>
+        <p class="vc-lead">你在币安/OKX 上看到"持仓 1 BTC"，链上并没有一个属于你的地址存着 1 BTC。真实情况是：平台有一个大<a class="t" data-t="钱包">钱包</a>，里面有几万个 BTC，你的 1 个只是它数据库里的一行。</p>
+        <div class="vc-flow"><span>你下单</span><i>→</i><span>平台内部数据库改数字</span><i>→</i><span>链上什么都不发生</span></div>
+        <p class="vc-lead">这在 99% 的时候没问题，而且体验极好（秒级成交、有客服、能法币出入金）。但它意味着：</p>
+        <ul class="vc-steps">
+          <li><b>平台倒了你就没了。</b>FTX 在 2022 年 11 月三天内破产，用户资产一夜清零。</li>
+          <li><b>平台可以冻结你。</b>风控、司法协查、<a class="t" data-t="KYC">KYC</a> 复核，都可能让你提不出币。</li>
+          <li><b>平台可能挪用。</b>拿用户的钱去自营、去放贷，只要不发生挤兑就看不出来。</li>
+        </ul>
+        <div class="vc-myth"><s>传言：</s>大交易所不会倒。<br><b>实际：</b>FTX 在倒闭前是全球第二大交易所，还被一堆明星和机构背书。规模不构成安全，"能随时提出来自我保管"才构成安全。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>5</i>去中心化交易所：自己拿钥匙换币</h2>
+        <p class="vc-lead">在 <a class="t" data-t="DEX">DEX</a> 上，你连的是自己的<a class="t" data-t="钱包">钱包</a>，点"交换"就<a class="t" data-t="签名">签名</a>成交，币直接从你的地址到池子里，中间没有平台托管。没有注册、没有 <a class="t" data-t="KYC">KYC</a>、没有提币审核。</p>
+        <p class="vc-lead">代价全部由你承担：<b>没人帮你判断这个币是不是骗局，没人帮你撤销错误<a class="t" data-t="授权">授权</a>，交易失败也照扣 <a class="t" data-t="Gas">Gas</a>。</b>新手在 <a class="t" data-t="DEX">DEX</a> 上买到的第一个币，有一半概率是貔貅盘（能买不能卖）。</p>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>6</i>法币怎么进出：三条路</h2>
+        <table class="vc-table">
+          <tr><th>路子</th><th>怎么走</th><th>注意</th></tr>
+          <tr><td>交易所 C2C / 法币通道</td><td>在平台内找商家，用微信/支付宝/银行卡付人民币</td><td>最常用。务必用平台托管，不要私下转账</td></tr>
+          <tr><td>境外银行 / 港卡</td><td>电汇到境外交易所，或港卡绑定</td><td>涉及外汇与<a class="t" data-t="税">税</a>务合规，自己要先搞清楚当地规定</td></tr>
+          <tr><td>线下现金 / 熟人</td><td>当面交易</td><td>风险最高：假钞、抢劫、"黑钱"污染账户</td></tr>
+        </table>
+        <div class="vc-warn"><b>关于"卖币收到黑钱"：</b>C2C 收到诈骗资金，你的银行卡可能被异地公安冻结，解冻要跑很久。这是币圈最现实的麻烦之一，和行情无关。收大额款项时尽量选信誉高、成交笔数多的商家，且保留完整聊天与转账记录。</div>
+      </div>
+
+      <div class="vc-key">
+        <h3>本节记住三句话</h3>
+        <ol>
+          <li>稳定币是欠条，不是美元；看储备、看审计、看赎回。</li>
+          <li>同一个币在不同链上是不同的东西，转错链等于丢。</li>
+          <li>交易所里的币是平台欠你的，长期存放请提到自己的钱包。</li>
+        </ol>
+      </div>
+
+      <div class="vc-nav">
+        <a href="ch5.html"><span>第 5 章</span><b>← 钱包与钥匙</b></a>
+        <a class="next" href="ch7.html"><span>第 7 章</span><b>DeFi：没有银行的银行 →</b></a>
+      </div>
+    </section>
+  </main>
+
+  <script src="../../../assets/page.js"></script>
+  <script src="../../../assets/glossary.js"></script>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>第 8 章 · 风险与安全 - 虚拟币 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../";</script>
+  <link rel="stylesheet" href="../../../assets/style.css" />
+  <link rel="stylesheet" href="vc.css" />
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">风险与安全</h1>
+    <p class="page-subtitle">虚拟币 · 第 8 章 · 你会遇到的每一种骗局，这里都有名字</p>
+
+    <section class="card">
+      <p class="vc-lead">在币圈，亏钱的顺序通常是：先被技术风险教育，再被市场风险教育，最后被自己的操作教育。这一章把常见的坑列成清单——不是为了吓你，而是<b>让你在看到它的第一秒就认出来</b>。</p>
+
+      <div class="vc-sec">
+        <h2><i>1</i>先画一张攻击面地图</h2>
+        <table class="vc-table">
+          <tr><th>谁在攻击你</th><th>他要什么</th><th>典型手法</th></tr>
+          <tr><td>随机黑客</td><td>你的<a class="t" data-t="私钥">私钥</a>/<a class="t" data-t="授权">授权</a></td><td><a class="t" data-t="钓鱼">钓鱼</a>站、恶意<a class="t" data-t="签名">签名</a>、剪贴板木马</td></tr>
+          <tr><td>项目方</td><td>你的本金</td><td>貔貅盘、抽地毯（rug pull）、假<a class="t" data-t="空投">空投</a></td></tr>
+          <tr><td>职业骗子</td><td>你的信任</td><td>杀猪盘、假客服、假<a class="t" data-t="交易所">交易所</a>、"老师带单"</td></tr>
+          <tr><td>熟人/身边人</td><td>你抄在纸上的词</td><td>偷看、拍照、翻抽屉</td></tr>
+          <tr><td>你自己</td><td>—</td><td>转错链、抄错词、点错<a class="t" data-t="授权">授权</a>、追高</td></tr>
+        </table>
+        <div class="vc-box"><b>注意最后一行的权重。</b>真实案例里，因自己操作失误丢掉的币，比被黑客偷走的多得多。所以安全的第一课不是"防黑客"，是"防手滑"。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>2</i>骗局清单：认脸</h2>
+        <ul class="vc-steps">
+          <li><b>假<a class="t" data-t="空投">空投</a>。</b>说你<a class="t" data-t="钱包">钱包</a>"符合领取资格"，点进去要你连<a class="t" data-t="钱包">钱包</a>、点"Claim"。你签的那一笔其实是"授权转走全部 USDC"。<b>真空投不需要你付钱，也不会让你<a class="t" data-t="签名">签名</a>授权。</b></li>
+          <li><b>貔貅盘。</b>能买不能卖。合约里写死了只有白名单<a class="t" data-t="地址">地址</a>能卖。判断方法：去 honeypot 检测站查，或者先用极小金额试卖。</li>
+          <li><b>抽地毯（Rug Pull）。</b>项目方把池子里的<a class="t" data-t="流动性">流动性</a>一次性撤走，价格瞬间归零。特征是：LP 代币没有锁仓、部署者<a class="t" data-t="地址">地址</a>持有大量代币。</li>
+          <li><b>假客服。</b>你在群里问"为什么提不出来"，立刻有人私聊你，让你"验证钱包"——接着就是<a class="t" data-t="助记词">助记词</a><a class="t" data-t="钓鱼">钓鱼</a>。<b>官方客服永远不会私聊你。</b></li>
+          <li><b><a class="t" data-t="钓鱼">钓鱼</a>站。</b>域名差一个字母：metamask.io → rnetamask.io。收藏夹里的才是真的，搜索结果的广告位经常是假的。</li>
+          <li><b>杀猪盘。</b>网恋/交友带你"玩量化""跟着老师做合约"，先让你小赚，再让你全仓，然后提现要交"<a class="t" data-t="税">税</a>费""保证金"。这类盘 100% 无法提现。</li>
+          <li><b>地址投毒。</b>骗子先给你地址转 0 币，让你的转账记录里出现一个"首尾几位和你常转地址一样"的假地址。你下次从历史记录里复制，就转给了骗子。</li>
+          <li><b>假<a class="t" data-t="交易所">交易所</a>/假 App。</b>应用商店里的山寨 App、群里发的下载链接。装上去输入<a class="t" data-t="助记词">助记词</a>，钱立刻没。</li>
+        </ul>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>3</i>授权：最隐蔽的一种"送钱"</h2>
+        <p class="vc-lead"><a class="t" data-t="ERC-20">ERC-20</a> 有个设计：你不需要每次转账都签名，可以先把"额度"授权给某个合约，让它以后自己划。这在 <a class="t" data-t="DEX">DEX</a> 上必须用，但也成了最大的漏洞。</p>
+        <div class="vc-flow"><span>你点「Approve」</span><i>→</i><span>合约获得额度（常常是无限）</span><i>→</i><span>合约被黑 / 本来就是骗子</span><i>→</i><span>你的币被一次性划走</span></div>
+        <p class="vc-lead">更隐蔽的是签名钓鱼：有些恶意签名长得像"登录"，实际内容是"授权 0xabc 花费你全部 <a class="t" data-t="USDT">USDT</a>"。你根本没看到金额，只看到一个确认框。</p>
+        <div class="vc-warn"><b>两条硬规则：</b>① 授权额度能填具体数就填具体数，不要选"无限"；② 每季度去 revoke.cash 这类工具检查一遍，把不用的授权取消掉（取消要付 <a class="t" data-t="Gas">Gas</a>，但比被清空便宜）。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>4</i>技术性风险：跟骗子无关的那些</h2>
+        <div class="vc-grid">
+          <div><b>合约漏洞</b>代码写错、重入攻击、价格计算溢出。被黑一次，池子里的钱瞬间没，没有人能逆转。</div>
+          <div><b><a class="t" data-t="清算">清算</a>螺旋</b>价格暴跌 → 大量抵押物被<a class="t" data-t="清算">清算</a> → 继续砸盘 → 更多清算。杠杆越高，链式反应越猛。</div>
+          <div><b><a class="t" data-t="脱锚">脱锚</a></b><a class="t" data-t="稳定币">稳定币</a>不再等于 1 美元，所有以它为计价的市场一起歪。</div>
+          <div><b>桥与 L2 风险</b><a class="t" data-t="跨链桥">跨链桥</a>被黑、L2 排序器停机、提款延迟。你的资产可能"卡"在另一条链上几小时到几天。</div>
+        </div>
+        <p class="vc-lead" style="margin-top:10px">还有一类常被忽略：<b>链上拥堵时的 <a class="t" data-t="Gas">Gas</a> 竞价</b>。你想紧急撤出，结果 Gas 涨到 200 gwei，一笔交易几十美元，撤不撤都是亏。</p>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>5</i>自保清单（照着做就行）</h2>
+        <ul class="vc-steps">
+          <li><b>助记词只离线存在。</b>纸/钢板，三份分放，不拍照、不云同步、不发微信。</li>
+          <li><b>分钱包。</b>日常钱包只放几百块，主资产用<a class="t" data-t="硬件钱包">硬件钱包</a>，两个助记词完全隔离。</li>
+          <li><b>先小额。</b>新地址、新链、新桥，一律先转最小额。</li>
+          <li><b>看清签名内容。</b>钱包弹窗里点"详细信息"，确认是转账还是授权，金额是多少。</li>
+          <li><b>只用收藏的官网。</b>不点搜索广告，不点群里链接，不扫陌生二维码。</li>
+          <li><b>定期撤销授权。</b>三个月一次，把不用的额度清掉。</li>
+          <li><b>拒绝一切"帮你操作"。</b>远程控制软件（向日葵、AnyDesk）+ 币圈 = 100% 骗局。</li>
+          <li><b>大额分地址存放。</b>不要把所有资产放在一个地址里，一次授权泄露就是全损。</li>
+        </ul>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>6</i>如果已经被盗，还能做什么</h2>
+        <ul class="vc-steps">
+          <li><b>立刻转移剩余资产。</b>用一个新的、干净的助记词生成新地址，先转走没被波及的币。不要再用那台设备操作。</li>
+          <li><b>撤销所有授权。</b>如果只是授权被滥用、<a class="t" data-t="私钥">私钥</a>还没泄露，revoke 能止住后续损失。</li>
+          <li><b>记录证据。</b>交易<a class="t" data-t="哈希">哈希</a>、对方地址、聊天记录、网站截图。链上证据是永久且公开的。</li>
+          <li><b>标记地址。</b>在<a class="t" data-t="区块">区块</a>浏览器<a class="t" data-t="区块">区块</a>浏览器和 Chainabuse 一类平台上报，能帮后来的人避开同一个地址。</li>
+          <li><b>报警与平台申诉。</b>如果资金流向中心化交易所，有极小概率在入金环节被拦下。速度是关键。</li>
+        </ul>
+        <div class="vc-myth"><s>误解：</s>被盗了找"追币大神"能追回。<br><b>实际：</b>链上转账不可撤销。所谓"追币服务"绝大多数是二次诈骗，专门骗已经亏过钱的人。你能做的是止损和留证据，不是追回。</div>
+      </div>
+
+      <div class="vc-key">
+        <h3>本节记住三句话</h3>
+        <ol>
+          <li>真空投不要钱、不要助记词、不要你签名授权。</li>
+          <li>授权等于给对方一张副卡，定期撤销是必修课。</li>
+          <li>丢币最常见的原因不是黑客，是转错链、抄错词、点错确认。</li>
+        </ol>
+      </div>
+
+      <div class="vc-nav">
+        <a href="ch7.html"><span>第 7 章</span><b>← DeFi</b></a>
+        <a class="next" href="ch9.html"><span>第 9 章</span><b>监管与税务 →</b></a>
+      </div>
+    </section>
+  </main>
+
+  <script src="../../../assets/page.js"></script>
+  <script src="../../../assets/glossary.js"></script>
+</body>
+</html>

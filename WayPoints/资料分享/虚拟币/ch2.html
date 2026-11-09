@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>第 2 章 · 区块链的三件套 - 虚拟币 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../";</script>
+  <link rel="stylesheet" href="../../../assets/style.css" />
+  <link rel="stylesheet" href="vc.css" />
+  <style>
+    .hc-wrap { margin: 12px 0 0; padding: 12px; border-radius: 12px;
+      border: 1px solid rgba(240,180,90,.3); background: radial-gradient(circle at 50% 0%, #141008, #08090c 80%); }
+    .hc-chain { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; }
+    .hc-block { flex: none; width: 172px; padding: 9px 10px; border-radius: 9px; font-size: 11.5px; line-height: 1.7;
+      color: #d8e6f0; background: rgba(240,180,90,.06); border: 1px solid rgba(240,180,90,.3); }
+    .hc-block.bad { border-color: rgba(230,110,110,.85); background: rgba(230,110,110,.1); }
+    .hc-block h4 { margin: 0 0 5px; font-size: 11.5px; color: #f0b45a; letter-spacing: .5px; }
+    .hc-block input { width: 100%; box-sizing: border-box; font: inherit; font-size: 11.5px; padding: 4px 6px;
+      border-radius: 5px; color: #fff; background: rgba(0,0,0,.45); border: 1px solid rgba(240,180,90,.3); }
+    .hc-block .lbl { color: #8fa6b6; font-size: 10.5px; display: block; margin-top: 5px; letter-spacing: .5px; }
+    .hc-block code { color: #ffd79a; font-size: 10.5px; word-break: break-all; }
+    .hc-block code.no { color: #ff9b9b; }
+    .hc-status { margin-top: 8px; font-size: 12px; letter-spacing: .5px; color: #9be7c4; }
+    .hc-status.bad { color: #ff9b9b; }
+    .hc-btn { font: inherit; font-size: 12px; margin-top: 8px; margin-right: 6px; padding: 6px 12px; border-radius: 999px;
+      cursor: pointer; color: #ffd79a; background: rgba(240,180,90,.1); border: 1px solid rgba(240,180,90,.45); }
+    .hc-btn:hover { background: rgba(240,180,90,.2); }
+    .hc-tip { margin-top: 8px; font-size: 11px; color: #8fa6b6; line-height: 1.75; }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">区块链的三件套</h1>
+    <p class="page-subtitle">虚拟币 · 第 2 章 · 指纹、链子、<a class="t" data-t="难度">难度</a>——没有任何神秘的东西</p>
+
+    <section class="card">
+      <p class="vc-lead">"<a class="t" data-t="区块">区块</a>链<a class="t" data-t="区块">区块</a>链"这个词听起来玄，其实它是三个很朴素的东西拼起来的：一个指纹函数、一条用指纹连起来的链、一道自动调难的算术题。这一章逐个拆，不跳步。</p>
+
+      <div class="vc-sec">
+        <h2><i>1</i>哈希：给任何内容按指纹</h2>
+        <p class="vc-lead"><a class="t" data-t="哈希">哈希</a>函数吃进任意长度的东西——一句话、一张图、整个银行数据库——吐出一串固定长度的字符。比特币用 SHA-256，输出永远是 64 个十六进制字符。</p>
+        <p class="vc-lead">它有三个必须记住的性质：</p>
+        <ul class="vc-steps">
+          <li><b>一样进、一样出。</b>同样的内容算一万次结果完全一致，所以任何一台电脑都能自己验证，不用问别人。</li>
+          <li><b>差一个字，面目全非。</b>把"我转你 100"改成"我转你 900"，指纹完全不同，没有任何相似度可用。</li>
+          <li><b>不可反推。</b>看到指纹，猜不出原文。这跟加密不一样：加密能解密，<a class="t" data-t="哈希">哈希</a>不能。</li>
+        </ul>
+        <div class="vc-box"><b>为什么它能防改：</b>改一个数字，指纹就全变。所以只要在某个地方"记住"了原指纹，别人改过你就一定看得出来——前提是这个"记住"的地方他也改不了。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>2</i>区块：一页账 + 两个指纹</h2>
+        <p class="vc-lead">一个<a class="t" data-t="区块">区块</a>的内容，剥掉细节就四样东西：</p>
+        <table class="vc-table">
+          <tr><th>里面有什么</th><th>作用</th></tr>
+          <tr><td>一批交易</td><td>这一页记的几十到几千笔转账</td></tr>
+          <tr><td>上一块的<a class="t" data-t="哈希">哈希</a></td><td>把这一页钉死在前一页后面</td></tr>
+          <tr><td>本块交易的哈希根（Merkle 根）</td><td>把所有交易压成一个指纹，改一笔就变</td></tr>
+          <tr><td>时间戳 + 随机数 nonce</td><td>时间证明 + 用来做算术题的可变旋钮</td></tr>
+        </table>
+        <p class="vc-lead" style="margin-top:10px">"Merkle 根"听着高级，其实是<b>两两配对再哈希，一层层往上压</b>，最后剩一个指纹。好处是：想证明"这笔交易确实在这一块里"，只需给出几条旁支指纹（几 KB），不用把整块几千笔都下载下来。轻<a class="t" data-t="钱包">钱包</a>就是靠这个工作的。</p>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>3</i>链：改历史要一路重算</h2>
+        <p class="vc-lead">因为每个块都含着上一块的指纹，所以第 100 块的内容一变，它的指纹就变，第 101 块里记的"上一块指纹"立刻对不上——整条链从第 100 块往后全部作废。</p>
+        <p class="vc-lead">注意：<b><a class="t" data-t="区块链">区块链</a>不是"改不了"，是"改了要付代价"</b>。想改第 100 块还让别人认，你得把 100 到最新之间所有块重新算一遍，而且算得比全网其他人更快。下面这个对比表说明了成本差多少：</p>
+        <table class="vc-table">
+          <tr><th></th><th>普通数据库</th><th>区块链</th></tr>
+          <tr><td>改一笔旧记录</td><td>一条 UPDATE 语句，1 毫秒</td><td>重算之后所有区块，成本随深度指数上升</td></tr>
+          <tr><td>谁能改</td><td>有管理员密码的人</td><td>掌握超过一半算力/押金的人</td></tr>
+          <tr><td>改了会被发现吗</td><td>不一定，可以顺手改日志</td><td>全网副本立刻不一致，藏不住</td></tr>
+        </table>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>4</i>自己动手：改一个字，链就断</h2>
+        <p class="vc-lead">下面是一个<b>教学用</b>的迷你链（哈希被简化成 8 位，真实是 64 位，原理一样）。方块里的字可以改，改完立刻能看到后面的块"接不上"：</p>
+
+        <div class="hc-wrap">
+          <div class="hc-chain" id="hcChain"></div>
+          <div class="hc-status" id="hcStatus">链完整</div>
+          <button class="hc-btn" id="hcFix">① 试着改第 2 块的文字</button>
+          <button class="hc-btn" id="hcMine">② 把断掉的链接重新"算"回去</button>
+          <button class="hc-btn" id="hcReset">重置</button>
+          <div class="hc-tip">点"①"会模拟一次偷偷篡改：第 2 块的内容变了，它的指纹随之改变，于是第 3 块里记录的"上一块指纹"失效，红色就是断点。真实网络里修好这个断点，需要把后面所有块重做一遍<a class="t" data-t="工作量证明">工作量证明</a>——这就是"篡改不划算"的全部道理。</div>
+        </div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>5</i>难度：题目自动变难变简单</h2>
+        <p class="vc-lead">比特币要求区块哈希必须小于一个目标值，通俗说就是"前几位必须是 0"。想碰运气凑出来，只能不断改 nonce 反复算。凑巧命中的概率越低，题目就越难。</p>
+        <p class="vc-lead">网络每 2016 个块（约两周）看一次成绩：如果平均出块时间快于 10 分钟，就把<a class="t" data-t="难度">难度</a>调高；慢了就调低。这叫自动稳定机制——<b>不管多少人挖、多少机器进场，出块速度都被钉在 10 分钟附近</b>。</p>
+        <div class="vc-stat">
+          <div><b>10 分钟</b><span>比特币目标出块时间</span></div>
+          <div><b>2016 块</b><span>一次<a class="t" data-t="难度">难度</a>调整周期</span></div>
+          <div><b>≈ 2 周</b><span>调整周期对应时长</span></div>
+        </div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>6</i>节点：谁在保管这本账</h2>
+        <p class="vc-lead"><a class="t" data-t="节点">节点</a>就是一台运行比特币软件的电脑。<a class="t" data-t="全节点">全节点</a>存着从 2009 年第一块到现在的全部历史，独立校验每一笔交易和每一个区块；它不听任何人的，包括开发者。</p>
+        <div class="vc-grid">
+          <div><b><a class="t" data-t="全节点">节点</a>全<a class="t" data-t="节点">节点</a>做什么</b>验证<a class="t" data-t="签名">签名</a>、检查有没有双花、转发交易和区块。比特币全球约有上万个公开可达的<a class="t" data-t="全节点">全节点</a>，家用电脑也能跑。</div>
+          <div><b>它不做什么</b>不"投票决定"规则。规则写在软件里，谁不同意就运行另一版软件——这就是<a class="t" data-t="分叉">分叉</a>的来源。</div>
+        </div>
+        <div class="vc-box"><b>一句话分清：</b>矿工决定"谁写下一页"，全节点决定"这一页算不算数"。矿工想偷偷改规则，全节点会直接拒绝，他的块白挖。</div>
+      </div>
+
+      <div class="vc-key">
+        <h3>本节记住三句话</h3>
+        <ol>
+          <li>哈希是"内容 → 指纹"，单向、便宜、差一个字全变。</li>
+          <li>链 = 每页都印着上一页的指纹，所以改旧账要重做后面全部工作。</li>
+          <li>难度自动调整，把出块速度按在 10 分钟——这是比特币的心跳。</li>
+        </ol>
+      </div>
+
+      <div class="vc-nav">
+        <a href="ch1.html"><span>第 1 章</span><b>← 转账、双花与共识</b></a>
+        <a class="next" href="ch3.html"><span>第 3 章</span><b>比特币：第一个成功的实验 →</b></a>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+      // 教学用简化哈希（FNV-1a 变体），只为演示"改一字、指纹全变"
+      function h32(s) {
+        var h = 0x811c9dc5;
+        for (var i = 0; i < s.length; i++) {
+          h ^= s.charCodeAt(i);
+          h = Math.imul(h, 0x01000193) >>> 0;
+        }
+        return ('00000000' + h.toString(16)).slice(-8);
+      }
+      var GENESIS = '00000000';
+      var data = ['创世块：2009-01-03', '张三 → 李四 10 币', '李四 → 王五 4 币', '王五 → 张三 1 币'];
+      var baked = [];   // 每个块里"已经写死"的指纹
+      var chain = document.getElementById('hcChain');
+      var statusEl = document.getElementById('hcStatus');
+
+      function rebuild(resetBaked) {
+        if (resetBaked) {
+          baked = [];
+          var prev = GENESIS;
+          for (var i = 0; i < data.length; i++) {
+            baked[i] = h32(prev + data[i]);
+            prev = baked[i];
+          }
+        }
+        chain.innerHTML = '';
+        var prevHash = GENESIS, broken = -1;
+        for (var j = 0; j < data.length; j++) {
+          var d = document.createElement('div');
+          d.className = 'hc-block';
+          var real = h32(prevHash + data[j]);
+          if (real !== baked[j] && broken < 0) broken = j;
+          var prevOk = true;
+          if (j > 0) {
+            var expect = h32(prevHash + data[j - 1]);
+            prevOk = expect === baked[j - 1];
+          }
+          d.innerHTML = '<h4>区块 #' + j + '</h4>' +
+            '<input data-i="' + j + '" value="' + data[j].replace(/"/g, '&quot;') + '" />' +
+            '<span class="lbl">上一块指纹</span><code>' + prevHash + '</code>' +
+            '<span class="lbl">本块指纹（现在算出来的）</span><code class="' + (real === baked[j] ? '' : 'no') + '">' + real + '</code>' +
+            '<span class="lbl">链上记着的指纹</span><code>' + baked[j] + '</code>';
+          if (real !== baked[j] || !prevOk) d.classList.add('bad');
+          chain.appendChild(d);
+          prevHash = real;
+        }
+        if (broken < 0) {
+          statusEl.textContent = '链完整：所有指纹对得上';
+          statusEl.className = 'hc-status';
+        } else {
+          statusEl.textContent = '链在第 ' + broken + ' 块断裂：内容变了，指纹对不上，后面的块全部作废';
+          statusEl.className = 'hc-status bad';
+        }
+        chain.querySelectorAll('input').forEach(function (inp) {
+          inp.addEventListener('input', function () {
+            data[+inp.dataset.i] = inp.value;
+            rebuild(false);
+          });
+        });
+      }
+
+      document.getElementById('hcFix').addEventListener('click', function () {
+        data[1] = '李四 → 王五 9999 币（偷偷改的）';
+        rebuild(false);
+      });
+      document.getElementById('hcMine').addEventListener('click', function () {
+        // 模拟"重算整条链"：把指纹重新烘焙一遍，断点消失，但历史已经被换掉
+        rebuild(true);
+      });
+      document.getElementById('hcReset').addEventListener('click', function () {
+        data = ['创世块：2009-01-03', '张三 → 李四 10 币', '李四 → 王五 4 币', '王五 → 张三 1 币'];
+        rebuild(true);
+      });
+
+      rebuild(true);
+    })();
+  </script>
+  <script src="../../../assets/page.js"></script>
+  <script src="../../../assets/glossary.js"></script>
+</body>
+</html>

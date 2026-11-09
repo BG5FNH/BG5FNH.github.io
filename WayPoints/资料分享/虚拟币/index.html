@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>虚拟币 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../";</script>
+  <link rel="stylesheet" href="../../../assets/style.css" />
+  <link rel="stylesheet" href="vc.css" />
+  <style>
+    .vc-center { text-align: center; padding: 18px 14px; border-radius: 12px; margin: 4px 0 14px;
+      border: 1px solid rgba(240, 180, 90, 0.42);
+      background: radial-gradient(circle at 50% 0%, rgba(240, 180, 90, 0.16), rgba(120, 150, 180, 0.06) 70%); }
+    .vc-center b { display: block; font-size: 20px; color: #ffd79a; letter-spacing: 4px; }
+    .vc-center span { display: block; margin-top: 6px; font-size: 12px; color: var(--vc-dim); letter-spacing: .5px; }
+    .ch-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+    .ch-card { display: block; padding: 11px 13px; border-radius: 10px; text-decoration: none;
+      border: 1px solid rgba(240, 180, 90, 0.26);
+      background: linear-gradient(135deg, rgba(240, 180, 90, 0.07), rgba(120, 150, 180, 0.05)); }
+    .ch-card:nth-child(even) { border-color: rgba(160, 190, 215, 0.28); }
+    .ch-card b { display: block; font-size: 13.5px; color: #ffd79a; letter-spacing: .5px; }
+    .ch-card:nth-child(even) b { color: #b9d7ea; }
+    .ch-card span { display: block; margin-top: 4px; font-size: 11.5px; color: var(--vc-dim); line-height: 1.65; }
+    .ch-card em { display: block; margin-top: 5px; font-style: normal; font-size: 10.5px; color: rgba(240, 180, 90, .75); }
+    .terms { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+    .terms .t { font-size: 12px; padding: 4px 10px; border-radius: 999px;
+      border: 1px solid rgba(240, 180, 90, .3); background: rgba(240, 180, 90, .06);
+      color: #ffd79a; border-bottom-width: 1px; }
+    .terms .t:hover { background: rgba(240, 180, 90, .16); }
+    @media (max-width: 640px) { .ch-list { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">虚拟币</h1>
+    <p class="page-subtitle">资料分享 · 虚拟币 · 从"钱是一行记录"讲到"自己动手造链"</p>
+
+    <section class="card">
+      <div class="vc-center">
+        <b>12 章 · 一棵树</b>
+        <span>不需要任何计算机基础 · 所有术语都可以点开看解释</span>
+      </div>
+      <p class="vc-lead">这套东西只有一个目标：<b>让你在不相信任何人说法的情况下，自己看懂它是什么</b>。所以它从"钱为什么是一行记录"开始，一路走到"我亲手算过哈希会不会循环"。中间不跳步，也不要求你懂编程。</p>
+      <p class="vc-lead" style="font-size:12.5px;color:var(--vc-dim)">阅读建议：第 0–2 章是地基，别跳；第 3–4 章是两条不同的路线（比特币 / 以太坊）；第 5 章是保命，一定要看；第 6–8 章是实战里真正会遇到的；第 9–11 章是规则、市场和实验。</p>
+      <div class="vc-stat">
+        <div><b>12</b><span>章正文</span></div>
+        <div><b>70+</b><span>可点开的术语</span></div>
+        <div><b>2</b><span>可动手的实验</span></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 style="margin:0 0 4px;font-size:15px;color:#ffd79a;letter-spacing:1px">章节</h2>
+      <div class="ch-list">
+        <a class="ch-card" href="ch0.html"><b>第 0 章 · 钱到底是什么</b><span>现金与余额、银行流水、账本三铁律、"转账"其实没有钱在飞</span><em>不需要任何基础</em></a>
+        <a class="ch-card" href="ch1.html"><b>第 1 章 · 转账、双花与共识</b><span>为什么数字货币天生会双花，两种解法，为什么"确认 6 次"就安全</span><em>核心原理</em></a>
+        <a class="ch-card" href="ch2.html"><b>第 2 章 · 区块链的三件套</b><span>哈希、区块与链、难度调整、节点；<b>附带可动手的断链演示</b></span><em>可动手</em></a>
+        <a class="ch-card" href="ch3.html"><b>第 3 章 · 比特币</b><span>白皮书、UTXO、手续费怎么算、2100 万与减半、51%、分叉、闪电网络</span><em>主线</em></a>
+        <a class="ch-card" href="ch4.html"><b>第 4 章 · 以太坊</b><span>账户模型、智能合约、EVM 与 Gas、ERC-20、NFT、PoS、Layer2</span><em>主线</em></a>
+        <a class="ch-card" href="ch5.html"><b>第 5 章 · 钱包与钥匙</b><span>私钥/公钥/地址、助记词、派生路径、冷热钱包、备份姿势</span><em>保命必读</em></a>
+        <a class="ch-card" href="ch6.html"><b>第 6 章 · 稳定币与交易所</b><span>USDT 三种背书、转错链、交易所为什么不等于你的币、法币出入金</span><em>实战</em></a>
+        <a class="ch-card" href="ch7.html"><b>第 7 章 · DeFi</b><span>AMM 定价（可拖动算滑点）、无常损失、借贷与清算、预言机、桥</span><em>可动手</em></a>
+        <a class="ch-card" href="ch8.html"><b>第 8 章 · 风险与安全</b><span>八种骗局认脸、授权机制、地址投毒、自保清单、被盗后的 5 步</span><em>保命必读</em></a>
+        <a class="ch-card" href="ch9.html"><b>第 9 章 · 监管与税务</b><span>内地 2021 通知、香港发牌、美国 ETF、MiCA、为什么换币也可能要交税</span><em>规则</em></a>
+        <a class="ch-card" href="ch10.html"><b>第 10 章 · 价格与市场</b><span>价格＝最近一次成交、市值是幻觉、四类资金、周期、杠杆与爆仓</span><em>市场</em></a>
+        <a class="ch-card" href="ch11.html"><b>第 11 章 · 进阶实验</b><span>虚荣助记词实测、哈希会不会循环、隐私与 MEV、做实验的四条守则</span><em>硬核</em></a>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 style="margin:0 0 4px;font-size:15px;color:#ffd79a;letter-spacing:1px">术语墙</h2>
+      <p class="vc-lead" style="font-size:12.5px;margin-bottom:2px">随便点一个，弹出一句话解释 + 一个比喻 + 再深一点的细节。正文里凡是带虚线下划线的词，也都是这样点开的。</p>
+      <div class="terms" id="termWall"></div>
+    </section>
+
+    <section class="card">
+      <p class="vc-lead" style="margin:0">最后说一句实在话：<b>这套东西讲的是"它怎么运作"，不是"该不该买"。</b>看懂机制之后你会发现，币圈的绝大多数亏损来自杠杆、授权、和相信别人，而不是来自"不懂技术"。技术这一章看完，剩下的功课在市场那一章。</p>
+    </section>
+  </main>
+
+  <script src="../../../assets/glossary.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var wall = document.getElementById('termWall');
+      var G = window.GLOSSARY || {};
+      Object.keys(G).forEach(function (k) {
+        var a = document.createElement('a');
+        a.className = 't';
+        a.setAttribute('data-t', k);
+        a.textContent = k;
+        wall.appendChild(a);
+      });
+    })();
+  </script>
+  <script src="../../../assets/page.js"></script>
+</body>
+</html>

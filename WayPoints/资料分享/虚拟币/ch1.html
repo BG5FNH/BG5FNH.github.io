@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>第 1 章 · 转账、双花与共识 - 虚拟币 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../";</script>
+  <link rel="stylesheet" href="../../../assets/style.css" />
+  <link rel="stylesheet" href="vc.css" />
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">转账、双花与共识</h1>
+    <p class="page-subtitle">虚拟币 · 第 1 章 · 一串数字为什么能当钱花</p>
+
+    <section class="card">
+      <p class="vc-lead">上一章说到：钱是<a class="t" data-t="账本">账本</a>上的一行。那"一行字"要变成能花的钱，必须解决一个致命问题——<b>文件可以复制，钱不能</b>。这一章讲的就是这个问题，以及人类想出来的两种解法。</p>
+
+      <div class="vc-sec">
+        <h2><i>1</i>双花：数字货币天生的绝症</h2>
+        <p class="vc-lead">假设钱是一个文件，写着"这张凭证值 100 元"。你把它发给 A，然后再复制一份发给 B。A 和 B 手里都有一张一模一样的凭证，都觉得自己收到了 100 元。这就是<a class="t" data-t="双重支付">双重支付</a>（双花）。</p>
+        <p class="vc-lead">纸钞没有这个问题，因为纸只有一张，给了 A 你手上就没了。<b>但数字世界没有"只有一张"这回事</b>——复制零成本。这就是为什么 1980 年代到 2000 年代，无数电子货币尝试都死在这里。</p>
+        <div class="vc-box"><b>解决双花只有两条路：</b>要么有个权威记账的人，他按顺序记下"第 1 笔给 A、第 2 笔给 B"，第二笔直接拒绝；要么让全网对"顺序"达成一致。前者是银行，后者是<a class="t" data-t="区块">区块</a>链<a class="t" data-t="区块">区块</a>链。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>2</i>解法一：一个中央账本 <em>你现在用的就是这个</em></h2>
+        <p class="vc-lead">微信支付转 500 元，本质是腾讯的数据库里两行数字变了。它为什么不会双花？因为<b>只有一台机器有资格改</b>，它先看到哪一笔就记哪一笔，第二笔余额不够，直接失败。</p>
+        <div class="vc-grid">
+          <div><b>优点</b>快、便宜、能退款、出事有人负责、体验好。</div>
+          <div><b>代价</b>你必须信任它。它冻结你、限额你、改规则、倒闭，你都没有替代方案。</div>
+        </div>
+        <p class="vc-lead" style="margin-top:10px">所以中心化不是落后的方案，它是<b>用信任换效率</b>。比特币选了另一头：用效率换"不需要信任任何人"。</p>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>3</i>解法二的第一步：账本人人一份 <em>新问题立刻出现</em></h2>
+        <p class="vc-lead">如果没有中央机器，那就每个人自己存一本。你在北京，A 在纽约，B 在开普敦，各自电脑里都有一份完整流水。你要花 100 元：广播一句"<a class="t" data-t="地址">地址</a> X 转 100 给<a class="t" data-t="地址">地址</a> A，附上我的<a class="t" data-t="签名">签名</a>"。</p>
+        <p class="vc-lead">A 收到后写进自己那本，B 也写进去。但你同时广播了另一句"地址 X 转 100 给地址 B"。网络有延迟，北京的人先听到第一句，开普敦的人先听到第二句。<b>两个人的<a class="t" data-t="账本">账本</a>不一样了。</b></p>
+        <div class="vc-warn"><b>这就是全部难点：</b>没有中央时钟、没有中央顺序。分布式系统里"谁先谁后"这件事，天生就没有答案。比特币的发明，本质是发明了一种<b>让陌生人对顺序达成一致</b>的办法。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>4</i>让陌生人对顺序达成一致 <em>三个直觉</em></h2>
+        <ul class="vc-steps">
+          <li><b>把时间切成页。</b>不实时记账，而是每 10 分钟打成一"页"（<a class="t" data-t="区块">区块</a>）。页内顺序由出页的人定，页与页之间的顺序由指纹锁定。这样"竞争"从每秒变成每 10 分钟一次。</li>
+          <li><b>出页要买门票。</b>想出这一页，得先做一道极难、验证极容易的算术题，这需要真金白银的电费。这叫<a class="t" data-t="工作量证明">工作量证明</a>。作弊也要花同样的钱，所以作弊不如老实。</li>
+          <li><b>认最长的链。</b>如果两个页同时出现，全网暂时分裂成两半；下一个页接在哪边，哪边就变长。所有人规则统一：<b>只认累积工作量最大的那条</b>。几分钟后自然收敛成一条。</li>
+        </ul>
+        <div class="vc-box"><b>这个机制的美妙之处：</b>它不投票、不实名、不开会，靠"谁愿意烧钱谁说话"来排序。而且烧掉的钱变成了<b>已经发生过的历史</b>——想改，就得把那段历史重烧一遍。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>5</i>一笔交易里到底有什么</h2>
+        <table class="vc-table">
+          <tr><th>字段</th><th>作用</th><th>类比</th></tr>
+          <tr><td>输入（谁付）</td><td>引用你之前收到过的某几笔钱</td><td>从<a class="t" data-t="钱包">钱包</a>里拿出几张纸币</td></tr>
+          <tr><td>输出（给谁、多少）</td><td>收款<a class="t" data-t="地址">地址</a> + 金额，可多笔</td><td>递给对方 + 找零给自己</td></tr>
+          <tr><td><a class="t" data-t="签名">签名</a></td><td>用<a class="t" data-t="私钥">私钥</a>对整笔交易做的数学封印</td><td>你亲手按的火漆印</td></tr>
+          <tr><td><a class="t" data-t="手续费">手续费</a></td><td>给记账者的报酬，越高越优先</td><td>加急费</td></tr>
+        </table>
+        <p class="vc-lead" style="margin-top:10px">注意：交易里<b>没有"余额"这个字段</b>，也没有账号密码。<a class="t" data-t="节点">节点</a>验证的逻辑是：这些输入以前确实存在、没被花过、签名对得上、输出总额 ≤ 输入总额。全对就收下，放进<a class="t" data-t="内存池">内存池</a>排队。</p>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>6</i>为什么"确认 6 次"就安全了</h2>
+        <p class="vc-lead">你付了钱，交易进了区块，这叫 1 次确认。后面每接一个新块，就叫多一次确认。想撤销这笔交易，攻击者必须从它前面那个块开始，重新算出更长的一条链——<b>而每个块都要重新烧电费</b>。</p>
+        <p class="vc-lead">6 个确认约等于 1 小时。在这个时间尺度上，重算的成本已经远超大多数交易的价值，所以商家敢发货。这不是"绝对不可能"，而是<b>经济上不划算</b>——比特币的安全性从来是经济学，不是数学上的 100%。</p>
+        <div class="vc-myth"><s>误解：</s>交易要等 10 分钟才算转账成功，太慢了。<br><b>实际：</b>广播后 1–2 秒全网就看到了，收银台可以立刻显示"已收到（0 确认）"。10 分钟是"不可撤销"的门槛，不是"到账"的门槛。买咖啡用<a class="t" data-t="闪电网络">闪电网络</a>，秒级且几乎免费。</div>
+      </div>
+
+      <div class="vc-key">
+        <h3>本节记住三句话</h3>
+        <ol>
+          <li>数字货币的死穴是"能复制"，解法只有一个：确定顺序。</li>
+          <li>银行靠"只有我能改"定顺序；<a class="t" data-t="区块链">区块链</a>靠"烧钱买出块权 + 认最长链"定顺序。</li>
+          <li>所谓安全，是"改历史比老实记账更贵"，不是"物理上不可能"。</li>
+        </ol>
+      </div>
+
+      <div class="vc-nav">
+        <a href="ch0.html"><span>第 0 章</span><b>← 钱到底是什么</b></a>
+        <a class="next" href="ch2.html"><span>第 2 章</span><b>区块链的三件套 →</b></a>
+      </div>
+    </section>
+  </main>
+
+  <script src="../../../assets/page.js"></script>
+  <script src="../../../assets/glossary.js"></script>
+</body>
+</html>

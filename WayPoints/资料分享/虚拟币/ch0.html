@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>第 0 章 · 钱到底是什么 - 虚拟币 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../";</script>
+  <link rel="stylesheet" href="../../../assets/style.css" />
+  <link rel="stylesheet" href="vc.css" />
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">钱到底是什么</h1>
+    <p class="page-subtitle">虚拟币 · 第 0 章 · 先搞懂"钱"和"<a class="t" data-t="账本">账本</a>"，后面才不糊涂</p>
+
+    <section class="card">
+      <p class="vc-lead">这一章一个技术词都不需要。我们只做一件事：把"你银行卡里那串数字"这件事彻底拆开看清楚。因为<b>虚拟币从头到尾只干了一件事——换一种方式记账</b>。你要是不明白原来的记账方式，就永远看不懂它到底在改什么。</p>
+
+      <div class="vc-sec">
+        <h2><i>1</i>你手里的钱，其实有两种 <em>看得见的和看不见的</em></h2>
+        <p class="vc-lead">第一种是钞票。你<a class="t" data-t="钱包">钱包</a>里有 300 块，就是三张纸，摸得到。这叫<b>现金</b>。</p>
+        <p class="vc-lead">第二种是余额。你手机银行里显示 4,532.17 元，但你翻遍全身也找不到这 4,532.17 元——因为<b>它根本不是任何东西</b>。它是银行电脑里的一行记录：</p>
+        <div class="vc-box">账户 6222 **** 8888 → 余额 4532.17 元</div>
+        <p class="vc-lead">就这么一行字。你把这一行字叫"我的钱"。全世界 99% 的钱都是这种形式，只是大家平时不去想它。</p>
+        <div class="vc-box"><b>关键认知：</b>现代的钱不是"东西"，是"记录"。钱 = <a class="t" data-t="账本">账本</a>上写着归你的那一行。谁掌握那本账，谁就掌握你的钱（哪怕法律上说钱是你的）。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>2</i>银行的账本长什么样 <em>一笔一笔，只添不改</em></h2>
+        <p class="vc-lead">银行内部不是存着"张三有 5000 元"这样一个数字就完事，它记的是流水：</p>
+        <table class="vc-table">
+          <tr><th>时间</th><th>谁</th><th>动作</th><th>金额</th></tr>
+          <tr><td>9:02</td><td>你</td><td>工资入账</td><td>+8,000</td></tr>
+          <tr><td>12:30</td><td>你</td><td>超市刷卡</td><td>-128.50</td></tr>
+          <tr><td>19:11</td><td>你</td><td>转给室友</td><td>-500</td></tr>
+        </table>
+        <p class="vc-lead" style="margin-top:10px">余额 = 把这些数字加起来。这种"只记流水、不直接改余额"的做法，专业上叫<a class="t" data-t="账本">账本</a>（ledger）。银行对账本有三条铁律：</p>
+        <ul class="vc-steps">
+          <li><b>只添不改。</b>写错一笔不能擦掉，只能再记一笔"冲正"。因为擦掉就查不出谁动过手脚。</li>
+          <li><b>每一笔都有对手方。</b>你的 -500，必须是别人账上的 +500。整个系统的总和永远是零。</li>
+          <li><b>按顺序。</b>9:02 的工资必须在 12:30 的消费之前，否则余额会变成负数。</li>
+        </ul>
+        <p class="vc-lead" style="margin-top:10px">记住这三条。后面比特币、以太坊的所有设计，都是为了让一台不信任彼此的机器网络也能守住这三条。</p>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>3</i>"转账"那一秒，究竟发生了什么 <em>没有钱在飞</em></h2>
+        <p class="vc-lead">你在 App 上点"转账 500 元给室友"，感觉像把钱送出去了。真实过程是这样的：</p>
+        <div class="vc-flow">
+          <span>你点确认</span><i>→</i><span>银行 A 把你余额 -500</span><i>→</i><span>给银行 B 发消息</span><i>→</i>
+          <span>银行 B 给室友 +500</span><i>→</i><span>两家银行之间再慢慢结清</span>
+        </div>
+        <p class="vc-lead">注意最后一步：<b>两家银行之间是真的要结账的</b>，通常不是一笔一笔结，而是一天汇总一次，通过央行的大额支付系统轧差。所以跨行转账"实时到账"其实是银行先垫付、后<a class="t" data-t="清算">清算</a>。如果赶上系统维护，你会看到"已扣款、待入账"。</p>
+        <div class="vc-box"><b>这说明什么：</b>你转账时相信的不是"钱飞过去了"，而是<b>两个机构都会老老实实改自己的账本</b>。整个体系建立在"银行不会赖账、央行压得住"这个前提上。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>4</i>这本账本有三个天生的毛病</h2>
+        <div class="vc-grid">
+          <div><b>① 只有他能改</b>你能看到自己的余额，但账本原件在银行机房。它写错了、冻结了、扣错了，你只能去申诉，没有"自己核对"的资格。</div>
+          <div><b>② 只有他能开</b>开户要身份证、要面签、要审核。全世界大约有 14 亿成年人没有银行账户，不是因为他们不需要，是因为开不了。</div>
+          <div><b>③ 跨不过国界</b>给国外汇一笔钱，走 SWIFT 要 1–5 个工作日，中间行还要抽一笔，<a class="t" data-t="手续费">手续费</a>几十到几百元，而且中途谁都说不清钱卡在哪。</div>
+        </div>
+        <p class="vc-lead" style="margin-top:10px">这三条不是银行坏，而是"一家机构独占账本"这种结构必然的结果。想让账本改不了、谁都能开、跨境像发消息一样快，只有一个方向：<b>让账本不再由一家保管</b>。</p>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>5</i>如果账本由一万个人各存一份 <em>这就是全部的起点</em></h2>
+        <p class="vc-lead">假设你和一万个陌生人共同维护一本账，规则是：</p>
+        <ul class="vc-steps">
+          <li>每个人的电脑里都存着<b>完整的一本</b>，不是片段。</li>
+          <li>谁想加一行，要广播给所有人，别人核对没问题才写进自己那本。</li>
+          <li>如果有人偷偷把自己那本改成"张三有 100 万"，他那一本立刻和其他 9999 本不一样，直接被当成错的丢掉。</li>
+        </ul>
+        <p class="vc-lead" style="margin-top:10px">你会发现：<b>不用信任任何一个人，账本也是可信的</b>。这就是<a class="t" data-t="区块链">区块链</a>想干的事。它不发明钱，它只是把"记账权"从一家公司手里，摊给了全网。</p>
+        <div class="vc-box"><b>所以比特币不是"凭空造出来的钱"。</b>它是"一本谁都改不了、谁都能查、谁都能参与的账本"里的记账单位。先有账本，币只是账本上的单位。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>6</i>三个必须分清的东西 <em>新手第一坑</em></h2>
+        <table class="vc-table">
+          <tr><th>你听到的词</th><th>它其实是</th><th>澄清</th></tr>
+          <tr><td>比特币</td><td>一本账本 + 它的记账单位</td><td>"我有 1 个比特币"= 那本全球公开账本上，有一个<a class="t" data-t="地址">地址</a>被记了 1 个单位，而钥匙在你手里。</td></tr>
+          <tr><td><a class="t" data-t="区块">区块</a>链<a class="t" data-t="区块">区块</a>链</td><td>一种账本的写法</td><td>不是币。它是"把账页用指纹串起来"的技术，很多项目都用它，跟价格没关系。</td></tr>
+          <tr><td><a class="t" data-t="钱包">钱包</a> App</td><td>一把钥匙 + 一个查询窗口</td><td>不是仓库。删掉 App 钱不会消失，因为钱从来不在 App 里。</td></tr>
+        </table>
+        <div class="vc-myth"><s>误解：</s>虚拟币是电脑里的一串文件，像 MP3 一样存在硬盘上。<br><b>实际：</b>硬盘上只有你的钥匙。币本身只是全世界的账本上的一行记录，你的电脑里一个币也没有。</div>
+      </div>
+
+      <div class="vc-key">
+        <h3>本节记住三句话</h3>
+        <ol>
+          <li>钱不是东西，是账本上归你的一行。</li>
+          <li>银行账本的问题不是技术问题，是"只有一家能改"。</li>
+          <li><a class="t" data-t="区块链">区块链</a> = 把账本复印给全网，改一行要改所有人的。</li>
+        </ol>
+      </div>
+
+      <div class="vc-nav">
+        <a href="index.html"><span>目录</span><b>← 回到 12 章总览</b></a>
+        <a class="next" href="ch1.html"><span>第 1 章</span><b>转账、双花与共识 →</b></a>
+      </div>
+    </section>
+  </main>
+
+  <script src="../../../assets/page.js"></script>
+  <script src="../../../assets/glossary.js"></script>
+</body>
+</html>

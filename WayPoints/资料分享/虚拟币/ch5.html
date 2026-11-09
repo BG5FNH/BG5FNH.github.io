@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>第 5 章 · 钱包与钥匙 - 虚拟币 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../";</script>
+  <link rel="stylesheet" href="../../../assets/style.css" />
+  <link rel="stylesheet" href="vc.css" />
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">钱包与钥匙</h1>
+    <p class="page-subtitle">虚拟币 · 第 5 章 · 这一章决定你的钱会不会丢</p>
+
+    <section class="card">
+      <p class="vc-lead">前面四章都是原理，这一章是<b>保命</b>。你在币圈听到的绝大多数惨案——丢币、被盗、被骗——根源都在这一章。看完请务必把"恢复演练"做一遍。</p>
+
+      <div class="vc-sec">
+        <h2><i>1</i>钱包里没有钱</h2>
+        <p class="vc-lead">这是最重要的一句话。<a class="t" data-t="钱包">钱包</a> App 里一个币也没有。币始终在链上那本公共<a class="t" data-t="账本">账本</a>里，<a class="t" data-t="钱包">钱包</a>只做两件事：</p>
+        <ul class="vc-steps">
+          <li><b>算。</b>把<a class="t" data-t="助记词">助记词</a>推算成一串<a class="t" data-t="地址">地址</a>，然后去链上查这些<a class="t" data-t="地址">地址</a>的余额给你看。</li>
+          <li><b>签。</b>你要转账时，用<a class="t" data-t="私钥">私钥</a>对交易<a class="t" data-t="签名">签名</a>，签完把交易广播出去。</li>
+        </ul>
+        <div class="vc-box"><b>所以：</b>删掉 App、手机掉水里、电脑格式化——只要<a class="t" data-t="助记词">助记词</a>还在，钱一分不少。反过来，助记词丢了，就算 App 还开着、余额还在屏幕上，那笔钱也已经不属于任何人了。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>2</i>私钥 → 公钥 → 地址 <em>一条单行道</em></h2>
+        <div class="vc-flow">
+          <span>随机数（<a class="t" data-t="私钥">私钥</a>）</span><i>→</i><span>椭圆曲线乘法</span><i>→</i><span><a class="t" data-t="公钥">公钥</a></span><i>→</i><span><a class="t" data-t="哈希">哈希</a></span><i>→</i><span>地址</span>
+        </div>
+        <p class="vc-lead">箭头只能往右。给你地址，推不出<a class="t" data-t="公钥">公钥</a>；给你公钥，推不出私钥。这个"单向"是整套体系的地基——否则所有币一天内就被算光了。</p>
+        <table class="vc-table">
+          <tr><th></th><th>长什么样</th><th>能不能给别人</th></tr>
+          <tr><td><a class="t" data-t="私钥">私钥</a></td><td>64 个十六进制字符（或 12/24 个单词）</td><td><b>绝对不能</b>。给了等于把<a class="t" data-t="钱包">钱包</a>送人</td></tr>
+          <tr><td><a class="t" data-t="公钥">公钥</a></td><td>一长串，通常不直接出现</td><td>可以，但没必要</td></tr>
+          <tr><td><a class="t" data-t="地址">地址</a></td><td>0x 开头 40 位 / bc1q 开头</td><td>可以，这就是收款账号</td></tr>
+        </table>
+        <div class="vc-warn"><b>警惕"导入钱包"骗局：</b>任何网站、任何"客服"、任何<a class="t" data-t="空投">空投</a>页面要你输入 12 个词或私钥，100% 是盗号。真正的钱包永远不需要你把助记词告诉它——它本来就是从助记词生成的。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>3</i>助记词：把 256 位随机数变成 24 个单词</h2>
+        <p class="vc-lead"><a class="t" data-t="助记词">助记词</a>不是"密码提示"，它<b>就是</b>私钥，只是换了一种人能抄写的形式。标准叫 BIP-39：</p>
+        <ul class="vc-steps">
+          <li>取 128 位（12 词）或 256 位（24 词）真随机数。</li>
+          <li>加一小段校验位，然后每 11 位切一段，去一张 2048 词的固定词表里查。</li>
+          <li>于是得到 12 或 24 个词。词表是公开的，任何人都能下载。</li>
+        </ul>
+        <p class="vc-lead" style="margin-top:10px">因为这 2048 个词是固定的，所以<b>任何支持 BIP-39 的钱包，输入同一串词就得到同一批地址</b>。这就是为什么你换手机、换 App、换品牌，钱都还在。</p>
+        <div class="vc-myth"><s>误解：</s>助记词是我自己设的密码，越难记越安全。<br><b>实际：</b>助记词不能自己选，必须由钱包用真随机数生成。人脑想出来的词能被字典攻击，网上那些"我自己编的 12 个词"的钱包，基本都被扫过。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>4</i>派生路径：同一句话，为什么地址不一样</h2>
+        <p class="vc-lead">一串助记词能派生出<b>无数个</b>私钥。走哪条分支，由<a class="t" data-t="派生路径">派生路径</a>决定，写法像 <code>m/44'/60'/0'/0/0</code>。数字含义：</p>
+        <table class="vc-table">
+          <tr><th>位置</th><th>含义</th><th>例子</th></tr>
+          <tr><td>44'</td><td>BIP-44 通用规范</td><td>几乎所有钱包都用</td></tr>
+          <tr><td>60'</td><td>币种（coin type）</td><td>0=比特币，60=以太坊，501=Solana</td></tr>
+          <tr><td>0'</td><td>账户序号</td><td>想分"日常/储蓄"就换这个</td></tr>
+          <tr><td>0</td><td>找零/外部链</td><td>一般 0</td></tr>
+          <tr><td>0</td><td>第几个地址</td><td>0、1、2…每点"新建账户"就 +1</td></tr>
+        </table>
+        <p class="vc-lead" style="margin-top:10px">这就是新手最常见的恐慌场景：<b>换钱包后输入同一串助记词，余额显示 0。</b>99% 不是钱丢了，而是新钱包默认走了另一条路径。解决办法：在导入时选"选择路径 / 高级导入"，试 <code>m/44'/60'/0'/0/0</code>、<code>m/44'/60'/0'/0</code>、<code>m/44'/0'/0'/0/0</code> 等常见组合。</p>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>5</i>热钱包、冷钱包、硬件钱包</h2>
+        <div class="vc-grid">
+          <div><b>热钱包</b>手机/浏览器插件，私钥在联网设备上。方便，适合小额日常。代表：MetaMask、OKX Web3、Phantom。</div>
+          <div><b><a class="t" data-t="冷钱包">冷钱包</a></b>私钥从不接触网络：纸、钢板、离线旧手机。免费但操作麻烦。</div>
+          <div><b><a class="t" data-t="硬件钱包">硬件钱包</a></b>专用设备，<a class="t" data-t="签名">签名</a>在设备内完成，电脑中毒也拿不到私钥。几百到上千元，大额必配。</div>
+          <div><b>托管钱包</b><a class="t" data-t="交易所">交易所</a>账户。私钥在平台手里，密码忘了能找回，平台倒了就没了。</div>
+        </div>
+        <p class="vc-lead" style="margin-top:10px">实践建议：<b>分层</b>。日常零花放手机热钱包（几百块），主资产放<a class="t" data-t="硬件钱包">硬件钱包</a>，绝不在同一个助记词上混用。这样即使手机被盗，损失也可控。</p>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>6</i>备份：怎么抄才不丢</h2>
+        <ul class="vc-steps">
+          <li><b>手写，纸笔。</b>不要截图、不要存相册、不要存微信收藏、不要存云笔记。手机相册和云盘是黑客第一个翻的地方。</li>
+          <li><b>抄三份，分三个地方。</b>家里、父母家、银行保险箱。防的不是黑客，是火灾、水淹、搬家丢失。</li>
+          <li><b>核对词序和拼写。</b>写完当场按"恢复钱包"走一遍，确认能生成同一个地址。这一步能救你未来的自己。</li>
+          <li><b>长期存放用金属板。</b>纸会烂、会烧。市面上有打孔钢板，几十到几百元，防火防水。</li>
+          <li><b>永远不要在联网设备上打字输入助记词。</b>除了恢复钱包的那一次，而且要在干净的设备上。</li>
+        </ul>
+        <div class="vc-warn"><b>进阶陷阱：</b>"伪装钱包"（wallet drainer）会让你签名一笔看起来像"登录"的交易，实际是把资产转走的<a class="t" data-t="授权">授权</a>。签名前一定看清单子上写的是"转账 / <a class="t" data-t="授权">授权</a> / 无限额度"。</div>
+      </div>
+
+      <div class="vc-sec">
+        <h2><i>7</i>我做过的一个实验：虚荣助记词</h2>
+        <p class="vc-lead">既然助记词就是随机数，那能不能<b>反向定制</b>——不断生成，直到地址开头正好是 "888888" 这种好看的样子？可以，这在圈内叫"虚荣地址"（vanity address）。代价是算力：每多一位十六进制字符，<a class="t" data-t="难度">难度</a>乘 16。</p>
+        <p class="vc-lead">我写了一个本地工具做实测：随机生成 → 推地址 → 匹配前缀，看看普通电脑每秒能试多少个、6 位前缀要跑多久。结论写在下面的报告里，包括它为什么<b>不安全</b>（生成过程接触到私钥的那台机器必须绝对干净）。</p>
+        <div class="vc-box">如果你只是想"看懂"，记住一句就够：<b>地址长得好看不增加任何安全性，反而可能因为生成方式不干净而更危险。</b>正规做法永远是让钱包自己随机生成。</div>
+      </div>
+
+      <div class="vc-key">
+        <h3>本节记住三句话</h3>
+        <ol>
+          <li>币在链上，钱包只是钥匙 + 查询器；删 App 不会丢钱。</li>
+          <li>助记词 = 私钥 = 全部资产，除了自己谁也别说、哪儿也别存电子版。</li>
+          <li>换钱包余额变 0，先查<a class="t" data-t="派生路径">派生路径</a>，别急着认为钱没了。</li>
+        </ol>
+      </div>
+
+      <div class="vc-nav">
+        <a href="ch4.html"><span>第 4 章</span><b>← 以太坊</b></a>
+        <a class="next" href="ch6.html"><span>第 6 章</span><b>稳定币与交易所 →</b></a>
+      </div>
+    </section>
+  </main>
+
+  <script src="../../../assets/page.js"></script>
+  <script src="../../../assets/glossary.js"></script>
+</body>
+</html>
