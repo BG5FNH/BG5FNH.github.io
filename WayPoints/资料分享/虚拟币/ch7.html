@@ -141,7 +141,7 @@
         var dx = parseFloat(slider.value);
         if (!(dx > 0)) dx = 0.1;
         if (dx > X0 * 0.92) dx = X0 * 0.92;
-        var cost = Y0 - K / (X0 - dx);          // 恒定乘积：付出多少 USDC
+        var cost = K / (X0 - dx) - Y0;          // 恒定乘积：池里 USDC 的增量就是你付的钱
         var avg = cost / dx;
         var newP = (K / (X0 - dx)) / (X0 - dx); // 成交后池内价格
         var slip = (avg / P0 - 1) * 100;
@@ -156,6 +156,7 @@
     })();
   </script>
   <script src="../../../assets/page.js"></script>
+  <script src="fold.js"></script>
   <script src="../../../assets/glossary.js"></script>
 </body>
 </html>

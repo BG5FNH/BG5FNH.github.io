@@ -115,10 +115,89 @@
 
 .vc-note { margin: 8px 0 0; font-size: 11.5px; color: var(--vc-dim); line-height: 1.8; }
 
+/* ===== 折叠卡片（fold.js） ===== */
+.fold {
+  margin: 9px 0; border-radius: 12px; overflow: hidden;
+  border: 1px solid rgba(240, 180, 90, .18); background: rgba(14, 12, 9, .55);
+  scroll-margin-top: 78px;
+}
+.fold.open { border-color: rgba(240, 180, 90, .34); background: rgba(16, 13, 9, .72); }
+.fold-h {
+  display: flex; align-items: center; gap: 9px; width: 100%;
+  padding: 11px 13px; font: inherit; text-align: left; cursor: pointer;
+  color: inherit; background: none; border: 0; -webkit-tap-highlight-color: transparent;
+}
+.fold-h:hover { background: rgba(240, 180, 90, .05); }
+.fold-t {
+  flex: 1; display: flex; align-items: center; gap: 9px;
+  font-size: 14.5px; letter-spacing: .4px; line-height: 1.55; color: var(--vc-btc);
+}
+.fold-t i {
+  flex: none; width: 22px; height: 22px; border-radius: 7px; font-style: normal;
+  font-size: 11.5px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  color: #1a1206; background: linear-gradient(140deg, var(--vc-btc2), var(--vc-btc));
+}
+.fold-t em { font-style: normal; font-size: 11.5px; color: var(--vc-dim); font-weight: 400; }
+.fold-chev {
+  flex: none; width: 8px; height: 8px; margin-right: 3px;
+  border-right: 2px solid #b08a55; border-bottom: 2px solid #b08a55;
+  transform: rotate(45deg) translateY(-2px); transition: transform .2s ease; opacity: .85;
+}
+.fold.open .fold-chev { transform: rotate(225deg) translateY(-2px); }
+.fold-b { display: none; padding: 0 13px 11px; }
+.fold.open .fold-b { display: block; animation: foldfade .18s ease; }
+.fold-in > :first-child { margin-top: 0; }
+@keyframes foldfade { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
+
+.fold-toc {
+  display: flex; gap: 6px; overflow-x: auto; padding: 2px 1px 8px; margin: 2px 0 0;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.fold-toc::-webkit-scrollbar { display: none; }
+@media (min-width: 641px) { .fold-toc { flex-wrap: wrap; overflow: visible; } }
+.fold-chip {
+  flex: none; font: inherit; font-size: 12px; white-space: nowrap; cursor: pointer;
+  padding: 6px 11px; border-radius: 999px; color: #e0cba0;
+  border: 1px solid rgba(240, 180, 90, .3); background: rgba(240, 180, 90, .06);
+  -webkit-tap-highlight-color: transparent;
+}
+.fold-chip.on { color: #fff6e0; border-color: var(--vc-btc); background: rgba(240, 180, 90, .22); }
+.fold-toc-all { display: flex; justify-content: flex-end; margin: -4px 0 8px; }
+.fold-all {
+  font: inherit; font-size: 11.5px; cursor: pointer; padding: 4px 11px; border-radius: 999px;
+  color: var(--vc-dim); border: 1px solid rgba(255, 255, 255, .14); background: transparent;
+}
+.fold-all.on { color: var(--vc-btc2); border-color: rgba(240, 180, 90, .5); background: rgba(240, 180, 90, .1); }
+
+.fold-scroll { overflow-x: auto; margin: 8px 0; -webkit-overflow-scrolling: touch; }
+.fold-scroll::-webkit-scrollbar { height: 3px; }
+.fold-scroll::-webkit-scrollbar-thumb { background: rgba(240, 180, 90, .35); border-radius: 3px; }
+.fold-scroll > .vc-table { margin: 0; }
+
+.fold-top {
+  position: fixed; right: 14px; bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  width: 38px; height: 38px; border-radius: 50%; font-size: 16px; line-height: 1;
+  cursor: pointer; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+  color: #ffe9c0; background: rgba(20, 16, 10, .88);
+  border: 1px solid rgba(240, 180, 90, .45); box-shadow: 0 6px 20px rgba(0, 0, 0, .45);
+  transform: translateY(6px); z-index: 60;
+}
+.fold-top.show { opacity: 1; pointer-events: auto; transform: none; }
+
 @media (max-width: 640px) {
-  .vc-lead { font-size: 13.5px; }
+  .vc-lead { font-size: 13px; line-height: 1.88; }
   .vc-grid { grid-template-columns: 1fr; }
   .vc-stat { grid-template-columns: 1fr; }
-  .vc-table { font-size: 12px; }
-  .vc-table th, .vc-table td { padding: 7px 8px; }
+  .vc-table { font-size: 11.5px; }
+  .vc-table th, .vc-table td { padding: 6px 7px; }
+  .fold { margin: 7px 0; }
+  .fold-h { padding: 10px 11px; }
+  .fold-t { font-size: 13.5px; gap: 7px; }
+  .fold-t i { width: 20px; height: 20px; font-size: 11px; }
+  .fold-b { padding: 0 11px 10px; }
+  .fold-scroll { margin: 6px -11px; padding-left: 11px; padding-right: 11px; }
+  .fold-scroll > .vc-table { min-width: 440px; }
+  .fold-toc { padding-bottom: 6px; mask-image: linear-gradient(to right, #000 86%, rgba(0, 0, 0, .25) 100%); -webkit-mask-image: linear-gradient(to right, #000 86%, rgba(0, 0, 0, .25) 100%); }
+  .fold-chip { font-size: 11.5px; padding: 5px 10px; }
+  .fold-top { width: 34px; height: 34px; right: 12px; }
 }
