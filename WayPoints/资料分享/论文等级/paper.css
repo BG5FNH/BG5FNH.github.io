@@ -118,7 +118,7 @@
 
 /* 等级阶梯 */
 .pp-ladder { margin: 12px 0 0; border-radius: 12px; overflow: hidden; border: 1px solid rgba(90, 169, 255, .22); }
-.pp-row { display: grid; grid-template-columns: 62px 1fr 92px; gap: 10px; align-items: center;
+.pp-row { display: grid; grid-template-columns: 76px 1fr 92px; gap: 10px; align-items: center;
   padding: 9px 12px; font-size: 12.5px; line-height: 1.6; border-bottom: 1px solid rgba(255, 255, 255, .06); }
 .pp-row:last-child { border-bottom: none; }
 .pp-row .tag { font-weight: 700; letter-spacing: .5px; font-size: 11.5px; white-space: nowrap; }
@@ -219,9 +219,9 @@
   .pp-stat { grid-template-columns: 1fr; }
   .pp-table { font-size: 11.5px; }
   .pp-table th, .pp-table td { padding: 6px 7px; }
-  .pp-row { grid-template-columns: 44px 1fr; gap: 7px; padding: 7px 10px; }
+  .pp-row { grid-template-columns: 58px 1fr; gap: 6px; padding: 7px 10px; }
   .pp-row .who { display: none; }
-  .pp-row .tag { font-size: 11px; }
+  .pp-row .tag { font-size: 10.5px; letter-spacing: 0; }
   .pp-row .what b { font-size: 12.5px; }
   .pp-row .what span { font-size: 11px; line-height: 1.5; margin-top: 1px; }
   .pp-ladder { margin-top: 8px; }

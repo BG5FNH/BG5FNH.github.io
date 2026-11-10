@@ -125,7 +125,11 @@
     var h = (location.hash || '').replace(/^#/, '');
     if (!h) return false;
     var acc = accs.find(function (a) { return a.id === h; });
-    if (acc) { openOne(acc, true); return true; }
+    if (acc) {
+      accs.forEach(function (a) { setOpen(a, a === acc); });
+      openOne(acc, true);
+      return true;
+    }
     return false;
   }
   fromHash();

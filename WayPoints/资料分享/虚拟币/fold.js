@@ -118,7 +118,10 @@
     var h = (location.hash || '').replace(/^#/, '');
     if (!h) return;
     var acc = accs.find(function (a) { return a.id === h; });
-    if (acc) openOne(acc, true);
+    if (acc) {
+      accs.forEach(function (a) { setOpen(a, a === acc || a.dataset.force === '1'); });
+      openOne(acc, true);
+    }
   }
   fromHash();
   window.addEventListener('hashchange', fromHash);
