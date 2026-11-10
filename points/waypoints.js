@@ -411,6 +411,50 @@ window.BG5FNH_WAYPOINTS = {
               { key: 'vc11b', path: 'vc11b', parent: 'vc11', name: '哈希会循环吗', pos: [62.90, -4.90], scale: 0.92, labelScale: 1.5, color: '#c3ac82', lineColor: '#8a7348', url: '资料分享/虚拟币/ch11.html' },
               { key: 'vc11c', path: 'vc11c', parent: 'vc11', name: 'MEV 三明治', pos: [62.90, -7.20], scale: 0.92, labelScale: 1.5, color: '#c3ac82', lineColor: '#8a7348', url: '资料分享/虚拟币/ch11.html' },
             ]
+          },
+
+          {
+            // 论文等级：竖着的阶梯，越往上越难。蓝 = 全球期刊，红 = 中国期刊，灰 = 不在体系内。
+            path: '资料分享/论文等级',
+            name: '论文等级',
+            pos: [2.75, 2.45],
+            universe: true,
+            universeColor: '#5aa9ff',
+            universeColor2: '#ff6b6b',
+            universeBg: '#070b12',
+            universePoints: [
+              { key: 'pp', path: 'pp', name: '论文等级', pos: [-7.60, 13.80], scale: 1.35, labelScale: 1.2, color: '#cfe4ff', lineColor: '#3f5f7a', url: '资料分享/论文等级/index.html' },
+
+              // —— 竖梯：从最高到最低 ——
+              { key: 'cap', path: 'cap', name: '从高到低 ↓', pos: [-8.40, 19.60], scale: 0.62, labelScale: 0.9, color: '#7f8c99', lineColor: '#3f5f7a', url: '资料分享/论文等级/index.html' },
+
+          { key: 't0', path: 't0', parent: 'pp', name: 'T0 · Nature / Science / Cell', pos: [0, 13.80], scale: 1.20, labelScale: 1.2, color: '#7fc4ff', lineColor: '#3f5f7a', url: '资料分享/论文等级/quartile.html#cns' },
+              { key: 't1', path: 't1', parent: 't0', name: 'T1 · 顶刊子刊', pos: [0, 11.00], scale: 1.20, labelScale: 1.2, color: '#7fc4ff', lineColor: '#3f5f7a', url: '资料分享/论文等级/quartile.html#cns' },
+              { key: 't2', path: 't2', parent: 't1', name: 'T2 · 一区 Q1', pos: [0, 8.20], scale: 1.20, labelScale: 1.2, color: '#5aa9ff', lineColor: '#3f5f7a', url: '资料分享/论文等级/quartile.html#q1' },
+              { key: 't3', path: 't3', parent: 't2', name: 'T3 · 二区 Q2', pos: [0, 5.40], scale: 1.20, labelScale: 1.2, color: '#5aa9ff', lineColor: '#3f5f7a', url: '资料分享/论文等级/quartile.html#q34' },
+              { key: 't4', path: 't4', parent: 't3', name: 'T4 · 三/四区', pos: [0, 2.60], scale: 1.20, labelScale: 1.2, color: '#5aa9ff', lineColor: '#3f5f7a', url: '资料分享/论文等级/quartile.html#q34' },
+              { key: 't5', path: 't5', parent: 't4', name: 'T5 · 中文顶刊', pos: [0, -0.20], scale: 1.20, labelScale: 1.2, color: '#ff6b6b', lineColor: '#7a3434', url: '资料分享/论文等级/cn.html#top' },
+              { key: 't6', path: 't6', parent: 't5', name: 'T6 · 中文核心', pos: [0, -3.00], scale: 1.20, labelScale: 1.2, color: '#ff6b6b', lineColor: '#7a3434', url: '资料分享/论文等级/cn.html#core' },
+              { key: 't7', path: 't7', parent: 't6', name: 'T7 · 普刊 / 增刊', pos: [0, -5.80], scale: 1.20, labelScale: 1.2, color: '#ff6b6b', lineColor: '#7a3434', url: '资料分享/论文等级/cn.html#gen' },
+              { key: 't8', path: 't8', parent: 't7', name: 'T8 · 预警 / 水刊', pos: [0, -8.60], scale: 1.20, labelScale: 1.2, color: '#9aa7b4', lineColor: '#4e5862', url: '资料分享/论文等级/warning.html#warn' },
+
+              // —— 左侧：全球体系的几个名单 ——
+              { key: 'l0', path: 'l0', parent: 't0', name: 'SCI / SCIE', pos: [-5.60, 12.60], scale: 0.90, labelScale: 1.0, color: '#9ec9ff', lineColor: '#3f5f7a', url: '资料分享/论文等级/database.html#sci' },
+              { key: 'l1', path: 'l1', parent: 't1', name: 'ESCI 预备层', pos: [-5.60, 11.00], scale: 0.90, labelScale: 1.0, color: '#9ec9ff', lineColor: '#3f5f7a', url: '资料分享/论文等级/database.html#esci' },
+              { key: 'l2', path: 'l2', parent: 't2', name: 'EI 工程索引', pos: [-5.60, 8.20], scale: 0.90, labelScale: 1.0, color: '#9ec9ff', lineColor: '#3f5f7a', url: '资料分享/论文等级/database.html#ei' },
+              { key: 'l3', path: 'l3', parent: 't3', name: 'Scopus', pos: [-5.60, 5.40], scale: 0.90, labelScale: 1.0, color: '#9ec9ff', lineColor: '#3f5f7a', url: '资料分享/论文等级/database.html#scopus' },
+              { key: 'l4', path: 'l4', parent: 't4', name: 'CCF A / B / C', pos: [-5.60, 2.60], scale: 0.90, labelScale: 1.0, color: '#9ec9ff', lineColor: '#3f5f7a', url: '资料分享/论文等级/ccf.html#a' },
+              { key: 'l5', path: 'l5', parent: 't5', name: '会议 vs 期刊', pos: [-5.60, -0.20], scale: 0.90, labelScale: 1.0, color: '#9ec9ff', lineColor: '#3f5f7a', url: '资料分享/论文等级/ccf.html#conf' },
+              { key: 'l6', path: 'l6', parent: 't6', name: 'OA 与版面费', pos: [-5.60, -3.00], scale: 0.90, labelScale: 1.0, color: '#9ec9ff', lineColor: '#3f5f7a', url: '资料分享/论文等级/warning.html#oa' },
+              { key: 'l7', path: 'l7', parent: 't7', name: '掠夺性期刊', pos: [-5.60, -5.80], scale: 0.90, labelScale: 1.0, color: '#b9c3cc', lineColor: '#4e5862', url: '资料分享/论文等级/warning.html#pred' },
+
+              // —— 右侧：每一档怎么判断 ——
+              { key: 'r2', path: 'r2', parent: 't2', name: '一区算法', pos: [5.00, 8.20], scale: 0.90, labelScale: 1.0, color: '#9ec9ff', lineColor: '#3f5f7a', url: '资料分享/论文等级/quartile.html#q1' },
+              { key: 'r3', path: 'r3', parent: 't3', name: 'TOP 期刊', pos: [5.00, 5.40], scale: 0.90, labelScale: 1.0, color: '#9ec9ff', lineColor: '#3f5f7a', url: '资料分享/论文等级/quartile.html#top' },
+              { key: 'r4', path: 'r4', parent: 't4', name: '两套分区', pos: [5.00, 2.60], scale: 0.90, labelScale: 1.0, color: '#9ec9ff', lineColor: '#3f5f7a', url: '资料分享/论文等级/quartile.html#cmp' },
+              { key: 'r6', path: 'r6', parent: 't6', name: '四套核心', pos: [5.00, -3.00], scale: 0.90, labelScale: 1.0, color: '#ffb3a7', lineColor: '#7a3434', url: '资料分享/论文等级/cn.html#core' },
+              { key: 'r8', path: 'r8', parent: 't8', name: '四步查刊', pos: [5.00, -8.60], scale: 0.90, labelScale: 1.0, color: '#9ec9ff', lineColor: '#3f5f7a', url: '资料分享/论文等级/howto.html#steps' }
+            ]
           }
         ]
       },

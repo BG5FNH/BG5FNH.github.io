@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>论文等级 · 一眼看懂期刊高低 - BG5FNH</title>
+  <script>window.BG5FNH_ROOT = "../../../";</script>
+  <link rel="stylesheet" href="../../../assets/style.css" />
+  <link rel="stylesheet" href="paper.css" />
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="#c9a86a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      返回
+    </button>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">论文等级</h1>
+    <p class="page-subtitle">资料分享 · 论文等级 · 从 Nature 到普刊，一张表排完</p>
+
+    <section class="card">
+      <p class="pp-lead">先把最容易搞错的一句话放在最前面：<b>「<a class="t" data-t="SCI">SCI</a>」不是等级，是名单；「几区」才是等级。</b>一本期刊可以既是 <a class="t" data-t="SCI">SCI</a>，又是四区；也可以是 SCI，还是一区。下面这张阶梯表，从最高排到最低，蓝色是全球期刊，红色是中国期刊。</p>
+
+      <div class="pp-ladder">
+        <div class="pp-row gl">
+          <div class="tag">T0</div>
+          <div class="what"><b>Cell / Nature / Science 主刊</b><span>全球最顶的综合科学期刊，不按学科分，什么都收，<a class="t" data-t="录用率">录用率</a> 5%–10%</span></div>
+          <div class="who">全球通行</div>
+        </div>
+        <div class="pp-row gl">
+          <div class="tag">T1</div>
+          <div class="what"><b><a class="t" data-t="CNS">CNS</a> <a class="t" data-t="子刊">子刊</a> · 大综合顶刊</b><span>Nature Physics 这类正刊<a class="t" data-t="子刊">子刊</a>，以及 Science Advances、PNAS、Nature Communications</span></div>
+          <div class="who">全球通行</div>
+        </div>
+        <div class="pp-row gl">
+          <div class="tag">T2</div>
+          <div class="what"><b>一区（<a class="t" data-t="Q1">Q1</a> / 中科院 1 区 / Top）</b><span>各学科自己的顶刊：PRL、JACS、IEEE TPAMI、Joule、Cell 子刊……</span></div>
+          <div class="who">高校硬指标</div>
+        </div>
+        <div class="pp-row gl">
+          <div class="tag">T3</div>
+          <div class="what"><b>二区（Q2）</b><span>本学科中上水平，很多博士毕业、评副教授就卡在这一档</span></div>
+          <div class="who">主流毕业线</div>
+        </div>
+        <div class="pp-row gl">
+          <div class="tag">T4</div>
+          <div class="what"><b>三区 / 四区（Q3–Q4）</b><span>仍是 SCI，但影响力靠后；开源大水刊多集中在这里</span></div>
+          <div class="who">能算，但分低</div>
+        </div>
+        <div class="pp-row cn">
+          <div class="tag">T5</div>
+          <div class="what"><b>中文顶刊</b><span>《中国科学》《科学通报》《中国社会科学》这类国内顶级中文刊</span></div>
+          <div class="who">国内认可</div>
+        </div>
+        <div class="pp-row cn">
+          <div class="tag">T6</div>
+          <div class="what"><b>中文核心</b><span><a class="t" data-t="北大核心">北大核心</a> / <a class="t" data-t="CSSCI">CSSCI</a> / <a class="t" data-t="CSCD">CSCD</a> / <a class="t" data-t="科技核心">科技核心</a>——四套体系，谁认哪套看单位文件</span></div>
+          <div class="who">评职称常用</div>
+        </div>
+        <div class="pp-row cn">
+          <div class="tag">T7</div>
+          <div class="what"><b>普刊 / 学报 / <a class="t" data-t="增刊">增刊</a></b><span>不在任何核心名单里的正规期刊，以及<a class="t" data-t="增刊">增刊</a>、论文集</span></div>
+          <div class="who">多数不算业绩</div>
+        </div>
+        <div class="pp-row gy">
+          <div class="tag">T8</div>
+          <div class="what"><b>预警期刊 / <a class="t" data-t="掠夺性期刊">掠夺性期刊</a></b><span>给钱就发、没有真审稿；上了中科院<a class="t" data-t="预警名单">预警名单</a>的还会被倒扣</span></div>
+          <div class="who">不要投</div>
+        </div>
+      </div>
+      <div class="pp-legend">
+        <span><i style="background:#5aa9ff"></i>蓝色 = 全球期刊（SCI / <a class="t" data-t="EI">EI</a> 体系）</span>
+        <span><i style="background:#ff6b6b"></i>红色 = 中国期刊（中文核心体系）</span>
+        <span><i style="background:#9aa7b4"></i>灰色 = 不在体系内</span>
+      </div>
+      <p class="pp-lead" style="margin-top:12px;font-size:12.5px;color:var(--pp-dim)">注意：这张表是<b>粗略的横向对照</b>，不是官方换算。同一档里差别也很大，而且不同学校对「T2 等于几篇 T4」的算法完全不同——一切以你单位当年的认定文件为准。</p>
+    </section>
+
+    <section class="card">
+      <div class="pp-sec">
+        <h2><i>1</i>三句话搞懂全部逻辑</h2>
+        <ul class="pp-steps">
+          <li><b>先看「有没有被收录」。</b>SCI、<a class="t" data-t="EI">EI</a>、<a class="t" data-t="Scopus">Scopus</a> 都是索引数据库，只回答「在不在名单里」，不回答「排第几」。</li>
+          <li><b>再看「排第几」。</b>这就是<a class="t" data-t="分区">分区</a>：<a class="t" data-t="JCR">JCR</a> 把每个学科四等分（<a class="t" data-t="Q1">Q1</a>–Q4），中科院按金字塔分（1 区只取前 5%）。</li>
+          <li><b>最后看「你单位认哪套」。</b>国内九成以上的毕业/职称文件写的是<a class="t" data-t="分区">分区</a><a class="t" data-t="中科院分区">中科院分区</a>，但计算机方向常常另看 <a class="t" data-t="CCF">CCF</a> 目录，文科看 <a class="t" data-t="CSSCI">CSSCI</a>。</li>
+        </ul>
+        <div class="pp-box"><b>所以「这本刊什么水平」这个问题，完整答案有三段：</b>它是 SCI 几区（或 <a class="t" data-t="CCF">CCF</a> 几类 / 中文哪套核心）→ 是不是 Top → 在你学校算几分。少一段都不完整。</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="pp-sec">
+        <h2><i>2</i>五个新手最容易踩的坑</h2>
+        <div class="pp-myth"><s>误解一：</s>被 SCI 收录就是好刊。<br><b>实际：</b>SCI 里有四区，也有很多刚过线的刊。「SCI 收录」只是入场券。</div>
+        <div class="pp-myth"><s>误解二：</s><a class="t" data-t="JCR">JCR</a> 一区 = 中科院一区。<br><b>实际：</b>两套算法不同，很多刊 JCR 是 Q1、中科院只有 2 区。看文件写的是哪套。</div>
+        <div class="pp-myth"><s>误解三：</s><a class="t" data-t="影响因子">影响因子</a>越高越厉害。<br><b>实际：</b><a class="t" data-t="影响因子">影响因子</a> 跨学科不可比。数学 2 分可能比材料 8 分更难，因为学科平均被引天差地别。</div>
+        <div class="pp-myth"><s>误解四：</s>名字里带 Nature 就很强。<br><b>实际：</b>子刊 之间差得远。Nature Physics 和 Nature Communications 不是一个量级。</div>
+        <div class="pp-myth"><s>误解五：</s>发中文刊没出息。<br><b>实际：</b>国内评职称、报项目、拿奖，中文核心常常是硬性要求；有些赛道（教学、临床、工程应用）中文刊反而是主力。</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="pp-sec">
+        <h2><i>3</i>想投一篇，按这个顺序看</h2>
+        <div class="pp-flow">
+          <span>定方向</span><i>→</i><span>列 8–10 本候选刊</span><i>→</i><span>查收录与分区</span><i>→</i><span>查学校认不认</span><i>→</i><span>查<a class="t" data-t="预警名单">预警名单</a></span><i>→</i><span>看<a class="t" data-t="审稿周期">审稿周期</a>与<a class="t" data-t="版面费">版面费</a></span><i>→</i><span>投稿</span>
+        </div>
+        <p class="pp-lead" style="margin-top:10px">每一步具体怎么做，写在《<a href="howto.html">怎么查一本期刊的等级</a>》那一页，照着点就行。</p>
+      </div>
+
+      <div class="pp-key">
+        <h3>这一页记住三句话</h3>
+        <ol>
+          <li>SCI 是名单，分区才是等级；两套分区（JCR / 中科院）不能混着说。</li>
+          <li>蓝色是全球体系，红色是中国体系，两套平行、互不换算。</li>
+          <li>最终裁判是你学校的认定文件，不是网上的排名表。</li>
+        </ol>
+      </div>
+
+      <div class="pp-nav">
+        <a href="../index.html"><span>资料分享</span><b>← 返回资料分享</b></a>
+        <a class="next" href="quartile.html"><span>下一页</span><b>一区二区与 TOP 到底是什么 →</b></a>
+      </div>
+    </section>
+  </main>
+
+  <script src="../../../assets/page.js"></script>
+  <script src="../../../assets/glossary.js"></script>
+</body>
+</html>
